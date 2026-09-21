@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 21, 2026 at 02:28 PM
+-- Generation Time: Sep 21, 2026 at 08:44 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -63,7 +63,7 @@ CREATE TABLE `expenses` (
   `amount` decimal(10,2) NOT NULL,
   `remarks` text DEFAULT NULL,
   `date_logged` timestamp NOT NULL DEFAULT current_timestamp(),
-  `date` date DEFAULT curdate()
+  `date` date DEFAULT (CURRENT_DATE)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --

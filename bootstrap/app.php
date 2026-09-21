@@ -11,7 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Dito natin idinagdag ang alias para sa admin middleware
+        // Idagdag ito para sa Railway proxy / HTTPS support
+        $middleware->trustProxies(at: '*');
+
+        // Ang iyong kasalukuyang admin alias
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
         ]);
