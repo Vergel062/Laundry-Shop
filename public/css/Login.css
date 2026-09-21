@@ -1,0 +1,91 @@
+ body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+        }
+        .back-to-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: white;
+            text-decoration: none;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
+            border-radius: 50px;
+            backdrop-filter: blur(5px);
+            transition: 0.3s;
+        }
+        .login-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        .brand-logo { font-size: 2.5rem; color: #0ea5e9; }
+        .form-control { border-radius: 12px; padding: 12px 15px; }
+        .btn-login { background: #0ea5e9; border: none; border-radius: 12px; padding: 12px; font-weight: 600; color: white; transition: 0.3s; }
+        .btn-login:hover { background: #0284c7; color: white; }
+
+        /* DESIGNED BACK BUTTON CONTAINER */
+.btn-back-home {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 14px 6px 6px; /* Mas maliit na padding sa left para sa bilog */
+    background: #f8fafc; /* Napakapuputing gray */
+    color: #64748b; /* Slate color para malinis */
+    text-decoration: none;
+    border-radius: 50px; /* Pill shape */
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid #e2e8f0;
+}
+
+/* YUNG BILOG NA MAY ARROW */
+.btn-back-home .icon-circle {
+    width: 28px;
+    height: 28px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+}
+
+.btn-back-home i {
+    font-size: 0.9rem;
+    color: #0ea5e9; /* Kulay ng brand mo */
+}
+
+/* HOVER ANIMATION */
+.btn-back-home:hover {
+    background: #f1f5f9;
+    color: #0ea5e9;
+    transform: translateX(-5px); /* Uusog pabalik nang kaunti */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.btn-back-home:hover .icon-circle {
+    background: #0ea5e9; /* Mag-blue ang bilog pag hinover */
+}
+
+.btn-back-home:hover i {
+    color: white; /* Mag-white ang arrow */
+}
+
+/* MOBILE FIX */
+@media (max-width: 480px) {
+    .btn-back-home {
+        font-size: 0.8rem;
+        padding: 5px 12px 5px 5px;
+    }
+}

@@ -1,0 +1,43 @@
+body { font-family: 'Poppins', sans-serif; background-color: #f1f5f9; }
+    
+    /* Sidebar Base Desktop Styles */
+    #sidebar { 
+        min-width: 260px; 
+        max-width: 260px; 
+        background: #ffffff; 
+        min-height: 100vh; 
+        border-right: 1px solid #e2e8f0; 
+        transition: all 0.3s ease; 
+    }
+
+    #sidebar .nav-link { color: #64748b; padding: 12px 20px; margin: 4px 15px; border-radius: 10px; font-weight: 500; }
+    #sidebar .nav-link:hover, #sidebar .nav-link.active { background-color: #0ea5e9; color: #fff; }
+    #sidebar .nav-link i { margin-right: 12px; font-size: 1.1rem; }
+    
+    #content { width: 100%; }
+    .glass-card { background: white; border: none; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .loyalty-balance { background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); color: white; border-radius: 16px; }
+    .notification-menu { min-width: 280px; max-width: 340px; }
+    .notification-menu .dropdown-item { white-space: normal; }
+
+    /* Mobile Styles (Max-width 768px) */
+    @media (max-width: 768px) { 
+        #sidebar { 
+            position: fixed; /* Binago mula absolute patungong fixed */
+            left: -260px;    /* Nakatago sa labas ng screen sa kaliwa */
+            margin-left: 0; 
+            z-index: 1050;   /* Mas mataas sa navbar para hindi matakpan */
+            height: 100vh;
+            box-shadow: 10px 0 15px rgba(0,0,0,0.1);
+        } 
+
+        /* Kapag may .active class, lalabas ang sidebar */
+        #sidebar.active { 
+            left: 0; 
+        } 
+
+        /* Siguraduhin na ang close button ay hindi nakalutang kung saan-saan */
+        #closeSidebar {
+            display: block !important;
+        }
+    }

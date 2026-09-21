@@ -1,0 +1,699 @@
+/* ==========================================
+   BASE RESET
+   ========================================== */
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+}
+
+body { 
+    font-family: 'Inter', sans-serif; 
+    background-color: #f1f5f9; 
+    height: 100vh; 
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* UTILITY CLASSES */
+.rounded-15 { border-radius: 15px; }
+.rounded-8 { border-radius: 8px; }
+.card-stats { border-left: 5px solid; }
+.extra-small { font-size: 0.75rem; }
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #f8f9fa inset !important;
+    -webkit-text-fill-color: #333 !important;
+}
+
+/* LAYOUT STRUCTURE */
+.app-container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+}
+
+/* SIDEBAR OPTIMIZATION */
+#sidebar { 
+    min-width: 260px; 
+    max-width: 260px;
+    background: #0f172a; 
+    height: 100vh; 
+    color: white; 
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+    overflow-x: hidden;
+    overflow-y: auto;
+    z-index: 1050;
+}
+
+#sidebar .nav-link { 
+    color: #94a3b8; 
+    padding: 12px 20px; 
+    border-radius: 8px; 
+    margin: 5px 15px; 
+    transition: 0.2s; 
+    display: flex;
+    align-items: center;
+}
+#sidebar .nav-link:hover, #sidebar .nav-link.active { 
+    background: #1e293b; 
+    color: #38bdf8; 
+}
+#sidebar .nav-link i { 
+    margin-right: 12px; 
+    font-size: 1.1rem; 
+}
+
+#sidebar .sidebar-brand {
+    position: relative;
+    justify-content: center !important;
+}
+
+#sidebar .sidebar-brand h4 {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#sidebar .sidebar-brand button {
+    position: absolute;
+    right: 1.5rem;
+}
+
+#sidebar::-webkit-scrollbar { width: 6px; }
+#sidebar::-webkit-scrollbar-track { background: #0f172a; }
+#sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+#sidebar { scrollbar-color: #334155 #0f172a; scrollbar-width: thin; }
+
+/* MAIN CONTENT AREA */
+.main-wrapper {
+    flex: 1;
+    height: 100vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+}
+
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: white;
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+}
+
+.filter-section { 
+    background: white; 
+    border-radius: 15px; 
+    padding: 20px; 
+    margin-bottom: 20px; 
+    border: 1px solid #edf2f7; 
+}
+
+.date-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    display: block;
+}
+
+.payment-card {
+    background: #ffffff;
+    border-radius: 15px;
+    border: 1px solid #eef2f7;
+    overflow: hidden;
+}
+
+.table-scroll-container {
+    max-height: 520px;
+    overflow-y: auto;
+}
+
+.table-scroll-container thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa !important;
+    z-index: 10;
+}
+
+.proof-thumb {
+    width: 45px;
+    height: 45px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 2px solid #f1f5f9;
+    transition: 0.2s;
+}
+
+.proof-thumb:hover {
+    transform: scale(1.1);
+    border-color: #0d6efd;
+}
+
+.status-badge {
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    text-transform: uppercase;
+}
+
+.method-tag {
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.scrollable-table-container {
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.scrollable-table-container thead th {
+    position: sticky;
+    top: 0;
+    background-color: #f8f9fa !important;
+    z-index: 10;
+    box-shadow: inset 0 -1px 0 #dee2e6;
+}
+
+/* CARDS & COMPONENTS */
+.stat-card { 
+    border: none; 
+    border-radius: 16px; 
+    transition: transform 0.2s; 
+    will-change: transform; 
+}
+.stat-card:hover { 
+    transform: translateY(-3px); 
+}
+.chart-container { 
+    background: white; 
+    border-radius: 16px; 
+    padding: 20px; 
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); 
+    margin-bottom: 20px; 
+}
+
+/* ALWAYS SIDE-BY-SIDE SUMMARY CARDS (FOR FINANCIAL REPORT) */
+.summary-container {
+    display: flex !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    align-items: stretch !important;
+    gap: 15px !important;
+    width: 100% !important;
+}
+
+.summary-box {
+    flex: 1 1 50% !important;
+    width: 50% !important;
+    max-width: 50% !important;
+}
+
+/* MOBILE STYLES */
+@media (max-width: 992px) {
+    #sidebar { position: fixed; left: -260px; }
+    #sidebar.active { left: 0; }
+    #sidebar .sidebar-brand h4 {
+        margin-right: 2.5rem;
+    }
+    .overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+        backdrop-filter: blur(2px);
+    }
+    .overlay.active { display: block; }
+}
+
+.main-wrapper::-webkit-scrollbar { width: 6px; }
+.main-wrapper::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+
+/* ==========================================
+   PRINT STYLES - NATIVE BROWSER PRINT
+   ========================================== */
+@media print {
+    @page {
+        size: A4 portrait;
+        margin: 10mm;
+    }
+
+    body, html {
+        height: auto !important;
+        overflow: visible !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 9pt !important;
+    }
+
+    .app-container {
+        display: block !important;
+        height: auto !important;
+    }
+
+    #sidebar, 
+    .overlay, 
+    .btn, 
+    .filter-section, 
+    button, 
+    form, 
+    .no-print, 
+    #sidebarToggle, 
+    .navbar, 
+    .card-header, 
+    .screen-only-header {
+        display: none !important;
+    }
+
+    .main-wrapper {
+        height: auto !important;
+        overflow: visible !important;
+        position: static !important;
+        width: 100% !important;
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .container-fluid {
+        padding: 0 !important;
+    }
+
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+        background: transparent !important;
+    }
+
+    .print-document-header {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-end !important;
+        position: relative !important;
+        border-bottom: 1px solid #cbd5e1 !important;
+        padding-bottom: 12px !important;
+        margin-bottom: 18px !important;
+    }
+
+    .print-document-header::after {
+        content: "" !important;
+        position: absolute !important;
+        left: 0 !important;
+        bottom: -1px !important;
+        width: 72px !important;
+        height: 3px !important;
+        background: #0ea5e9 !important;
+        border-radius: 3px !important;
+    }
+
+    .print-brand {
+        font-size: 20pt;
+        font-weight: 800;
+        letter-spacing: -1px;
+        color: #0f172a;
+        line-height: 1;
+    }
+
+    .print-brand span { color: #0ea5e9; }
+    .print-doc-title { text-align: right; }
+
+    .print-doc-title h2 {
+        font-size: 13pt;
+        font-weight: 700;
+        margin: 0;
+        text-transform: uppercase;
+        color: #1e293b;
+        letter-spacing: 0.35px;
+    }
+
+    .print-doc-title p {
+        margin: 3px 0 0 0;
+        font-size: 8pt;
+        color: #64748b;
+    }
+
+    /* 4 CARDS NA MAGKAKATABI SA UTILITY REPORT (PRINT) */
+    .utility-report-container .utility-stats-print {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 6px !important;
+        margin-bottom: 15px !important;
+        width: 100% !important;
+    }
+
+    .utility-report-container .utility-stats-print .stat-box {
+        flex: 1 1 0 !important;
+        width: 25% !important;
+        max-width: 25% !important;
+        min-width: 0 !important;
+    }
+
+    .utility-report-container .stat-card {
+        padding: 6px 8px !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+    }
+
+    .utility-report-container .stat-card h6, 
+    .utility-report-container .stat-card .text-muted,
+    .utility-report-container .stat-card span {
+        font-size: 6pt !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .utility-report-container .stat-card h3, 
+    .utility-report-container .stat-card h4, 
+    .utility-report-container .stat-card .h4 {
+        font-size: 9pt !important;
+        font-weight: 700 !important;
+        margin: 2px 0 0 0 !important;
+    }
+
+    /* FINANCIAL REPORT SUMMARY (LAGING NAKA-SIDE BY SIDE / 50% SA PRINT) */
+    .summary-container {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        justify-content: space-between !important;
+        gap: 15px !important;
+        width: 100% !important;
+        margin-bottom: 15px !important;
+    }
+
+    .summary-box {
+        flex: 1 1 50% !important;
+        width: 50% !important;
+        max-width: 50% !important;
+    }
+
+    .scrollable-table-container { 
+        max-height: none !important; 
+        overflow: visible !important; 
+    }
+
+    .table-responsive,
+    .utility-report-container .card {
+        overflow: visible !important;
+    }
+
+    table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-bottom: 15px !important;
+        page-break-inside: auto;
+    }
+    
+    tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+        break-inside: avoid !important;
+    }
+
+    th,
+    td {
+        break-inside: avoid !important;
+    }
+    
+    thead {
+        display: table-header-group !important;
+    }
+
+    table th {
+        background-color: #0f172a !important;
+        color: #ffffff !important;
+        font-size: 7.5pt !important;
+        letter-spacing: 0.35px;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        padding: 7px 8px !important;
+        border-bottom: 0 !important;
+    }
+
+    table td {
+        padding: 7px 8px !important;
+        font-size: 8pt !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        color: #334155 !important;
+    }
+
+    table tbody tr:nth-child(even) td {
+        background-color: #f8fafc !important;
+    }
+
+    .print-footer-block {
+        display: block !important;
+        margin-top: 28px !important;
+        padding-top: 14px !important;
+        border-top: 1px solid #e2e8f0 !important;
+        page-break-inside: avoid !important;
+    }
+
+    .signature-line {
+        border-top: 1.5px solid #0f172a !important;
+        width: 180px !important;
+        margin-left: auto !important;
+        margin-top: 25px !important;
+    }
+}
+
+
+/* ==========================================
+   PDF EXPORT MODE (FIXED EXACT A4 FIT)
+   ========================================== */
+body.is-exporting-pdf {
+    height: auto !important;
+    overflow: visible !important;
+    background-color: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body.is-exporting-pdf .app-container,
+body.is-exporting-pdf .main-wrapper,
+body.is-exporting-pdf #printableArea {
+    height: auto !important;
+    overflow: visible !important;
+    display: block !important;
+    width: 700px !important;        /* Swak sa A4 margins */
+    max-width: 700px !important;
+    min-width: 700px !important;
+    padding: 0 !important;
+    margin: 0 auto !important;
+    background: #ffffff !important;
+    box-sizing: border-box !important;
+}
+
+body.is-exporting-pdf .no-print,
+body.is-exporting-pdf #sidebar,
+body.is-exporting-pdf .overlay,
+body.is-exporting-pdf .sticky-header,
+body.is-exporting-pdf .screen-only-header,
+body.is-exporting-pdf .filter-section {
+    display: none !important;
+}
+
+body.is-exporting-pdf .container-fluid {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+}
+
+body.is-exporting-pdf .row {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    width: 100% !important;
+}
+
+body.is-exporting-pdf .print-document-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-end !important;
+    position: relative !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 18px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+body.is-exporting-pdf .print-document-header::after {
+    content: "" !important;
+    position: absolute !important;
+    left: 0 !important;
+    bottom: -1px !important;
+    width: 72px !important;
+    height: 3px !important;
+    background: #0ea5e9 !important;
+    border-radius: 3px !important;
+}
+
+body.is-exporting-pdf .print-brand {
+    font-size: 18pt !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    line-height: 1.1 !important;
+}
+
+body.is-exporting-pdf .print-brand span { 
+    color: #0ea5e9 !important; 
+}
+
+body.is-exporting-pdf .print-doc-title { 
+    text-align: right !important; 
+}
+
+body.is-exporting-pdf .print-doc-title h2 {
+    font-size: 12pt !important;
+    font-weight: 700 !important;
+    margin: 0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+body.is-exporting-pdf .print-doc-title p {
+    font-size: 8pt !important;
+    margin-top: 3px !important;
+    color: #475569 !important;
+}
+
+/* 4 CARDS NA MAGKAKATABI SA UTILITY REPORT (PDF) */
+body.is-exporting-pdf .utility-report-container .utility-stats-print {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin-bottom: 15px !important;
+}
+
+body.is-exporting-pdf .utility-report-container .utility-stats-print .stat-box {
+    flex: 1 1 0 !important;
+    width: 25% !important;
+    max-width: 25% !important;
+    min-width: 0 !important;
+}
+
+body.is-exporting-pdf .utility-report-container .stat-card {
+    padding: 6px 8px !important;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+}
+
+body.is-exporting-pdf .utility-report-container .stat-card h6,
+body.is-exporting-pdf .utility-report-container .stat-card .text-muted,
+body.is-exporting-pdf .utility-report-container .stat-card span {
+    font-size: 6pt !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
+body.is-exporting-pdf .utility-report-container .stat-card h3,
+body.is-exporting-pdf .utility-report-container .stat-card h4,
+body.is-exporting-pdf .utility-report-container .stat-card .h4 {
+    font-size: 9pt !important;
+    font-weight: 700 !important;
+    margin: 2px 0 0 0 !important;
+}
+
+/* FINANCIAL REPORT SUMMARY (LAGING NAKA-SIDE BY SIDE / 50% SA PDF) */
+body.is-exporting-pdf .summary-container {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: space-between !important;
+    gap: 15px !important;
+    width: 100% !important;
+    margin-bottom: 15px !important;
+}
+
+body.is-exporting-pdf .summary-box {
+    flex: 1 1 50% !important;
+    width: 50% !important;
+    max-width: 50% !important;
+}
+
+body.is-exporting-pdf .scrollable-table-container {
+    max-height: none !important;
+    overflow: visible !important;
+    width: 100% !important;
+}
+
+body.is-exporting-pdf .table-responsive,
+body.is-exporting-pdf .utility-report-container .card {
+    overflow: visible !important;
+}
+
+body.is-exporting-pdf table {
+    width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+}
+
+body.is-exporting-pdf tr,
+body.is-exporting-pdf th,
+body.is-exporting-pdf td {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+}
+
+body.is-exporting-pdf th {
+    background-color: #0f172a !important;
+    color: #ffffff !important;
+    font-size: 7.5pt !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.35px !important;
+    padding: 6px 4px !important;
+    text-transform: uppercase !important;
+    border-bottom: 0 !important;
+    word-break: break-word !important;
+}
+
+body.is-exporting-pdf td {
+    font-size: 7.5pt !important;
+    padding: 6px 4px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    color: #1e293b !important;
+    word-break: break-word !important;
+}
+
+body.is-exporting-pdf tbody tr:nth-child(even) td {
+    background-color: #f8fafc !important;
+}
+
+body.is-exporting-pdf .print-footer-block {
+    display: block !important;
+    margin-top: 28px !important;
+    padding-top: 14px !important;
+    border-top: 1px solid #e2e8f0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    page-break-inside: avoid !important;
+}
+
+body.is-exporting-pdf .signature-line {
+    border-top: 1.5px solid #0f172a !important;
+    width: 160px !important;
+    margin-left: auto !important;
+    margin-top: 20px !important;
+}
