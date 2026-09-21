@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class RegisterController extends Controller
 {
@@ -23,8 +24,13 @@ class RegisterController extends Controller
         $request->validate([
             'fullname' => 'required|string|max:255',
             'branch_id' => 'required|exists:branches,id',
-            'phone' => 'required|string|unique:users,phone',
-            'email' => 'nullable|email|max:255',
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('users', 'phone'),
+            ],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')],
             'password' => 'required|string|min:8|same:confirm_password',
             'terms' => 'accepted',
         ], [

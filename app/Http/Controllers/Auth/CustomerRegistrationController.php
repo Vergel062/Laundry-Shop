@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class CustomerRegistrationController extends Controller
 {
@@ -82,15 +83,24 @@ class CustomerRegistrationController extends Controller
 
         $request->validate([
             'fullname' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'email' => 'nullable|email|max:255',
+            'phone' => [
+                'required',
+                'string',
+                'max:20',
+                Rule::unique('users', 'phone'),
+            ],
+            'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')],
             'role' => 'required|in:staff,customer',
+        ], [
+            'phone.unique' => 'This phone number is already used by another account.',
+            'email.unique' => 'This email address is already used by another account.',
         ]);
 
-        $fullname = $request->input('fullname');
-        $phone = $request->input('phone');
-        $email = $request->input('email');
-        $hashed_password = Hash::make('user12345');
+        $fullname = trim((string) $request->input('fullname'));
+        $phone = trim((string) $request->input('phone'));
+        $email = trim((string) $request->input('email'));
+        $email = $email !== '' ? $email : null;
+        $hashed_password = Hash::make(config('app.default_account_password', 'user12345'));
         $ref_code = "LC-" . strtoupper(substr(md5(uniqid()), 0, 5));
 
         // Check duplicate phone or email

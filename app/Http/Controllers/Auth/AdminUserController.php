@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 
 class AdminUserController extends Controller
 {
@@ -136,11 +137,14 @@ class AdminUserController extends Controller
     {
         $request->validate([
             'fullname' => 'required|string|max:255',
-            'phone' => 'required|string|max:50',
-            'email' => 'required|email|unique:users,email',
+            'phone' => ['required', 'string', 'max:50', Rule::unique('users', 'phone')],
+            'email' => ['required', 'email', Rule::unique('users', 'email')],
             'password' => 'required|string|min:6',
             'role' => 'required|in:customer,staff,manager,admin',
             'branch_id' => 'nullable|exists:branches,id'
+        ], [
+            'phone.unique' => 'This phone number is already used by another account.',
+            'email.unique' => 'This email address is already used by another account.',
         ]);
 
         DB::table('users')->insert([
@@ -160,10 +164,13 @@ class AdminUserController extends Controller
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'fullname' => 'required|string|max:255',
-            'phone' => 'required|string|max:50',
-            'email' => 'required|email|unique:users,email,' . $request->user_id,
+            'phone' => ['required', 'string', 'max:50', Rule::unique('users', 'phone')->ignore($request->user_id)],
+            'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($request->user_id)],
             'role' => 'required|in:customer,staff,manager,admin',
             'branch_id' => 'nullable|exists:branches,id'
+        ], [
+            'phone.unique' => 'This phone number is already used by another account.',
+            'email.unique' => 'This email address is already used by another account.',
         ]);
 
         DB::table('users')
