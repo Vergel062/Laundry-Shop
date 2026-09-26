@@ -111,7 +111,7 @@ class LoginController extends Controller
         try {
             Mail::raw("Your One-Time Password (OTP) for resetting your password is: {$otp}. This code will expire in 5 minutes. Please do not share it with anyone.", function ($message) use ($email) {
                 $message->to($email);
-                $message->subject('Password Reset OTP - L-Care System'); // Naitama na ang arrow operator dito
+                $message->subject('Password Reset OTP - Laundry Care Service'); // Naitama na ang arrow operator dito
             });
 
             return back()->with([
