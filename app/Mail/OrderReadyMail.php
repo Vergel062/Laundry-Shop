@@ -31,6 +31,7 @@ class OrderReadyMail extends Mailable
     {
         return new Content(
             view: 'emails.order_ready', // Handa nating gagawin ang blade file na ito
+            text: 'emails.order_ready_plain',
         );
     }
 
