@@ -260,7 +260,7 @@
                                 <option value="Service Request" {{ ($payment_status ?? '') === 'Service Request' ? 'selected' : '' }}>Service Request</option>
                             </select>
                         </div>
-                        <div class="col-md-2">
+                        <div class="col-md-2 offset-md-3">
                             <label class="small fw-bold text-muted text-uppercase mb-2">Start</label>
                             <input type="date" name="start_date" class="form-control bg-light border-0 rounded-8 py-2" lang="en-US" placeholder="mm/dd/yyyy" value="{{ $start_date ?? '' }}">
                         </div>
