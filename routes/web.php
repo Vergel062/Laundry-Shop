@@ -29,6 +29,7 @@ use App\Http\Controllers\Auth\AdminUserController;
 use App\Http\Controllers\Auth\LoyaltyController;
 use App\Http\Controllers\Auth\ArchivedAccountController;
 use App\Http\Controllers\Auth\LandingContentController;
+use App\Http\Controllers\Auth\ProfilePictureController;
 
 // --- 1. PUBLIC ROUTES ---
 Route::get('/', [LandingContentController::class, 'landing'])->name('landing');
@@ -55,6 +56,9 @@ Route::middleware(['auth'])->group(function () {
     
     // General Logout
     Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+    Route::get('/profile-pictures/{filename}', [ProfilePictureController::class, 'show'])
+        ->where('filename', '[A-Za-z0-9._-]+')
+        ->name('profile-pictures.show');
 
     // --- User Routes ---
     Route::get('/user', [UserController::class, 'index'])->name('user.dashboard');

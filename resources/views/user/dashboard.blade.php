@@ -29,7 +29,7 @@
                     $hasPic = !empty($userData->profile_pic) && \Illuminate\Support\Facades\Storage::disk('public')->exists($userData->profile_pic);
                 @endphp
 
-                <img src="{{ $hasPic ? asset('storage/' . $userData->profile_pic) : 'https://ui-avatars.com/api/?name=' . urlencode($firstLetter) . '&length=1&background=0ea5e9&color=fff' }}" 
+                <img src="{{ $hasPic ? route('profile-pictures.show', ['filename' => basename($userData->profile_pic)]) : 'https://ui-avatars.com/api/?name=' . urlencode($firstLetter) . '&length=1&background=0ea5e9&color=fff' }}"
                     class="rounded-circle mb-2 shadow-sm" width="70" height="70" style="object-fit: cover;">
                     
                 <h6 class="fw-bold mb-0">{{ $userData->fullname }}</h6>
@@ -586,7 +586,7 @@
                             $defaultAvatar = 'https://ui-avatars.com/api/?name=' . urlencode($firstLetter) . '&length=1&background=0ea5e9&color=fff';
                             
                             $hasPic = !empty($userData->profile_pic) && \Illuminate\Support\Facades\Storage::disk('public')->exists($userData->profile_pic);
-                            $avatarUrl = $hasPic ? asset('storage/' . $userData->profile_pic) : $defaultAvatar;
+                            $avatarUrl = $hasPic ? route('profile-pictures.show', ['filename' => basename($userData->profile_pic)]) : $defaultAvatar;
                         @endphp
 
                         <div class="d-inline-block position-relative mb-2">

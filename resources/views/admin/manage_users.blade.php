@@ -291,7 +291,7 @@
                                         <td class="ps-4">
                                             <div class="d-flex align-items-center">
                                                 @if($hasValidPic)
-                                                    <img src="{{ asset('storage/' . $row->profile_pic) }}" alt="{{ $row->fullname }}" class="rounded-circle me-3" width="40" height="40" style="object-fit: cover;">
+                                                    <img src="{{ route('profile-pictures.show', ['filename' => basename($row->profile_pic)]) }}" alt="{{ $row->fullname }}" class="rounded-circle me-3" width="40" height="40" style="object-fit: cover;">
                                                 @else
                                                     <div class="user-avatar d-flex align-items-center justify-content-center me-3">{{ $initial }}</div>
                                                 @endif
