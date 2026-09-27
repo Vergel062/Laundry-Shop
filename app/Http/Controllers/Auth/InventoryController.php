@@ -31,7 +31,15 @@ class InventoryController extends Controller
             ->orderBy('item_name', 'ASC')
             ->get();
 
-        return view('staff.inventory', compact('user_role', 'branch_name', 'inventory'));
+        $pendingInventoryIds = DB::table('inventory_deduction_requests')
+            ->where('staff_id', $user->id)
+            ->where('branch_id', $branch_id)
+            ->where('status', 'pending')
+            ->pluck('inventory_id')
+            ->map(fn ($inventoryId) => (int) $inventoryId)
+            ->all();
+
+        return view('staff.inventory', compact('user_role', 'branch_name', 'inventory', 'pendingInventoryIds'));
     }
 
     public function deductManual(Request $request)
@@ -68,8 +76,26 @@ class InventoryController extends Controller
             return redirect()->route('staff.inventory')->with('error', $item->item_name . ' is already out of stock.');
         }
 
-        InventoryHistoryService::adjustByItemName($user->branch_id, $item->item_name, -1, 'Staff manual deduction', $user->id);
+        $hasPendingRequest = DB::table('inventory_deduction_requests')
+            ->where('inventory_id', $item->id)
+            ->where('staff_id', $user->id)
+            ->where('status', 'pending')
+            ->exists();
 
-        return redirect()->route('staff.inventory')->with('success', $item->item_name . ' deducted by 1.');
+        if ($hasPendingRequest) {
+            return redirect()->route('staff.inventory')->with('error', 'A deduction request for this item is already waiting for Manager approval.');
+        }
+
+        DB::table('inventory_deduction_requests')->insert([
+            'inventory_id' => $item->id,
+            'branch_id' => $user->branch_id,
+            'staff_id' => $user->id,
+            'quantity' => 1,
+            'status' => 'pending',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return redirect()->route('staff.inventory')->with('success', 'Deduction request for ' . $item->item_name . ' was sent to the Manager for approval. Stock has not changed.');
     }
 }

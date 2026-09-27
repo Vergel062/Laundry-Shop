@@ -122,13 +122,19 @@
                                     </td>
                                     <td class="text-center">
                                         @if($can_manual_deduct)
-                                            <form action="{{ route('staff.inventory.deduct') }}" method="POST" class="d-inline">
-                                                @csrf
-                                                <input type="hidden" name="inventory_id" value="{{ $row->id }}">
-                                                <button type="submit" class="btn btn-outline-danger btn-sm fw-bold" {{ (int) $row->stock_level < 1 ? 'disabled' : '' }}>
-                                                    <i class="bi bi-dash-circle me-1"></i> Deduct 1
+                                            @if(in_array($row->id, $pendingInventoryIds, true))
+                                                <button type="button" class="btn btn-outline-secondary btn-sm fw-bold" disabled>
+                                                    <i class="bi bi-hourglass-split me-1"></i> Pending Approval
                                                 </button>
-                                            </form>
+                                            @else
+                                                <form action="{{ route('staff.inventory.deduct') }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <input type="hidden" name="inventory_id" value="{{ $row->id }}">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm fw-bold" {{ (int) $row->stock_level < 1 ? 'disabled' : '' }}>
+                                                        <i class="bi bi-dash-circle me-1"></i> Request Deduction
+                                                    </button>
+                                                </form>
+                                            @endif
                                         @else
                                             <span class="text-muted small">Auto</span>
                                         @endif

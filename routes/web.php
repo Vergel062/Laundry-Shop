@@ -104,6 +104,7 @@ Route::middleware(['auth'])->group(function () {
     // Manager Inventory Routes
     Route::get('/manager/inventory', [ManagerInventoryController::class, 'index'])->name('manager.inventory');
     Route::post('/manager/inventory/update', [ManagerInventoryController::class, 'update'])->name('manager.inventory.update');
+    Route::post('/manager/inventory/deductions/{id}/review', [ManagerInventoryController::class, 'reviewDeduction'])->name('manager.inventory.deductions.review');
     Route::get('/manager/daily-expenses', [DailyExpenseController::class, 'index'])->name('manager.expenses');
 
     // Manager Financial Reports Route

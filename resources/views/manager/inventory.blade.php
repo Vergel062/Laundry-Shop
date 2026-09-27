@@ -169,6 +169,61 @@
                     </table>
                 </div>
             </div>
+
+            <div class="chart-container shadow-sm p-0 overflow-hidden mt-4" style="background: white; border-radius: 15px;">
+                <div class="p-4 border-bottom d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold mb-0"><i class="bi bi-clipboard-check text-info me-2"></i>Staff Deduction Requests</h6>
+                        <small class="text-muted">Approve or reject Fabric Spray and LPG deduction requests for this branch.</small>
+                    </div>
+                    <span class="badge bg-warning text-dark rounded-pill">{{ $deductionRequests->count() }} Pending</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr class="small text-muted text-uppercase">
+                                <th class="ps-4 py-3">Item</th>
+                                <th>Requested By</th>
+                                <th>Quantity</th>
+                                <th>Current Stock</th>
+                                <th>Requested At</th>
+                                <th class="text-end pe-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @forelse($deductionRequests as $deductionRequest)
+                                <tr>
+                                    <td class="ps-4 fw-bold">{{ $deductionRequest->item_name }}</td>
+                                    <td>{{ $deductionRequest->staff_name }}</td>
+                                    <td>{{ $deductionRequest->quantity }} {{ $deductionRequest->unit }}</td>
+                                    <td>{{ $deductionRequest->stock_level }} {{ $deductionRequest->unit }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($deductionRequest->created_at)->format('M d, Y h:i A') }}</td>
+                                    <td class="text-end pe-4">
+                                        <div class="d-inline-flex gap-2">
+                                            <form action="{{ route('manager.inventory.deductions.review', $deductionRequest->id) }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="decision" value="approved">
+                                                <button type="submit" class="btn btn-sm btn-success fw-bold" {{ (int) $deductionRequest->stock_level < (int) $deductionRequest->quantity ? 'disabled' : '' }}>
+                                                    Approve
+                                                </button>
+                                            </form>
+                                            <form action="{{ route('manager.inventory.deductions.review', $deductionRequest->id) }}" method="POST">
+                                                @csrf
+                                                <input type="hidden" name="decision" value="rejected">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger fw-bold">Reject</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="text-center py-4 text-muted">No pending staff deduction requests.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -237,7 +292,23 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    @if(session('status') === 'success')
+    @if(session('success'))
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: @json(session('success')),
+            confirmButtonColor: '#0d6efd',
+            timer: 2500,
+            showConfirmButton: false
+        });
+    @elseif(session('error'))
+        Swal.fire({
+            icon: 'error',
+            title: 'Unable to Process Request',
+            text: @json(session('error')),
+            confirmButtonColor: '#dc3545'
+        });
+    @elseif(session('status') === 'success')
         Swal.fire({
             icon: 'success',
             title: 'Success!',
