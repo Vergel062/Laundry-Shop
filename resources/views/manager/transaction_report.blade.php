@@ -250,16 +250,20 @@
                                 <option value="Service Request" {{ ($payment_status ?? '') === 'Service Request' ? 'selected' : '' }}>Service Request</option>
                             </select>
                         </div>
-                        <div class="col-md-2 offset-md-3">
-                            <label class="small fw-bold text-muted text-uppercase mb-2">Start</label>
-                            <input type="date" name="start_date" class="form-control bg-light border-0 rounded-8 py-2" lang="en-US" placeholder="mm/dd/yyyy" value="{{ $start_date ?? '' }}">
-                        </div>
-                        <div class="col-md-2">
-                            <label class="small fw-bold text-muted text-uppercase mb-2">End</label>
-                            <input type="date" name="end_date" class="form-control bg-light border-0 rounded-8 py-2" lang="en-US" placeholder="mm/dd/yyyy" value="{{ $end_date ?? '' }}">
-                        </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-primary w-100 fw-bold rounded-8 py-2 shadow-sm">Filter</button>
+                        <div class="col-12">
+                            <div class="row g-3 align-items-end justify-content-center">
+                                <div class="col-md-2">
+                                    <label class="small fw-bold text-muted text-uppercase mb-2">Start</label>
+                                    <input type="date" name="start_date" class="form-control bg-light border-0 rounded-8 py-2" lang="en-US" placeholder="mm/dd/yyyy" value="{{ $start_date ?? '' }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="small fw-bold text-muted text-uppercase mb-2">End</label>
+                                    <input type="date" name="end_date" class="form-control bg-light border-0 rounded-8 py-2" lang="en-US" placeholder="mm/dd/yyyy" value="{{ $end_date ?? '' }}">
+                                </div>
+                                <div class="col-md-2">
+                                    <button type="submit" class="btn btn-primary w-100 fw-bold rounded-8 py-2 shadow-sm">Filter</button>
+                                </div>
+                            </div>
                         </div>
                     </form>
                 </div>
