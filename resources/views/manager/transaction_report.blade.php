@@ -228,6 +228,28 @@
                             <label class="small fw-bold text-muted text-uppercase mb-2">Branch</label>
                             <div class="form-control bg-light border-0 rounded-8 py-2">{{ $branch_name }}</div>
                         </div>
+                        <div class="col-md-3">
+                            <label class="small fw-bold text-muted text-uppercase mb-2">Order Status</label>
+                            <select name="order_status" class="form-select bg-light border-0 rounded-8 py-2">
+                                <option value="all" {{ ($order_status ?? 'all') === 'all' ? 'selected' : '' }}>All Order Statuses</option>
+                                <option value="Pending" {{ ($order_status ?? '') === 'Pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="Washing" {{ ($order_status ?? '') === 'Washing' ? 'selected' : '' }}>Washing</option>
+                                <option value="Drying" {{ ($order_status ?? '') === 'Drying' ? 'selected' : '' }}>Drying</option>
+                                <option value="Ready" {{ ($order_status ?? '') === 'Ready' ? 'selected' : '' }}>Unclaimed (Ready)</option>
+                                <option value="Claimed" {{ ($order_status ?? '') === 'Claimed' ? 'selected' : '' }}>Completed (Claimed)</option>
+                                <option value="Cancelled" {{ ($order_status ?? '') === 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="small fw-bold text-muted text-uppercase mb-2">Payment Status</label>
+                            <select name="payment_status" class="form-select bg-light border-0 rounded-8 py-2">
+                                <option value="all" {{ ($payment_status ?? 'all') === 'all' ? 'selected' : '' }}>All Payment Statuses</option>
+                                <option value="Paid" {{ ($payment_status ?? '') === 'Paid' ? 'selected' : '' }}>Paid</option>
+                                <option value="Unpaid" {{ ($payment_status ?? '') === 'Unpaid' ? 'selected' : '' }}>Unpaid</option>
+                                <option value="Pending Verification" {{ ($payment_status ?? '') === 'Pending Verification' ? 'selected' : '' }}>Pending Verification</option>
+                                <option value="Service Request" {{ ($payment_status ?? '') === 'Service Request' ? 'selected' : '' }}>Service Request</option>
+                            </select>
+                        </div>
                         <div class="col-md-2">
                             <label class="small fw-bold text-muted text-uppercase mb-2">Start</label>
                             <input type="date" name="start_date" class="form-control bg-light border-0 rounded-8 py-2" lang="en-US" placeholder="mm/dd/yyyy" value="{{ $start_date ?? '' }}">

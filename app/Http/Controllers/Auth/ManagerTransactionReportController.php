@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class ManagerTransactionReportController extends Controller
 {
@@ -19,11 +20,29 @@ class ManagerTransactionReportController extends Controller
         $request->validate([
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date|after_or_equal:start_date',
+            'order_status' => ['nullable', Rule::in([
+                'all',
+                'Pending',
+                'Washing',
+                'Drying',
+                'Ready',
+                'Claimed',
+                'Cancelled',
+            ])],
+            'payment_status' => ['nullable', Rule::in([
+                'all',
+                'Paid',
+                'Unpaid',
+                'Pending Verification',
+                'Service Request',
+            ])],
         ]);
 
         $start_date = $request->input('start_date');
         $end_date = $request->input('end_date');
         $search = $request->input('search', '');
+        $order_status = $request->input('order_status', 'all');
+        $payment_status = $request->input('payment_status', 'all');
         $report_generated = (bool) ($start_date && $end_date);
         $branch = DB::table('branches')->where('id', $manager->branch_id)->first();
         $branch_name = $branch->branch_name ?? 'Unknown Branch';
@@ -38,6 +57,14 @@ class ManagerTransactionReportController extends Controller
                 $q->where('u.fullname', 'LIKE', "%{$search}%")
                     ->orWhere('t.ref_number', 'LIKE', "%{$search}%");
             });
+        }
+
+        if ($order_status !== 'all') {
+            $query->where('t.order_status', $order_status);
+        }
+
+        if ($payment_status !== 'all') {
+            $query->where('t.payment_status', $payment_status);
         }
 
         if ($report_generated) {
@@ -73,6 +100,8 @@ class ManagerTransactionReportController extends Controller
             'start_date',
             'end_date',
             'search',
+            'order_status',
+            'payment_status',
             'stats',
             'list',
             'report_generated',

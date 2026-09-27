@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class ServiceHistoryController extends Controller
 {
@@ -22,6 +23,22 @@ class ServiceHistoryController extends Controller
             $request->validate([
                 'start_date' => 'nullable|date',
                 'end_date' => 'nullable|date|after_or_equal:start_date',
+                'order_status' => ['nullable', Rule::in([
+                    'all',
+                    'Pending',
+                    'Washing',
+                    'Drying',
+                    'Ready',
+                    'Claimed',
+                    'Cancelled',
+                ])],
+                'payment_status' => ['nullable', Rule::in([
+                    'all',
+                    'Paid',
+                    'Unpaid',
+                    'Pending Verification',
+                    'Service Request',
+                ])],
             ]);
         }
 
@@ -35,6 +52,8 @@ class ServiceHistoryController extends Controller
             $end_date = $end_date ?: date('Y-m-d');
         }
         $search = $request->input('search', '');
+        $order_status = $request->input('order_status', 'all');
+        $payment_status = $request->input('payment_status', 'all');
         $report_generated = !$is_report || ($start_date && $end_date);
 
         // 2. DETECT COLUMN para sa users table kung fullname o username
@@ -56,6 +75,14 @@ class ServiceHistoryController extends Controller
                 $q->where("u.{$user_col}", 'LIKE', "%{$search}%")
                   ->orWhere('t.ref_number', 'LIKE', "%{$search}%");
             });
+        }
+
+        if ($is_report && $order_status !== 'all') {
+            $query->where('t.order_status', $order_status);
+        }
+
+        if ($is_report && $payment_status !== 'all') {
+            $query->where('t.payment_status', $payment_status);
         }
 
         // Apply Date Range Filter only after the report dates are submitted.
@@ -105,6 +132,8 @@ class ServiceHistoryController extends Controller
             'start_date',
             'end_date',
             'search',
+            'order_status',
+            'payment_status',
             'stats',
             'list',
             'branches_dropdown',
