@@ -65,9 +65,12 @@ class RegisterController extends Controller
 
         // 5. Bigayan ng Points (Ginamit ang mas maikling source strings para sakto sa DB length)
         if ($referrerId !== null) {
+            $referrerBranchId = DB::table('users')->where('id', $referrerId)->value('branch_id');
+
             // 50 points sa nag-refer
             DB::table('loyalty_points')->insert([
                 'user_id' => $referrerId,
+                'branch_id' => $referrerBranchId,
                 'points_earned' => 50,
                 'source' => 'Ref Bonus',
                 'created_at' => now(),
@@ -76,6 +79,7 @@ class RegisterController extends Controller
             // 20 points sa bagong sali
             DB::table('loyalty_points')->insert([
                 'user_id' => $userId,
+                'branch_id' => $request->branch_id,
                 'points_earned' => 20,
                 'source' => 'Welcome Ref',
                 'created_at' => now(),
@@ -84,6 +88,7 @@ class RegisterController extends Controller
             // New member bonus kung walang referral
             DB::table('loyalty_points')->insert([
                 'user_id' => $userId,
+                'branch_id' => $request->branch_id,
                 'points_earned' => 10,
                 'source' => 'New Member',
                 'created_at' => now(),

@@ -160,31 +160,24 @@ class ManagerPaymentVerificationController extends Controller
         $currentDateTime = Carbon::now('Asia/Manila');
 
         if ($request->hasFile('proof_of_payment')) {
-            $file = $request->file('proof_of_payment');
-            $filename = "PAY_" . time() . "_" . $request->transaction_id . "." . $file->getClientOriginalExtension();
-            
-            $destinationPath = public_path('uploads/payments');
-            
-            if (!file_exists($destinationPath)) {
-                mkdir($destinationPath, 0777, true);
+            $targetFile = $request->file('proof_of_payment')->store('payment_proofs', 'public');
+
+            if (!$targetFile) {
+                return back()->with('error', 'Upload Error: Could not save the payment proof.');
             }
 
-            if (move_uploaded_file($file->getPathname(), $destinationPath . DIRECTORY_SEPARATOR . $filename)) {
-                $target_file = "uploads/payments/" . $filename;
+            DB::table('transactions')
+                ->where('id', $request->transaction_id)
+                ->where('user_id', $user->id)
+                ->update([
+                    'payment_method' => $request->method,
+                    'payment_reference' => $request->payment_ref,
+                    'proof_of_payment' => $targetFile,
+                    'payment_status' => 'Pending Verification',
+                    'date_paid' => $currentDateTime,
+                ]);
 
-                DB::table('transactions')
-                    ->where('id', $request->transaction_id)
-                    ->where('user_id', $user->id)
-                    ->update([
-                        'payment_method' => $request->method,
-                        'payment_reference' => $request->payment_ref,
-                        'proof_of_payment' => $target_file,
-                        'payment_status' => 'Pending Verification',
-                        'date_paid' => $currentDateTime,
-                    ]);
-
-                return back()->with('success', 'Payment submitted successfully! Please wait for verification.');
-            }
+            return back()->with('success', 'Payment submitted successfully! Please wait for verification.');
         }
 
         return back()->with('error', 'Upload Error: Could not save the file.');

@@ -33,7 +33,10 @@ class CustomerRegistrationController extends Controller
 
         // Fetch active staff and customers from this branch only.
         $usersQuery = DB::table('users as u')
-            ->leftJoin('loyalty_points as lp', 'u.id', '=', 'lp.user_id')
+            ->leftJoin('loyalty_points as lp', function ($join) use ($branch_id) {
+                $join->on('u.id', '=', 'lp.user_id')
+                    ->where('lp.branch_id', '=', $branch_id);
+            })
             ->select(
                 'u.id',
                 'u.fullname', 
@@ -132,6 +135,7 @@ class CustomerRegistrationController extends Controller
             if ($request->input('role') === 'customer') {
                 DB::table('loyalty_points')->insert([
                     'user_id' => $new_user_id,
+                    'branch_id' => $branch_id,
                     'points_earned' => 20,
                     'points_redeemed' => 0,
                     'source' => 'Welcome Bonus',

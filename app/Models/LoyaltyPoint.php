@@ -10,7 +10,7 @@ class LoyaltyPoint extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'user_id', 'points_earned', 'points_redeemed', 
+        'user_id', 'branch_id', 'points_earned', 'points_redeemed',
         'source', 'transaction_id'
     ];
 
