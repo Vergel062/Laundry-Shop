@@ -174,6 +174,12 @@
                                         'Claimed' => 'dark', 
                                         default => 'secondary'
                                     };
+                                    $normalizedOrderStatus = strtolower(trim((string) $row->order_status));
+                                    $normalizedPaymentStatus = strtolower(trim((string) $row->payment_status));
+                                    $isPendingServiceRequest = $normalizedOrderStatus === 'pending'
+                                        && $normalizedPaymentStatus === 'service request';
+                                    $isCancelledServiceRequest = $normalizedOrderStatus === 'cancelled'
+                                        && $normalizedPaymentStatus === 'service request';
                                 @endphp
                                 <tr>
                                     <td class="ps-4 small text-muted">{{ date('M d', strtotime($row->created_at)) }}</td>
@@ -192,7 +198,7 @@
                                     </td>
                                     <td class="text-center">
                                         <div class="btn-group">
-                                            @if($row->order_status === 'Pending' && $row->payment_status === 'Service Request')
+                                            @if($isPendingServiceRequest)
                                                 <button class="btn btn-sm btn-success approve-request-btn"
                                                         data-id="{{ $row->id }}"
                                                         data-user="{{ $row->user_id }}"
@@ -208,7 +214,7 @@
                                                         <i class="bi bi-x-lg"></i>
                                                     </button>
                                                 </form>
-                                            @elseif($row->payment_status !== 'Service Request' || $row->order_status !== 'Cancelled')
+                                            @elseif(!$isCancelledServiceRequest)
                                             <button class="btn btn-sm btn-light border edit-btn" 
                                                     data-id="{{ $row->id }}" 
                                                     data-status="{{ $row->order_status }}" 
