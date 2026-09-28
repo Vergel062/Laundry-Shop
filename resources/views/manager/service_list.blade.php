@@ -200,8 +200,14 @@
                                                         data-service="{{ $row->service_type }}"
                                                         data-bs-toggle="modal" data-bs-target="#newOrderModal"
                                                         title="Approve Request">
-                                                    <i class="bi bi-check-lg"></i> Approve
+                                                    <i class="bi bi-check-lg"></i>
                                                 </button>
+                                                <form action="{{ route('manager.services.cancel-request', $row->id) }}" method="POST" class="d-inline cancel-service-request-form">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel Request" aria-label="Cancel Request">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+                                                </form>
                                             @else
                                             <button class="btn btn-sm btn-light border edit-btn" 
                                                     data-id="{{ $row->id }}" 
@@ -395,6 +401,28 @@
                 weightInput.value = '';
                 document.getElementById('serviceSelect').value = '';
                 amountInput.value = '';
+            });
+        });
+
+        document.querySelectorAll('.cancel-service-request-form').forEach(form => {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const requestForm = this;
+
+                Swal.fire({
+                    title: 'Cancel service request?',
+                    text: 'This will mark the customer request as cancelled.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Yes, cancel it',
+                    cancelButtonText: 'Keep request'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        requestForm.submit();
+                    }
+                });
             });
         });
 

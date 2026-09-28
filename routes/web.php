@@ -77,6 +77,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/staff/expenses/store', [StaffController::class, 'storeExpense'])->name('staff.expenses.store'); 
     Route::get('/staff/services', [ServiceController::class, 'index'])->name('staff.services');
     Route::put('/staff/services/update', [ServiceController::class, 'updateStatus'])->name('staff.services.update');
+    Route::post('/staff/services/{id}/cancel-request', [ServiceController::class, 'cancelServiceRequest'])->name('staff.services.cancel-request');
     
     // Print Receipt Route
     Route::get('/staff/print-receipt/{id}', [ServiceController::class, 'printReceipt'])->name('staff.print.receipt');
@@ -98,6 +99,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/manager/services', [ManagerServiceController::class, 'index'])->name('manager.services');
     Route::post('/manager/services/save', [ManagerServiceController::class, 'storeOrder'])->name('manager.save.order');
     Route::put('/manager/services/update', [ManagerServiceController::class, 'updateStatus'])->name('manager.services.update');
+    Route::post('/manager/services/{id}/cancel-request', [ManagerServiceController::class, 'cancelServiceRequest'])->name('manager.services.cancel-request');
     Route::get('/manager/print-receipt/{id}', [ManagerServiceController::class, 'printReceipt'])->name('manager.print.receipt');
 
     // Manager Payment Verification Routes
