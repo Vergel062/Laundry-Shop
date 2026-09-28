@@ -25,7 +25,7 @@ class ManagerController extends Controller
         
         // Kunin ang pangalan ng branch
         $branch = DB::table('branches')->where('id', $my_branch_id)->first();
-        $branch_name = $branch ? $branch->branch_name : "Assigned Branch";
+        $branch_name = \App\Support\BranchName::format($branch->branch_name ?? null, 'Assigned Branch');
 
         // 1. Transaction counts
         $counts_res = DB::table('transactions')

@@ -22,7 +22,10 @@ class ManagerInventoryController extends Controller
 
         // Kunin ang pangalan ng branch
         $branch = DB::table('branches')->where('id', $my_branch_id)->first();
-        $branch_name = $branch ? ($branch->branch_name ?? $branch->name ?? 'Assigned Branch') : 'Assigned Branch';
+        $branch_name = \App\Support\BranchName::format(
+            $branch->branch_name ?? $branch->name ?? null,
+            'Assigned Branch'
+        );
 
         // Kunin ang inventory ng branch
         $inventory = DB::table('inventory')

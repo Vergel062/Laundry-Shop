@@ -23,7 +23,7 @@ class CustomerRegistrationController extends Controller
         // 2. Fetch branch info of the logged-in user
         $branch_id = $user->branch_id ?? 0;
         $branch = DB::table('branches')->where('id', $branch_id)->first();
-        $branch_name = $branch ? $branch->branch_name : 'Unknown Branch';
+        $branch_name = \App\Support\BranchName::format($branch->branch_name ?? null);
 
         $selectedRole = $request->input('user_type', 'all');
         if (!in_array($selectedRole, ['all', 'staff', 'customer'], true)) {

@@ -26,7 +26,7 @@ class PaymentVerificationController extends Controller
         
         // Get branch name
         $branch = DB::table('branches')->where('id', $branch_id)->first();
-        $branch_name = $branch ? $branch->branch_name : 'Unknown Branch';
+        $branch_name = \App\Support\BranchName::format($branch->branch_name ?? null);
 
         // Kunin ang mga input mula sa filter form
         $start_date = $request->input('start_date');
