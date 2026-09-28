@@ -30,6 +30,7 @@ use App\Http\Controllers\Auth\LoyaltyController;
 use App\Http\Controllers\Auth\ArchivedAccountController;
 use App\Http\Controllers\Auth\LandingContentController;
 use App\Http\Controllers\Auth\ProfilePictureController;
+use App\Http\Controllers\Auth\PaymentProofController;
 
 // --- 1. PUBLIC ROUTES ---
 Route::get('/', [LandingContentController::class, 'landing'])->name('landing');
@@ -62,6 +63,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile-pictures/{filename}', [ProfilePictureController::class, 'show'])
         ->where('filename', '[A-Za-z0-9._-]+')
         ->name('profile-pictures.show');
+    Route::get('/transactions/{transactionId}/payment-proof', [PaymentProofController::class, 'show'])
+        ->whereNumber('transactionId')
+        ->name('payment.proof');
 
     // --- User Routes ---
     Route::get('/user', [UserController::class, 'index'])->name('user.dashboard');

@@ -159,10 +159,11 @@ class UserController extends Controller
 
         $imagePath = null;
         if ($request->hasFile('proof_of_payment')) {
-            $file = $request->file('proof_of_payment');
-            $filename = 'PAY_' . time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-            $file->move(public_path('uploads/payments'), $filename);
-            $imagePath = $filename;
+            $imagePath = $request->file('proof_of_payment')->store('payment_proofs', 'public');
+
+            if (!$imagePath) {
+                return back()->with('error', 'Upload Error: Could not save the payment proof.');
+            }
         }
 
         DB::table('transactions')

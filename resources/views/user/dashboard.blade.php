@@ -365,10 +365,9 @@
                                         <td>
                                             @if(!empty($h->proof_of_payment))
                                                 @php
-                                                    $proofPath = ltrim($h->proof_of_payment, '/');
-                                                    $proofUrl = filter_var($proofPath, FILTER_VALIDATE_URL)
-                                                        ? $proofPath
-                                                        : asset(str_starts_with($proofPath, 'uploads/') ? $proofPath : 'uploads/payments/' . $proofPath);
+                                                    $proofUrl = filter_var($h->proof_of_payment, FILTER_VALIDATE_URL)
+                                                        ? $h->proof_of_payment
+                                                        : route('payment.proof', $h->id);
                                                 @endphp
                                                 <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2" onclick="viewProof(@js($proofUrl))">
                                                     <i class="bi bi-image"></i> View

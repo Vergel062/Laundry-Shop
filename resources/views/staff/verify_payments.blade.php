@@ -143,7 +143,7 @@
                                     <td class="text-center fw-bold">₱{{ number_format($row->total_amount, 2) }}</td>
                                     <td class="text-center">
                                         @if(!empty($row->proof_of_payment))
-                                            <img src="{{ asset($row->proof_of_payment) }}" class="proof-thumb" onclick="viewProof('{{ asset($row->proof_of_payment) }}')">
+                                            <img src="{{ route('payment.proof', $row->id) }}" class="proof-thumb" onclick="viewProof(@js(route('payment.proof', $row->id)))">
                                         @else
                                             <span class="text-muted small">No Image</span>
                                         @endif
