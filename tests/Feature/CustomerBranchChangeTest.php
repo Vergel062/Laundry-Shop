@@ -51,6 +51,13 @@ class CustomerBranchChangeTest extends TestCase
             'order_status' => 'Claimed',
             'payment_status' => 'Paid',
         ]);
+        DB::table('transactions')->insert([
+            'id' => 101,
+            'user_id' => 10,
+            'branch_id' => 1,
+            'order_status' => 'Cancelled',
+            'payment_status' => 'Unpaid',
+        ]);
 
         $this->actingAs($this->customer(10))
             ->from('/user')

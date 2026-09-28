@@ -20,7 +20,7 @@ class LoyaltyController extends Controller
                 'u.fullname', 
                 'u.email', 
                 'u.referral_code',
-                DB::raw('COALESCE((SELECT SUM(lp.points_earned - lp.points_redeemed) FROM loyalty_points lp WHERE lp.user_id = u.id), 0) as balance')
+                DB::raw('COALESCE((SELECT SUM(lp.points_earned - lp.points_redeemed) FROM loyalty_points lp WHERE lp.user_id = u.id AND lp.branch_id = u.branch_id), 0) as balance')
             )
             ->where('u.role', 'customer');
 
@@ -58,30 +58,52 @@ class LoyaltyController extends Controller
 
         try {
             // 2. Kung magre-redeem, i-check muna kung sapat ang puntos
-            if ($action === 'redeem') {
-                $currentBalance = DB::table('loyalty_points')
-                    ->where('user_id', $userId)
-                    ->select(DB::raw('COALESCE(SUM(points_earned - points_redeemed), 0) as balance'))
-                    ->value('balance');
+            $result = DB::transaction(function () use ($userId, $action, $amount, $source) {
+                $customer = DB::table('users')
+                    ->where('id', $userId)
+                    ->where('role', 'customer')
+                    ->lockForUpdate()
+                    ->first(['branch_id']);
 
-                if ($currentBalance < $amount) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Insufficient points balance! Current balance is ' . number_format($currentBalance) . ' pts.'
-                    ], 400);
+                if (!$customer || $customer->branch_id === null) {
+                    return ['error' => 'Customer branch could not be found.', 'status' => 422];
                 }
-            }
 
-            // 3. I-save sa database (Walang updated_at para maiwasan ang SQL error)
-            DB::transaction(function () use ($userId, $action, $amount, $source) {
+                $customerBranchId = $customer->branch_id;
+
+                if ($action === 'redeem') {
+                    $currentBalance = DB::table('loyalty_points')
+                        ->where('user_id', $userId)
+                        ->where('branch_id', $customerBranchId)
+                        ->select(DB::raw('COALESCE(SUM(points_earned - points_redeemed), 0) as balance'))
+                        ->value('balance');
+
+                    if ($currentBalance < $amount) {
+                        return [
+                            'error' => 'Insufficient points balance! Current balance is ' . number_format($currentBalance) . ' pts.',
+                            'status' => 400,
+                        ];
+                    }
+                }
+
                 DB::table('loyalty_points')->insert([
                     'user_id'         => $userId,
+                    'branch_id'       => $customerBranchId,
                     'points_earned'   => ($action === 'add') ? $amount : 0,
                     'points_redeemed' => ($action === 'redeem') ? $amount : 0,
                     'source'          => $source,
                     'created_at'      => now(),
                 ]);
+
+                return null;
             });
+
+            if ($result !== null) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['error'],
+                ], $result['status']);
+            }
 
             return response()->json([
                 'success' => true,

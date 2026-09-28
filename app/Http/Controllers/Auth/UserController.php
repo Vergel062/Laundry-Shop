@@ -22,6 +22,7 @@ class UserController extends Controller
 
         $userData = DB::table('users')->select('id', 'fullname', 'email', 'phone', 'profile_pic', 'referral_code', 'branch_id')->where('id', $userId)->first();
         $firstName = $userData ? explode(' ', trim($userData->fullname))[0] : 'User';
+        $branchId = $userData->branch_id ?? null;
         $branches = DB::table('branches')
             ->whereNull('archive_date')
             ->orderBy('branch_name')
@@ -29,6 +30,7 @@ class UserController extends Controller
 
         $activeOrder = DB::table('transactions')
             ->where('user_id', $userId)
+            ->where('branch_id', $branchId)
             ->whereNotIn('order_status', ['Claimed', 'Cancelled'])
             ->where('payment_status', '!=', 'Service Request')
             ->orderBy('created_at', 'desc')
@@ -47,12 +49,14 @@ class UserController extends Controller
 
         $transactions = DB::table('transactions')
             ->where('user_id', $userId)
+            ->where('branch_id', $branchId)
             ->orderBy('created_at', 'desc')
             ->get();
 
         $currentMonth = date('m');
         $kiloData = DB::table('transactions')
             ->where('user_id', $userId)
+            ->where('branch_id', $branchId)
             ->whereMonth('created_at', $currentMonth)
             ->where('order_status', 'Claimed')
             ->sum('weight_kg');
@@ -61,6 +65,7 @@ class UserController extends Controller
 
         $pointsData = DB::table('loyalty_points')
             ->where('user_id', $userId)
+            ->where('branch_id', $branchId)
             ->select(DB::raw('SUM(points_earned - points_redeemed) as balance'))
             ->first();
             
@@ -68,18 +73,21 @@ class UserController extends Controller
 
         $historyTransactions = DB::table('transactions')
             ->where('user_id', $userId)
+            ->where('branch_id', $branchId)
             ->whereIn('order_status', ['Claimed', 'Cancelled'])
             ->orderBy('created_at', 'desc')
             ->get();
 
         $readyOrders = DB::table('transactions')
             ->where('user_id', $userId)
+            ->where('branch_id', $branchId)
             ->where('order_status', 'Ready')
             ->orderBy('created_at', 'desc')
             ->get();
 
         $pendingServiceRequests = DB::table('transactions')
             ->where('user_id', $userId)
+            ->where('branch_id', $branchId)
             ->where('order_status', 'Pending')
             ->where('payment_status', 'Service Request')
             ->orderByDesc('created_at')
@@ -331,14 +339,20 @@ class UserController extends Controller
             $blockedByActiveOrder = DB::table('transactions')
                 ->where('user_id', $lockedUser->id)
                 ->where(function ($query) {
-                    $query->whereNull('order_status')
-                        ->orWhereNotIn('order_status', ['Claimed', 'Cancelled'])
-                        ->orWhere(function ($paymentQuery) {
-                            $paymentQuery->whereNull('payment_status')
-                                ->orWhere(function ($unpaidQuery) {
-                                    $unpaidQuery->where('payment_status', '!=', 'Paid')
-                                        ->where('payment_status', '!=', 'Service Request');
-                                });
+                        $query->where(function ($serviceRequestQuery) {
+                            $serviceRequestQuery->where('order_status', 'Pending')
+                                ->where('payment_status', 'Service Request');
+                        })->orWhere(function ($activeLaundryQuery) {
+                            $activeLaundryQuery->where(function ($statusQuery) {
+                                $statusQuery->whereNull('order_status')
+                                    ->orWhereNotIn('order_status', ['Claimed', 'Cancelled']);
+                            })->where(function ($paymentQuery) {
+                                $paymentQuery->whereNull('payment_status')
+                                    ->orWhere('payment_status', '!=', 'Service Request');
+                            });
+                        })->orWhere(function ($unpaidQuery) {
+                            $unpaidQuery->where('order_status', '!=', 'Cancelled')
+                                ->whereIn('payment_status', ['Unpaid', 'Pending', 'Pending Verification']);
                         });
                 })
                 ->exists();
