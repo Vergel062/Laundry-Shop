@@ -247,11 +247,11 @@ function goToStep2() {
     const adminNum = document.getElementById('admin_num');
 
     if (method === 'GCash') {
-        if(qrImg) qrImg.src = 'Gcash/gcash_qr.jpg'; 
-        if(adminNum) adminNum.innerText = '09098256981';
+        if (qrImg) qrImg.src = qrImg.dataset.gcashQr;
+        if (adminNum && qrImg) adminNum.innerText = qrImg.dataset.gcashNumber;
     } else {
-        if(qrImg) qrImg.src = 'Gcash/maya_qr.jpg';
-        if(adminNum) adminNum.innerText = '09098256981';
+        if (qrImg) qrImg.src = qrImg.dataset.paymayaQr;
+        if (adminNum && qrImg) adminNum.innerText = qrImg.dataset.paymayaNumber;
     }
 
     document.getElementById('payment_step1')?.classList.add('d-none');

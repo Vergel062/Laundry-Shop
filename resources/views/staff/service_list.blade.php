@@ -145,6 +145,12 @@
                                             'Claimed' => 'dark', 
                                             default => 'secondary'
                                         };
+                                        $normalizedOrderStatus = strtolower(trim((string) $row->order_status));
+                                        $normalizedPaymentStatus = strtolower(trim((string) $row->payment_status));
+                                        $isPendingServiceRequest = $normalizedOrderStatus === 'pending'
+                                            && $normalizedPaymentStatus === 'service request';
+                                        $isCancelledServiceRequest = $normalizedOrderStatus === 'cancelled'
+                                            && $normalizedPaymentStatus === 'service request';
                                     @endphp
                                     <tr>
                                         <td class="ps-4 small text-muted">{{ date('M d', strtotime($row->created_at)) }}</td>
@@ -155,7 +161,7 @@
                                         <td><span class="badge bg-{{ ($row->payment_status == 'Paid') ? 'success' : 'danger' }} px-3">{{ $row->payment_status }}</span></td>
                                         <td class="text-center">
                                             <div class="btn-group">
-                                                @if($row->order_status === 'Pending' && $row->payment_status === 'Service Request')
+                                                @if($isPendingServiceRequest)
                                                     <button class="btn btn-sm btn-success approve-request-btn"
                                                             data-id="{{ $row->id }}"
                                                             data-user="{{ $row->user_id }}"
@@ -163,9 +169,15 @@
                                                             data-service="{{ $row->service_type }}"
                                                             data-bs-toggle="modal" data-bs-target="#newOrderModal"
                                                             title="Approve Request">
-                                                        <i class="bi bi-check-lg"></i> Approve
+                                                        <i class="bi bi-check-lg"></i>
                                                     </button>
-                                                @else
+                                                    <form action="{{ route('staff.services.cancel-request', $row->id) }}" method="POST" class="d-inline cancel-service-request-form">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel Request" aria-label="Cancel Request">
+                                                            <i class="bi bi-x-lg"></i>
+                                                        </button>
+                                                    </form>
+                                                @elseif(!$isCancelledServiceRequest)
                                                 <button class="btn btn-sm btn-light border edit-btn" 
                                                         data-id="{{ $row->id }}" 
                                                         data-status="{{ $row->order_status }}" 
@@ -318,6 +330,28 @@
                 document.getElementById('weightInput').value = '';
                 document.getElementById('serviceSelect').value = '';
                 document.getElementById('amountInput').value = '';
+            });
+        });
+
+        document.querySelectorAll('.cancel-service-request-form').forEach(form => {
+            form.addEventListener('submit', function (event) {
+                event.preventDefault();
+                const requestForm = this;
+
+                Swal.fire({
+                    title: 'Cancel service request?',
+                    text: 'This will mark the customer request as cancelled.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#dc3545',
+                    cancelButtonColor: '#64748b',
+                    confirmButtonText: 'Yes, cancel it',
+                    cancelButtonText: 'Keep request'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        requestForm.submit();
+                    }
+                });
             });
         });
 

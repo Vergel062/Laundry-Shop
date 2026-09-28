@@ -20,6 +20,10 @@ class LandingContentController extends Controller
         'contact_email' => 'laundrycare4@gmail.com',
         'contact_phone' => '+63 909-825-6981 / +63 910-910-7296',
         'contact_hours' => 'Monday – Sunday: 8:00 AM – 7:00 PM',
+        'gcash_number' => '09098256981',
+        'gcash_qr' => 'Gcash/gcash_qr.jpg',
+        'paymaya_number' => '9109107296',
+        'paymaya_qr' => 'Gcash/maya_qr.jpg',
     ];
 
     public function index()
@@ -40,6 +44,37 @@ class LandingContentController extends Controller
         return view('landing', compact('content'));
     }
 
+    public function paymentQr(string $provider)
+    {
+        abort_unless(in_array($provider, ['gcash', 'paymaya'], true), 404);
+
+        $contentKey = $provider . '_qr';
+        $path = DB::table('landing_contents')
+            ->where('content_key', $contentKey)
+            ->value('content_value') ?: self::DEFAULTS[$contentKey];
+
+        if (preg_match('/\Apayment_qrs\/[A-Za-z0-9_-]+\.(?:jpe?g|png|gif|webp)\z/i', $path)) {
+            $disk = Storage::disk('public');
+            abort_unless($disk->exists($path), 404);
+
+            return $disk->response($path, null, [
+                'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            ]);
+        }
+
+        abort_unless(
+            in_array($path, [self::DEFAULTS['gcash_qr'], self::DEFAULTS['paymaya_qr']], true),
+            404
+        );
+
+        $publicPath = public_path($path);
+        abort_unless(is_file($publicPath), 404);
+
+        return response()->file($publicPath, [
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+        ]);
+    }
+
     public function update(Request $request)
     {
         if (!$this->isAdmin()) {
@@ -51,6 +86,10 @@ class LandingContentController extends Controller
             'about_content' => 'required|string|max:5000',
             'about_secondary' => 'required|string|max:5000',
             'about_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'gcash_number' => 'required|string|max:32',
+            'gcash_qr_upload' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+            'paymaya_number' => 'required|string|max:32',
+            'paymaya_qr_upload' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'contact_description' => 'required|string|max:1000',
             'contact_address' => 'required|string|max:255',
             'contact_email' => 'required|email|max:255',
@@ -61,11 +100,32 @@ class LandingContentController extends Controller
         $currentImage = DB::table('landing_contents')
             ->where('content_key', 'about_image')
             ->value('content_value') ?: self::DEFAULTS['about_image'];
+        $currentPaymentQrs = DB::table('landing_contents')
+            ->whereIn('content_key', ['gcash_qr', 'paymaya_qr'])
+            ->pluck('content_value', 'content_key')
+            ->all();
 
         if ($request->hasFile('about_image')) {
             $validated['about_image'] = $request->file('about_image')->store('landing_images', 'public');
         } else {
             $validated['about_image'] = $currentImage;
+        }
+
+        $uploadedPaymentQrs = [];
+        foreach (['gcash', 'paymaya'] as $provider) {
+            $qrKey = $provider . '_qr';
+            $uploadKey = $provider . '_qr_upload';
+            $oldQr = $currentPaymentQrs[$qrKey] ?? self::DEFAULTS[$qrKey];
+
+            $validated[$qrKey] = $request->hasFile($uploadKey)
+                ? $request->file($uploadKey)->store('payment_qrs', 'public')
+                : $oldQr;
+
+            if ($request->hasFile($uploadKey)) {
+                $uploadedPaymentQrs[$qrKey] = $oldQr;
+            }
+
+            unset($validated[$uploadKey]);
         }
 
         foreach ($validated as $key => $value) {
@@ -81,6 +141,12 @@ class LandingContentController extends Controller
             $currentImage !== $validated['about_image']
         ) {
             Storage::disk('public')->delete($currentImage);
+        }
+
+        foreach ($uploadedPaymentQrs as $oldQr) {
+            if (str_starts_with($oldQr, 'payment_qrs/')) {
+                Storage::disk('public')->delete($oldQr);
+            }
         }
 
         return back()->with('success', 'Landing page content updated successfully.');
@@ -110,6 +176,17 @@ class LandingContentController extends Controller
     public static function defaults(): array
     {
         return self::DEFAULTS;
+    }
+
+    public static function paymentSettings(): array
+    {
+        $keys = ['gcash_number', 'gcash_qr', 'paymaya_number', 'paymaya_qr'];
+        $values = DB::table('landing_contents')
+            ->whereIn('content_key', $keys)
+            ->pluck('content_value', 'content_key')
+            ->all();
+
+        return array_merge(array_intersect_key(self::DEFAULTS, array_flip($keys)), $values);
     }
 
     private function content(): array

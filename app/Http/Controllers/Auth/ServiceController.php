@@ -194,6 +194,27 @@ class ServiceController extends Controller
         return redirect()->route('staff.services')->with('success', 'Transaction updated successfully.');
     }
 
+    public function cancelServiceRequest($id)
+    {
+        $user = auth()->user();
+
+        if (!$user || $user->role !== 'staff') {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $updated = DB::table('transactions')
+            ->where('id', $id)
+            ->where('branch_id', $user->branch_id)
+            ->where('order_status', 'Pending')
+            ->where('payment_status', 'Service Request')
+            ->update(['order_status' => 'Cancelled']);
+
+        return redirect()->route('staff.services')->with(
+            $updated ? 'success' : 'error',
+            $updated ? 'Service request cancelled.' : 'Only pending service requests from your branch can be cancelled.'
+        );
+    }
+
     public function printReceipt($id)
     {
         $data = DB::table('transactions as t')
@@ -207,6 +228,8 @@ class ServiceController extends Controller
             abort(404, 'Error: Hindi nahanap ang order.');
         }
 
-        return view('staff.print_receipt', compact('data'));
+        $paymentSettings = LandingContentController::paymentSettings();
+
+        return view('staff.print_receipt', compact('data', 'paymentSettings'));
     }
 }
