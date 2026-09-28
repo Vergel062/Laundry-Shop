@@ -20,8 +20,12 @@ class UserController extends Controller
             return redirect('/login');
         }
 
-        $userData = DB::table('users')->select('id', 'fullname', 'email', 'phone', 'profile_pic', 'referral_code')->where('id', $userId)->first();
+        $userData = DB::table('users')->select('id', 'fullname', 'email', 'phone', 'profile_pic', 'referral_code', 'branch_id')->where('id', $userId)->first();
         $firstName = $userData ? explode(' ', trim($userData->fullname))[0] : 'User';
+        $branches = DB::table('branches')
+            ->whereNull('archive_date')
+            ->orderBy('branch_name')
+            ->get(['id', 'branch_name']);
 
         $activeOrder = DB::table('transactions')
             ->where('user_id', $userId)
@@ -86,6 +90,7 @@ class UserController extends Controller
         return view('user.dashboard', compact(
             'userData',
             'firstName',
+            'branches',
             'activeOrder',
             'progressPercent',
             'transactions',
@@ -297,5 +302,63 @@ class UserController extends Controller
             ]);
 
         return back()->with('success', 'Your password has been updated successfully!');
+    }
+
+    public function changeBranch(Request $request)
+    {
+        $user = Auth::user();
+
+        abort_unless($user && $user->role === 'customer', 403);
+
+        $validated = $request->validate([
+            'branch_id' => [
+                'required',
+                'integer',
+                Rule::exists('branches', 'id')->whereNull('archive_date'),
+            ],
+        ]);
+
+        $blockedByActiveOrder = false;
+
+        DB::transaction(function () use ($user, $validated, &$blockedByActiveOrder) {
+            $lockedUser = DB::table('users')
+                ->where('id', $user->id)
+                ->lockForUpdate()
+                ->first();
+
+            abort_unless($lockedUser && $lockedUser->role === 'customer', 403);
+
+            $blockedByActiveOrder = DB::table('transactions')
+                ->where('user_id', $lockedUser->id)
+                ->where(function ($query) {
+                    $query->whereNull('order_status')
+                        ->orWhereNotIn('order_status', ['Claimed', 'Cancelled'])
+                        ->orWhere(function ($paymentQuery) {
+                            $paymentQuery->whereNull('payment_status')
+                                ->orWhere(function ($unpaidQuery) {
+                                    $unpaidQuery->where('payment_status', '!=', 'Paid')
+                                        ->where('payment_status', '!=', 'Service Request');
+                                });
+                        });
+                })
+                ->exists();
+
+            if (!$blockedByActiveOrder) {
+                DB::table('users')
+                    ->where('id', $lockedUser->id)
+                    ->update(['branch_id' => $validated['branch_id']]);
+            }
+        });
+
+        if ($blockedByActiveOrder) {
+            return back()->with(
+                'branch_error',
+                'You can change branches only when you have no active service requests, unpaid payments, or unclaimed laundry orders.'
+            );
+        }
+
+        $request->session()->put('branch_id', $validated['branch_id']);
+
+        return redirect()->route('user.dashboard')->with('success', 'Your active branch has been changed successfully.');
     }
 }

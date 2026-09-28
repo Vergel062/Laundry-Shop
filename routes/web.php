@@ -75,6 +75,7 @@ Route::middleware(['auth'])->group(function () {
     // Profile at Password Update Routes
     Route::post('/user/update-profile', [UserController::class, 'updateProfile'])->name('user.update.profile');
     Route::post('/user/update-password', [UserController::class, 'updatePassword'])->name('user.update-password');
+    Route::post('/user/change-branch', [UserController::class, 'changeBranch'])->name('user.change-branch');
     
     Route::post('/payment/submit', [PaymentVerificationController::class, 'submitPayment'])->name('payment.submit');
 

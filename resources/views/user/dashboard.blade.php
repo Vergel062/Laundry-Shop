@@ -697,6 +697,37 @@
                     </div>
                 </form>
 
+                <!-- Change active branch -->
+                <hr class="my-4 text-muted">
+                <form action="{{ route('user.change-branch') }}" method="POST" id="changeBranchForm">
+                    @csrf
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-dark mb-1"><i class="bi bi-geo-alt text-primary"></i> Change Branch</h6>
+                        <p class="text-muted small mb-0">You can switch branches only when you have no active requests, unpaid payments, or laundry orders waiting to be claimed. Your previous records will remain with their original branch.</p>
+                    </div>
+                    <div class="row g-2 align-items-end">
+                        <div class="col-md-8">
+                            <label for="changeBranchSelect" class="form-label small fw-bold text-dark">Active Branch</label>
+                            <select name="branch_id" id="changeBranchSelect" class="form-select @error('branch_id') is-invalid @enderror" required>
+                                @foreach($branches as $branch)
+                                    <option value="{{ $branch->id }}" @selected((string) old('branch_id', $userData->branch_id) === (string) $branch->id)>
+                                        {{ $branch->branch_name }}{{ (int) $branch->id === (int) $userData->branch_id ? ' (Current)' : '' }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('branch_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+                        <div class="col-md-4">
+                            <button type="submit" class="btn btn-outline-primary w-100 rounded-3 fw-bold">Change Branch</button>
+                        </div>
+                    </div>
+                    @if(session('branch_error'))
+                        <div class="alert alert-danger mt-3 mb-0 py-2">{{ session('branch_error') }}</div>
+                    @endif
+                </form>
+
             </div>
 
             <!-- Modal Footer -->
@@ -710,8 +741,8 @@
 
 <!-- ================= MODAL & SWEETALERT SCRIPTS ================= -->
 
-{{-- 1. KAPAG MAY VALIDATION ERRORS: Buksan ang modal AT huwag magpakita ng Success alert --}}
-@if ($errors->any())
+{{-- Reopen settings so validation and branch-change errors remain visible. --}}
+@if ($errors->any() || session('branch_error'))
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         var modalElement = document.getElementById('settingsModal'); 
@@ -723,7 +754,7 @@
 </script>
 @endif
 
-{{-- 2. KAPAG MAY SUCCESS SESSION AT WALANG ERRORS: Lalabas ang SweetAlert --}}
+{{-- Show successful profile, password, and branch updates. --}}
 @if (session('success') && !$errors->any())
 <script>
     document.addEventListener("DOMContentLoaded", function() {
