@@ -171,7 +171,7 @@
                                                             <i class="bi bi-x-lg"></i>
                                                         </button>
                                                     </form>
-                                                @else
+                                                @elseif($row->payment_status !== 'Service Request' || $row->order_status !== 'Cancelled')
                                                 <button class="btn btn-sm btn-light border edit-btn" 
                                                         data-id="{{ $row->id }}" 
                                                         data-status="{{ $row->order_status }}" 
