@@ -446,7 +446,7 @@
                                      data-paymaya-number="{{ $paymentSettings['paymaya_number'] }}"
                                      class="img-fluid rounded border mb-3" style="max-height: 200px;">
                                 <div class="p-2 bg-white rounded border mb-2">
-                                    <small class="text-muted d-block small">L-CARE:</small>
+                                    <small class="text-muted d-block small">Laundry Care Service:</small>
                                     <h5 class="fw-bold text-dark mb-0" id="admin_num">{{ $paymentSettings['gcash_number'] }}</h5>
                                 </div>
                             </div>
