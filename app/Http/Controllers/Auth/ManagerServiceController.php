@@ -29,7 +29,9 @@ class ManagerServiceController extends Controller
         
         // Kunin ang pangalan ng branch
         $branch = DB::table('branches')->where('id', $branch_id)->first();
-        $branch_name = $branch ? $branch->branch_name : 'Unknown Branch';
+        $branch_name = $branch
+            ? mb_convert_case(preg_replace('/\s+branch$/i', '', trim($branch->branch_name)), MB_CASE_TITLE, 'UTF-8')
+            : 'Unknown Branch';
 
         // Kunin ang mga customer na nakarehistro sa branch ng manager
         $customers = DB::table('users')
