@@ -23,7 +23,7 @@ class InventoryController extends Controller
 
         // Kunin ang branch name
         $branch = DB::table('branches')->where('id', $branch_id)->first();
-        $branch_name = $branch ? $branch->branch_name : 'Unknown Branch';
+        $branch_name = \App\Support\BranchName::format($branch->branch_name ?? null);
 
         // Kunin ang inventory data para sa branch na ito
         $inventory = DB::table('inventory')

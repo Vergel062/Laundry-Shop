@@ -17,7 +17,9 @@ class StaffController extends Controller
         $my_branch = session('branch_id');
 
         // 2. Kunin ang branch name mula sa database (Para lumabas ang 'Carmona Branch', atbp.)
-        $branchName = DB::table('branches')->where('id', $my_branch)->value('branch_name') ?? 'Unknown Branch';
+        $branchName = \App\Support\BranchName::format(
+            DB::table('branches')->where('id', $my_branch)->value('branch_name')
+        );
 
         // Kunin ang petsa ngayon sa Pilipinas
         $currentDate = Carbon::now('Asia/Manila')->toDateString();

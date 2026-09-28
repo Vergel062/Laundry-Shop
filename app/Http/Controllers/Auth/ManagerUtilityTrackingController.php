@@ -23,7 +23,10 @@ class ManagerUtilityTrackingController extends Controller
         // FETCH BRANCH NAME DIRECTLY FROM DATABASE
         // Kung walang branch record, pwedeng kunin mula sa relationship o direktang query:
         $branch = DB::table('branches')->where('id', $my_branch_id)->first();
-        $branch_name = $branch->branch_name ?? $branch->name ?? 'Main Branch';
+        $branch_name = \App\Support\BranchName::format(
+            $branch->branch_name ?? $branch->name ?? null,
+            'Main Branch'
+        );
 
         // 2. FILTER LOGIC: report data is loaded only after both dates are selected.
         $date_from = $request->get('date_from');

@@ -45,7 +45,7 @@ class ManagerTransactionReportController extends Controller
         $payment_status = $request->input('payment_status', 'all');
         $report_generated = (bool) ($start_date && $end_date);
         $branch = DB::table('branches')->where('id', $manager->branch_id)->first();
-        $branch_name = $branch->branch_name ?? 'Unknown Branch';
+        $branch_name = \App\Support\BranchName::format($branch->branch_name ?? null);
 
         $query = DB::table('transactions as t')
             ->leftJoin('users as u', 't.user_id', '=', 'u.id')

@@ -421,16 +421,6 @@
             newOrderModal.show();
         @endif
 
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('overlay');
-        const toggleBtn = document.getElementById('sidebarToggle');
-        const closeBtn = document.getElementById('closeSidebar');
-
-        function toggleSidebar() { sidebar.classList.toggle('active'); overlay.classList.toggle('active'); }
-        toggleBtn?.addEventListener('click', toggleSidebar);
-        closeBtn?.addEventListener('click', toggleSidebar);
-        overlay?.addEventListener('click', toggleSidebar);
-
         document.querySelector('.logout-btn')?.addEventListener('click', function(e) {
             e.preventDefault();
             const logoutForm = document.getElementById('logoutForm');

@@ -21,7 +21,7 @@ class DailyExpenseController extends Controller
 
         // Fetch branch name
         $branch = DB::table('branches')->where('id', $branch_id)->first();
-        $branch_name = $branch ? $branch->branch_name : 'Unknown Branch';
+        $branch_name = \App\Support\BranchName::format($branch->branch_name ?? null);
 
         // Managers must choose and apply a complete date range before records are loaded.
         $requires_date_filter = $user->role === 'manager';

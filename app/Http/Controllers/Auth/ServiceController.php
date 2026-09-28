@@ -26,7 +26,7 @@ class ServiceController extends Controller
         
         // Kunin ang pangalan ng branch
         $branch = DB::table('branches')->where('id', $branch_id)->first();
-        $branch_name = $branch ? $branch->branch_name : 'Unknown Branch';
+        $branch_name = \App\Support\BranchName::format($branch->branch_name ?? null);
 
         // Kunin ang mga customer na nakarehistro sa tamang branch
         $customers = DB::table('users')

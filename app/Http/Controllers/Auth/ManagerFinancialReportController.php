@@ -24,7 +24,7 @@ class ManagerFinancialReportController extends Controller
         // --- BAGONG DAGDAG: Kunin ang Branch Name ng Manager ---
         $branch = DB::table('branches')->where('id', $my_branch_id)->first();
         // Tinitingnan dito kung 'branch_name' o 'name' ang column name sa table mo
-        $branch_name = $branch ? ($branch->branch_name ?? $branch->name ?? 'Unknown Branch') : 'Unknown Branch';
+        $branch_name = \App\Support\BranchName::format($branch->branch_name ?? $branch->name ?? null);
 
         // 2. FILTER SETTINGS: generate only after both dates are selected.
         $start_date = $request->get('start_date');
