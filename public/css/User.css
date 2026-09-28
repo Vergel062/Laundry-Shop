@@ -15,6 +15,12 @@ body { font-family: 'Poppins', sans-serif; background-color: #f1f5f9; }
     #sidebar .nav-link i { margin-right: 12px; font-size: 1.1rem; }
     
     #content { width: 100%; }
+    #content > nav.navbar {
+        position: sticky;
+        top: 0;
+        z-index: 1030;
+        flex-shrink: 0;
+    }
     .glass-card { background: white; border: none; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
     .loyalty-balance { background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); color: white; border-radius: 16px; }
     .notification-menu { min-width: 280px; max-width: 340px; }
