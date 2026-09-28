@@ -228,6 +228,8 @@ class ServiceController extends Controller
             abort(404, 'Error: Hindi nahanap ang order.');
         }
 
-        return view('staff.print_receipt', compact('data'));
+        $paymentSettings = LandingContentController::paymentSettings();
+
+        return view('staff.print_receipt', compact('data', 'paymentSettings'));
     }
 }

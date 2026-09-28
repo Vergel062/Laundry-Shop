@@ -438,10 +438,16 @@
 
                         <div id="payment_step2" class="d-none">
                             <div class="qr-container text-center mb-3" style="background: #f8f9fa; padding: 15px; border-radius: 15px;">
-                                <img id="qr_image" src="{{ asset('Gcash/gcash_qr.jpg') }}" class="img-fluid rounded border mb-3" style="max-height: 200px;">
+                                <img id="qr_image"
+                                     src="{{ route('payment.qr', 'gcash') }}"
+                                     data-gcash-qr="{{ route('payment.qr', 'gcash') }}"
+                                     data-paymaya-qr="{{ route('payment.qr', 'paymaya') }}"
+                                     data-gcash-number="{{ $paymentSettings['gcash_number'] }}"
+                                     data-paymaya-number="{{ $paymentSettings['paymaya_number'] }}"
+                                     class="img-fluid rounded border mb-3" style="max-height: 200px;">
                                 <div class="p-2 bg-white rounded border mb-2">
                                     <small class="text-muted d-block small">L-CARE:</small>
-                                    <h5 class="fw-bold text-dark mb-0" id="admin_num">09098256981</h5>
+                                    <h5 class="fw-bold text-dark mb-0" id="admin_num">{{ $paymentSettings['gcash_number'] }}</h5>
                                 </div>
                             </div>
 

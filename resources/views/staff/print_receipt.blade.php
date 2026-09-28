@@ -119,8 +119,8 @@
             <h1 class="brand">Laundry Care Service</h1>
             <p class="brand-subtitle">Quality care for every load</p>
             <div class="payment-details">
-                <div>GCash: 9098256981</div>
-                <div>PayMaya: 9109107296</div>
+                <div>GCash: {{ $paymentSettings['gcash_number'] }}</div>
+                <div>Maya: {{ $paymentSettings['paymaya_number'] }}</div>
             </div>
             <div class="location">{{ $data->branch_location ?? 'Branch location unavailable' }}</div>
             <div class="receipt-ref">RECEIPT #{{ $data->ref_number }}</div>

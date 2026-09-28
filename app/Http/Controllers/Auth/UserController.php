@@ -81,6 +81,8 @@ class UserController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        $paymentSettings = LandingContentController::paymentSettings();
+
         return view('user.dashboard', compact(
             'userData',
             'firstName',
@@ -91,7 +93,8 @@ class UserController extends Controller
             'currentPoints',
             'historyTransactions',
             'readyOrders',
-            'pendingServiceRequests'
+            'pendingServiceRequests',
+            'paymentSettings'
         ));
     }
 

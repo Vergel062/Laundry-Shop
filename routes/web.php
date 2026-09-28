@@ -48,6 +48,9 @@ Route::get('/forgot-password', [LoginController::class, 'showLinkRequestForm'])-
 Route::post('/forgot-password', [LoginController::class, 'sendOtp'])->name('password.email');
 Route::post('/verify-otp-code', [LoginController::class, 'verifyOtpCode']); 
 Route::post('/reset-password-store', [LoginController::class, 'resetPasswordWithOtp'])->name('password.update');
+Route::get('/payment-qr/{provider}', [LandingContentController::class, 'paymentQr'])
+    ->whereIn('provider', ['gcash', 'paymaya'])
+    ->name('payment.qr');
 // ==========================================
 
 

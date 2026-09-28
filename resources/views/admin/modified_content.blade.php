@@ -90,6 +90,24 @@
                         <label class="small fw-bold text-muted mb-2">PHONE</label><input name="contact_phone" class="form-control mb-3" value="{{ old('contact_phone', $content['contact_phone']) }}" required>
                         <label class="small fw-bold text-muted mb-2">OPERATING HOURS</label><input name="contact_hours" class="form-control" value="{{ old('contact_hours', $content['contact_hours']) }}" required>
                     </div></div>
+                    <div class="col-lg-6"><div class="card p-4 h-100"><h5 class="fw-bold mb-4"><i class="bi bi-qr-code text-primary me-2"></i>GCash Payment Details</h5>
+                        <label class="small fw-bold text-muted mb-2">GCASH NUMBER</label><input name="gcash_number" class="form-control mb-3" value="{{ old('gcash_number', $content['gcash_number']) }}" maxlength="32" required>
+                        <label class="small fw-bold text-muted mb-2">CURRENT QR CODE</label>
+                        <img src="{{ route('payment.qr', 'gcash') }}" id="gcashQrPreview" alt="GCash QR code" class="rounded-3 border mb-2" style="height: 180px; width: 100%; object-fit: contain;" onerror="this.style.display='none';">
+                        <label class="small fw-bold text-muted mb-2">REPLACE QR CODE</label>
+                        <input type="file" name="gcash_qr_upload" id="gcashQrInput" class="form-control" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp">
+                        <div class="form-text">Optional. JPG, PNG, GIF, or WEBP up to 5 MB.</div>
+                        @error('gcash_qr_upload')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                    </div></div>
+                    <div class="col-lg-6"><div class="card p-4 h-100"><h5 class="fw-bold mb-4"><i class="bi bi-qr-code text-info me-2"></i>Maya Payment Details</h5>
+                        <label class="small fw-bold text-muted mb-2">MAYA NUMBER</label><input name="paymaya_number" class="form-control mb-3" value="{{ old('paymaya_number', $content['paymaya_number']) }}" maxlength="32" required>
+                        <label class="small fw-bold text-muted mb-2">CURRENT QR CODE</label>
+                        <img src="{{ route('payment.qr', 'paymaya') }}" id="paymayaQrPreview" alt="Maya QR code" class="rounded-3 border mb-2" style="height: 180px; width: 100%; object-fit: contain;" onerror="this.style.display='none';">
+                        <label class="small fw-bold text-muted mb-2">REPLACE QR CODE</label>
+                        <input type="file" name="paymaya_qr_upload" id="paymayaQrInput" class="form-control" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp">
+                        <div class="form-text">Optional. JPG, PNG, GIF, or WEBP up to 5 MB.</div>
+                        @error('paymaya_qr_upload')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
+                    </div></div>
                 </div>
                 <button type="submit" class="btn btn-primary px-4 py-2 mt-4"><i class="bi bi-save me-2"></i>Save Modified Content</button>
             </form>
@@ -104,6 +122,20 @@
         if (file) {
             document.getElementById('aboutImagePreview').src = URL.createObjectURL(file);
         }
+    });
+
+    [
+        ['gcashQrInput', 'gcashQrPreview'],
+        ['paymayaQrInput', 'paymayaQrPreview']
+    ].forEach(([inputId, previewId]) => {
+        document.getElementById(inputId)?.addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const preview = document.getElementById(previewId);
+                preview.style.display = '';
+                preview.src = URL.createObjectURL(file);
+            }
+        });
     });
 </script>
 @if(session('success'))
