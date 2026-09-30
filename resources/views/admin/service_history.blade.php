@@ -234,6 +234,7 @@
                             <button type="submit" class="btn btn-primary w-100 fw-bold rounded-8 py-2 shadow-sm">Filter</button>
                         </div>
                     </form>
+                    <small class="text-muted d-block mt-2">Active orders remain listed until they are both claimed and paid, even if they are older than the selected dates.</small>
                 </div>
             </div>
 
