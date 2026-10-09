@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\OrderReadyMail;
 use Carbon\Carbon;
+use App\Support\TransactionHistoryFilter;
 
 class ManagerServiceController extends Controller
 {
@@ -58,7 +59,7 @@ class ManagerServiceController extends Controller
             $end_date = $currentDate;
         }
 
-        $query->whereBetween('t.created_at', [$start_date . ' 00:00:00', $end_date . ' 23:59:59']);
+        TransactionHistoryFilter::applyDateRangeWithActiveOrders($query, $start_date, $end_date);
 
         // Search Filter (Ref # o Name)
         if (!empty($search_val)) {

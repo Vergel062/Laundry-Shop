@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use App\Support\TransactionHistoryFilter;
 
 class ServiceHistoryController extends Controller
 {
@@ -86,7 +87,9 @@ class ServiceHistoryController extends Controller
         }
 
         // Apply Date Range Filter only after the report dates are submitted.
-        if ($report_generated) {
+        if ($report_generated && !$is_report) {
+            TransactionHistoryFilter::applyDateRangeWithActiveOrders($query, $start_date, $end_date);
+        } elseif ($report_generated) {
             $query->whereBetween('t.created_at', ["{$start_date} 00:00:00", "{$end_date} 23:59:59"]);
         }
 

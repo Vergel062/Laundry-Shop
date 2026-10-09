@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\OrderReadyMail;
 use Carbon\Carbon;
+use App\Support\TransactionHistoryFilter;
 
 class ServiceController extends Controller
 {
@@ -49,17 +50,12 @@ class ServiceController extends Controller
             ->join('users as u', 't.user_id', '=', 'u.id')
             ->where('t.branch_id', $branch_id);
 
-        // KUNG WALANG SPECIFIC NA DATE NA PINILI ANG USER (Default: First day of the month hanggang ngayon)
+        // Default to the current month, while keeping active orders visible across months.
         if (empty($start_date) || empty($end_date)) {
             $start_date = $firstDayOfMonth;
             $end_date = $currentDate;
-
-            // Ipinapakita ang mga transaksyon simula unang araw ng buwan hanggang ngayon
-            $query->whereBetween('t.created_at', [$start_date . ' 00:00:00', $end_date . ' 23:59:59']);
-        } else {
-            // Kung gumamit ng date filter range
-            $query->whereBetween('t.created_at', [$start_date . ' 00:00:00', $end_date . ' 23:59:59']);
         }
+        TransactionHistoryFilter::applyDateRangeWithActiveOrders($query, $start_date, $end_date);
 
         // Filter para sa Search (Reference number o Pangalan ng Customer)
         if (!empty($search_val)) {

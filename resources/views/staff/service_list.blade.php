@@ -118,6 +118,7 @@
                             <input type="text" name="search" class="form-control bg-light border-0" placeholder="Ref # or Name..." value="{{ $search_val ?? '' }}">
                         </div>
                     </form>
+                    <small class="text-muted d-block mt-2">Active orders remain listed until they are both claimed and paid, even if they are older than the selected dates.</small>
                 </div>
 
                 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
