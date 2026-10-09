@@ -44,6 +44,8 @@ class TransactionHistoryActiveOrdersTest extends TestCase
             $table->timestamp('created_at');
             $table->string('order_status')->nullable();
             $table->string('payment_status')->nullable();
+            $table->date('queue_date')->nullable();
+            $table->unsignedSmallInteger('queue_number')->nullable();
             $table->decimal('total_amount', 10, 2)->default(0);
         });
 
@@ -77,9 +79,7 @@ class TransactionHistoryActiveOrdersTest extends TestCase
             $this->actingAs($this->user(20, $role, 1));
             $response = app($controllerClass)->index($this->octoberRequest());
 
-            $ids = $response->getData()['transactions']->pluck('id')->all();
-            sort($ids);
-            $this->assertSame([1, 2, 3, 6], $ids);
+            $this->assertSame([1, 2, 3, 6], $response->getData()['transactions']->pluck('id')->all());
         }
     }
 

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Exceptions\DailyServiceQueueFull;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\InventoryHistoryService;
+use App\Services\DailyServiceQueue;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\OrderReadyMail;
@@ -27,6 +29,7 @@ class ManagerServiceController extends Controller
         }
 
         $branch_id = $user->branch_id ?? session('branch_id');
+        app(DailyServiceQueue::class)->ensureExistingOrdersHaveNumbers((int) $branch_id);
         
         // Kunin ang pangalan ng branch
         $branch = DB::table('branches')->where('id', $branch_id)->first();
@@ -71,9 +74,11 @@ class ManagerServiceController extends Controller
 
         // Transactions Result Ordering
         $transactions = $query->select('t.*', 'u.fullname')
-            ->orderByRaw("FIELD(t.order_status, 'Claimed', 'Cancelled') ASC")
-            ->orderByRaw("(t.payment_status = 'Unpaid') DESC")
-            ->orderBy('t.created_at', 'DESC')
+            ->orderByRaw("CASE WHEN t.order_status = 'Cancelled' OR (t.order_status = 'Claimed' AND t.payment_status = 'Paid') THEN 1 ELSE 0 END ASC")
+            ->orderByRaw('CASE WHEN t.queue_number IS NULL THEN 1 ELSE 0 END ASC')
+            ->orderBy('t.queue_date')
+            ->orderBy('t.queue_number')
+            ->orderBy('t.created_at', 'ASC')
             ->get();
 
         return view('manager.service_list', compact(
@@ -121,6 +126,7 @@ class ManagerServiceController extends Controller
             $amount = $basePrices[$request->service] + (max(0, $weight - 8) * 10);
 
             DB::transaction(function () use ($request, $manager_id, $my_branch, $refNumber, $phTime, $amount, $weight) {
+                $queue = app(DailyServiceQueue::class)->assignNext((int) $my_branch, $phTime);
                 $requestQuery = DB::table('transactions')
                     ->where('id', $request->input('request_id'))
                     ->where('branch_id', $my_branch)
@@ -128,7 +134,12 @@ class ManagerServiceController extends Controller
                     ->where('order_status', 'Pending')
                     ->where('payment_status', 'Service Request');
 
-                if ($request->filled('request_id') && $requestQuery->exists()) {
+                if ($request->filled('request_id')) {
+                    $serviceRequest = $requestQuery->lockForUpdate()->first();
+                    if (!$serviceRequest) {
+                        throw new \InvalidArgumentException('The service request is no longer pending or does not belong to this branch.');
+                    }
+
                     $requestQuery->update([
                         'staff_id' => $manager_id,
                         'ref_number' => $refNumber,
@@ -136,6 +147,8 @@ class ManagerServiceController extends Controller
                         'service_type' => $request->service,
                         'total_amount' => $amount,
                         'payment_status' => 'Unpaid',
+                        'queue_date' => $queue['queue_date'],
+                        'queue_number' => $queue['queue_number'],
                     ]);
                 } else {
                     DB::table('transactions')->insert([
@@ -148,6 +161,8 @@ class ManagerServiceController extends Controller
                         'total_amount' => $amount,
                         'order_status' => 'Pending',
                         'payment_status' => 'Unpaid',
+                        'queue_date' => $queue['queue_date'],
+                        'queue_number' => $queue['queue_number'],
                         'created_at' => $phTime,
                     ]);
                 }
@@ -174,6 +189,24 @@ class ManagerServiceController extends Controller
 
             return redirect()->back()->with('success', 'New service order added successfully!');
 
+        } catch (DailyServiceQueueFull $e) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ], 422);
+            }
+
+            return redirect()->back()->with('error', $e->getMessage());
+        } catch (\InvalidArgumentException $e) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->getMessage(),
+                ], 422);
+            }
+
+            return redirect()->back()->with('error', $e->getMessage());
         } catch (\Exception $e) {
             if ($request->wantsJson()) {
                 return response()->json([

@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Exceptions\DailyServiceQueueFull;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Services\InventoryHistoryService;
+use App\Services\DailyServiceQueue;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
@@ -159,6 +161,7 @@ class StaffController extends Controller
             $amount = $basePrices[$request->service] + (max(0, $weight - 8) * 10);
 
             DB::transaction(function () use ($request, $staff_id, $my_branch, $refNumber, $phTime, $amount, $weight) {
+                $queue = app(DailyServiceQueue::class)->assignNext((int) $my_branch, $phTime);
                 $requestQuery = DB::table('transactions')
                     ->where('id', $request->input('request_id'))
                     ->where('branch_id', $my_branch)
@@ -166,7 +169,12 @@ class StaffController extends Controller
                     ->where('order_status', 'Pending')
                     ->where('payment_status', 'Service Request');
 
-                if ($request->filled('request_id') && $requestQuery->exists()) {
+                if ($request->filled('request_id')) {
+                    $serviceRequest = $requestQuery->lockForUpdate()->first();
+                    if (!$serviceRequest) {
+                        throw new \InvalidArgumentException('The service request is no longer pending or does not belong to this branch.');
+                    }
+
                     $requestQuery->update([
                         'staff_id' => $staff_id,
                         'ref_number' => $refNumber,
@@ -174,6 +182,8 @@ class StaffController extends Controller
                         'service_type' => $request->service,
                         'total_amount' => $amount,
                         'payment_status' => 'Unpaid',
+                        'queue_date' => $queue['queue_date'],
+                        'queue_number' => $queue['queue_number'],
                     ]);
                 } else {
                     DB::table('transactions')->insert([
@@ -186,6 +196,8 @@ class StaffController extends Controller
                         'total_amount' => $amount,
                         'order_status' => 'Pending',
                         'payment_status' => 'Unpaid',
+                        'queue_date' => $queue['queue_date'],
+                        'queue_number' => $queue['queue_number'],
                         'created_at' => $phTime,
                     ]);
                 }
@@ -206,6 +218,16 @@ class StaffController extends Controller
                 'message' => 'Order saved and inventory updated successfully!'
             ]);
 
+        } catch (DailyServiceQueueFull $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 422);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+            ], 422);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',

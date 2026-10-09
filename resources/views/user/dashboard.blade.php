@@ -113,7 +113,12 @@
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="fw-bold mb-0">Active Order Status</h5>
                                 @if($activeOrder)
-                                    <span class="badge bg-primary rounded-pill">{{ $activeOrder->order_status }}</span>
+                                    <div class="d-flex align-items-center gap-2">
+                                        @if($activeOrder->queue_number)
+                                            <span class="badge bg-info text-dark rounded-pill">Queue #{{ str_pad((string) $activeOrder->queue_number, 2, '0', STR_PAD_LEFT) }}</span>
+                                        @endif
+                                        <span class="badge bg-primary rounded-pill">{{ $activeOrder->order_status }}</span>
+                                    </div>
                                 @else
                                     <span class="badge bg-secondary rounded-pill">No Active Order</span>
                                 @endif

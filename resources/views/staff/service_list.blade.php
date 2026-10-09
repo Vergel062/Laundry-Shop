@@ -127,6 +127,7 @@
                             <thead class="bg-light">
                                 <tr class="small text-muted">
                                     <th class="ps-4 py-3">DATE</th>
+                                    <th>QUEUE #</th>
                                     <th>REF #</th>
                                     <th>CUSTOMER</th>
                                     <th>SERVICE</th>
@@ -155,6 +156,7 @@
                                     @endphp
                                     <tr>
                                         <td class="ps-4 small text-muted">{{ date('M d', strtotime($row->created_at)) }}</td>
+                                        <td class="fw-bold text-primary">{{ $row->queue_number ? str_pad((string) $row->queue_number, 2, '0', STR_PAD_LEFT) : '—' }}</td>
                                         <td class="fw-bold">{{ $row->ref_number }}</td>
                                         <td class="fw-semibold">{{ $row->fullname }}</td>
                                         <td>{{ ($row->payment_status === 'Service Request') ? 'New Service Request' : $row->service_type }}</td>
@@ -197,7 +199,7 @@
                                         </td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="7" class="text-center p-5 text-muted">No transactions found.</td></tr>
+                                    <tr><td colspan="8" class="text-center p-5 text-muted">No transactions found.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>

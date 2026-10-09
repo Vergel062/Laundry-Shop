@@ -39,6 +39,8 @@ class BranchScopedCustomerHistoryTest extends TestCase
             $table->string('ref_number')->nullable();
             $table->string('order_status')->nullable();
             $table->string('payment_status')->nullable();
+            $table->date('queue_date')->nullable();
+            $table->unsignedSmallInteger('queue_number')->nullable();
             $table->decimal('total_amount', 10, 2)->default(0);
             $table->decimal('weight_kg', 10, 2)->default(0);
             $table->timestamp('created_at')->nullable();

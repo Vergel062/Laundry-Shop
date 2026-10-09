@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use App\Services\DailyServiceQueue;
 
 class UserController extends Controller
 {
@@ -23,6 +24,9 @@ class UserController extends Controller
         $userData = DB::table('users')->select('id', 'fullname', 'email', 'phone', 'profile_pic', 'referral_code', 'branch_id')->where('id', $userId)->first();
         $firstName = $userData ? explode(' ', trim($userData->fullname))[0] : 'User';
         $branchId = $userData->branch_id ?? null;
+        if ($branchId) {
+            app(DailyServiceQueue::class)->ensureExistingOrdersHaveNumbers((int) $branchId);
+        }
         $branches = DB::table('branches')
             ->whereNull('archive_date')
             ->orderBy('branch_name')
@@ -33,7 +37,9 @@ class UserController extends Controller
             ->where('branch_id', $branchId)
             ->whereNotIn('order_status', ['Claimed', 'Cancelled'])
             ->where('payment_status', '!=', 'Service Request')
-            ->orderBy('created_at', 'desc')
+            ->orderByRaw('CASE WHEN queue_number IS NULL THEN 1 ELSE 0 END ASC')
+            ->orderBy('queue_date')
+            ->orderBy('queue_number')
             ->first();
 
         $progressPercent = 0;

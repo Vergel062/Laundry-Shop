@@ -9,6 +9,7 @@ use App\Services\InventoryHistoryService;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use App\Mail\OrderReadyMail;
+use App\Services\DailyServiceQueue;
 use Carbon\Carbon;
 use App\Support\TransactionHistoryFilter;
 
@@ -24,6 +25,7 @@ class ServiceController extends Controller
         }
 
         $branch_id = $user->branch_id ?? session('branch_id');
+        app(DailyServiceQueue::class)->ensureExistingOrdersHaveNumbers((int) $branch_id);
         
         // Kunin ang pangalan ng branch
         $branch = DB::table('branches')->where('id', $branch_id)->first();
@@ -67,9 +69,11 @@ class ServiceController extends Controller
 
         // PAG-AYOS NG PRIORITY
         $transactions = $query->select('t.*', 'u.fullname')
-            ->orderByRaw("FIELD(t.order_status, 'Claimed', 'Cancelled') ASC")
-            ->orderByRaw("(t.payment_status = 'Unpaid') DESC")
-            ->orderBy('t.created_at', 'DESC')
+            ->orderByRaw("CASE WHEN t.order_status = 'Cancelled' OR (t.order_status = 'Claimed' AND t.payment_status = 'Paid') THEN 1 ELSE 0 END ASC")
+            ->orderByRaw('CASE WHEN t.queue_number IS NULL THEN 1 ELSE 0 END ASC')
+            ->orderBy('t.queue_date')
+            ->orderBy('t.queue_number')
+            ->orderBy('t.created_at', 'ASC')
             ->get();
 
         return view('staff.service_list', compact(
