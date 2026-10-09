@@ -162,6 +162,58 @@ class DailyServiceQueueTest extends TestCase
         $this->assertDatabaseCount('transactions', 50);
     }
 
+    public function test_customer_cannot_request_a_service_after_branch_cutoff(): void
+    {
+        $today = Carbon::now('Asia/Manila')->toDateString();
+        for ($number = 1; $number <= 50; $number++) {
+            DB::table('transactions')->insert([
+                'user_id' => 10,
+                'branch_id' => 1,
+                'queue_date' => $today,
+                'queue_number' => $number,
+                'order_status' => 'Pending',
+                'payment_status' => 'Unpaid',
+                'created_at' => now(),
+            ]);
+        }
+
+        $this->actingAs($this->user(10, 'customer', 1))
+            ->post(route('user.service.request'))
+            ->assertRedirect(route('user.dashboard'))
+            ->assertSessionHas('queue_error');
+
+        $this->assertDatabaseCount('transactions', 50);
+        $this->assertDatabaseMissing('transactions', ['payment_status' => 'Service Request']);
+    }
+
+    public function test_manager_cannot_add_a_new_service_after_branch_cutoff(): void
+    {
+        $today = Carbon::now('Asia/Manila')->toDateString();
+        for ($number = 1; $number <= 50; $number++) {
+            DB::table('transactions')->insert([
+                'user_id' => 10,
+                'branch_id' => 1,
+                'queue_date' => $today,
+                'queue_number' => $number,
+                'order_status' => 'Pending',
+                'payment_status' => 'Unpaid',
+                'created_at' => now(),
+            ]);
+        }
+
+        $this->actingAs($this->user(21, 'manager', 1))
+            ->postJson(route('manager.save.order'), [
+                'user_id' => 10,
+                'weight' => 4,
+                'service' => 'Wash-Dry',
+                'amount' => 130,
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseCount('transactions', 50);
+    }
+
     public function test_unapproved_requests_do_not_consume_queue_numbers(): void
     {
         DB::table('transactions')->insert([

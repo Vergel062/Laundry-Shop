@@ -212,9 +212,19 @@
                     </div>
 
                     <div class="col-lg-4">
-                        <button type="button" class="btn btn-primary w-100 fw-bold py-3 mb-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#requestServiceModal">
-                            <i class="bi bi-plus-circle me-2"></i> Request New Service
-                        </button>
+                        @if(session('queue_error'))
+                            <div class="alert alert-warning py-2 shadow-sm">{{ session('queue_error') }}</div>
+                        @endif
+                        @if($dailyQueueFull)
+                            <button type="button" class="btn btn-secondary w-100 fw-bold py-3 mb-4 shadow-sm" disabled>
+                                <i class="bi bi-hourglass-split me-2"></i> Daily Limit Reached
+                            </button>
+                            <p class="text-muted small text-center mt-n3 mb-4">New service requests will open again tomorrow.</p>
+                        @else
+                            <button type="button" class="btn btn-primary w-100 fw-bold py-3 mb-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#requestServiceModal">
+                                <i class="bi bi-plus-circle me-2"></i> Request New Service
+                            </button>
+                        @endif
 
                         <div class="card loyalty-balance p-4 mb-4 shadow">
                             <h6 class="small opacity-75">Loyalty Points Balance</h6>

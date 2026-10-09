@@ -88,7 +88,7 @@
         <nav class="navbar navbar-light px-4 py-3 sticky-header">
             <div class="d-flex align-items-center">
                 <button class="btn btn-light d-lg-none me-3" id="sidebarToggle"><i class="bi bi-list fs-4"></i></button>
-                <h5 class="fw-bold mb-0 d-none d-sm-block">Executive Overview</h5>
+                <h5 class="fw-bold mb-0 d-none d-sm-block">Dashboard Overview</h5>
                 <select class="form-select form-select-sm ms-sm-3" style="width: 160px;" onchange="filterBranch(this.value)">
                     <option value="all" {{ ($selected_branch == 'all') ? 'selected' : '' }}>All Branches</option>
                     @foreach($branches as $branch)

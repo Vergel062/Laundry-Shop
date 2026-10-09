@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use App\Services\DailyServiceQueue;
+use App\Exceptions\DailyServiceQueueFull;
 
 class UserController extends Controller
 {
@@ -31,6 +32,9 @@ class UserController extends Controller
             ->whereNull('archive_date')
             ->orderBy('branch_name')
             ->get(['id', 'branch_name']);
+        $dailyQueueFull = $branchId
+            ? app(DailyServiceQueue::class)->isFull((int) $branchId, now('Asia/Manila'))
+            : false;
 
         $activeOrder = DB::table('transactions')
             ->where('user_id', $userId)
@@ -105,6 +109,7 @@ class UserController extends Controller
             'userData',
             'firstName',
             'branches',
+            'dailyQueueFull',
             'activeOrder',
             'progressPercent',
             'transactions',
@@ -126,17 +131,28 @@ class UserController extends Controller
             return back()->with('error', 'Your account is not assigned to a branch.');
         }
 
-        DB::table('transactions')->insert([
-            'user_id' => $userId,
-            'staff_id' => $userId,
-            'branch_id' => $user->branch_id,
-            'ref_number' => 'LC-' . strtoupper(substr(uniqid(), -6)),
-            'weight_kg' => 0,
-            'service_type' => 'Others',
-            'total_amount' => 0,
-            'order_status' => 'Pending',
-            'payment_status' => 'Service Request',
-        ]);
+        try {
+            DB::transaction(function () use ($userId, $user) {
+                app(DailyServiceQueue::class)->assertCanAcceptRequest(
+                    (int) $user->branch_id,
+                    now('Asia/Manila')
+                );
+
+                DB::table('transactions')->insert([
+                    'user_id' => $userId,
+                    'staff_id' => $userId,
+                    'branch_id' => $user->branch_id,
+                    'ref_number' => 'LC-' . strtoupper(substr(uniqid(), -6)),
+                    'weight_kg' => 0,
+                    'service_type' => 'Others',
+                    'total_amount' => 0,
+                    'order_status' => 'Pending',
+                    'payment_status' => 'Service Request',
+                ]);
+            });
+        } catch (DailyServiceQueueFull $e) {
+            return redirect()->route('user.dashboard')->with('queue_error', $e->getMessage());
+        }
 
         return redirect()->route('user.dashboard')
             ->with('success', 'Service request sent to your branch.');

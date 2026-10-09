@@ -12,32 +12,35 @@ class DailyServiceQueue
 
     public function assignNext(int $branchId, Carbon $assignedAt): array
     {
-        $branch = DB::table('branches')
-            ->where('id', $branchId)
-            ->lockForUpdate()
-            ->first(['id']);
-
-        if (!$branch) {
-            throw new \RuntimeException('The service branch could not be found.');
-        }
-
-        $this->backfillUnnumberedOrders($branchId);
-
         $queueDate = $assignedAt->copy()->setTimezone('Asia/Manila')->toDateString();
-        $dayQueue = DB::table('transactions')
-            ->where('branch_id', $branchId)
-            ->where('queue_date', $queueDate);
-        $assignedCount = (clone $dayQueue)->whereNotNull('queue_number')->count();
-        $lastQueueNumber = (int) ((clone $dayQueue)->max('queue_number') ?? 0);
-
-        if ($assignedCount >= self::DAILY_LIMIT || $lastQueueNumber >= self::DAILY_LIMIT) {
-            throw new DailyServiceQueueFull();
-        }
+        $lastQueueNumber = $this->lockBranchAndGetLastQueueNumber($branchId, $queueDate);
 
         return [
             'queue_date' => $queueDate,
             'queue_number' => $lastQueueNumber + 1,
         ];
+    }
+
+    public function assertCanAcceptRequest(int $branchId, Carbon $requestedAt): void
+    {
+        $queueDate = $requestedAt->copy()->setTimezone('Asia/Manila')->toDateString();
+        $lastQueueNumber = $this->lockBranchAndGetLastQueueNumber($branchId, $queueDate);
+
+        if ($lastQueueNumber >= self::DAILY_LIMIT) {
+            throw new DailyServiceQueueFull();
+        }
+    }
+
+    public function isFull(int $branchId, Carbon $date): bool
+    {
+        $queueDate = $date->copy()->setTimezone('Asia/Manila')->toDateString();
+        $count = DB::table('transactions')
+            ->where('branch_id', $branchId)
+            ->where('queue_date', $queueDate)
+            ->whereNotNull('queue_number')
+            ->count();
+
+        return $count >= self::DAILY_LIMIT;
     }
 
     public function ensureExistingOrdersHaveNumbers(int $branchId): void
@@ -88,6 +91,32 @@ class DailyServiceQueue
 
             $existingNumbers[$queueDate] = $nextNumber;
         }
+    }
+
+    private function lockBranchAndGetLastQueueNumber(int $branchId, string $queueDate): int
+    {
+        $branch = DB::table('branches')
+            ->where('id', $branchId)
+            ->lockForUpdate()
+            ->first(['id']);
+
+        if (!$branch) {
+            throw new \RuntimeException('The service branch could not be found.');
+        }
+
+        $this->backfillUnnumberedOrders($branchId);
+
+        $dayQueue = DB::table('transactions')
+            ->where('branch_id', $branchId)
+            ->where('queue_date', $queueDate);
+        $assignedCount = (clone $dayQueue)->whereNotNull('queue_number')->count();
+        $lastQueueNumber = (int) ((clone $dayQueue)->max('queue_number') ?? 0);
+
+        if ($assignedCount >= self::DAILY_LIMIT || $lastQueueNumber >= self::DAILY_LIMIT) {
+            throw new DailyServiceQueueFull();
+        }
+
+        return $lastQueueNumber;
     }
 
     private function hasUnnumberedOrders(int $branchId): bool

@@ -185,7 +185,7 @@
             </div>
 
             <div id="transactions" class="chart-container mb-4">
-                <h6 class="fw-bold mb-4"><i class="bi bi-activity text-info me-2"></i>Live Branch Transaction Logs</h6>
+                <h6 class="fw-bold mb-4"><i class="bi bi-activity text-info me-2"></i>Transaction Logs</h6>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="bg-light">
