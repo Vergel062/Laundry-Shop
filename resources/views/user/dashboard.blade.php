@@ -220,6 +220,16 @@
                                 <i class="bi bi-hourglass-split me-2"></i> Daily Limit Reached
                             </button>
                             <p class="text-muted small text-center mt-n3 mb-4">New service requests will open again tomorrow.</p>
+                        @elseif($hasRequestedToday)
+                            <button type="button" class="btn btn-secondary w-100 fw-bold py-3 mb-4 shadow-sm" disabled>
+                                <i class="bi bi-check-circle me-2"></i> Request Already Sent Today
+                            </button>
+                            <p class="text-muted small text-center mt-n3 mb-4">You can send another new service request tomorrow.</p>
+                        @elseif($dailyRequestsFull)
+                            <button type="button" class="btn btn-secondary w-100 fw-bold py-3 mb-4 shadow-sm" disabled>
+                                <i class="bi bi-hourglass-split me-2"></i> Request Limit Reached
+                            </button>
+                            <p class="text-muted small text-center mt-n3 mb-4">This branch has received 20 new service requests today. Requests will open again tomorrow.</p>
                         @else
                             <button type="button" class="btn btn-primary w-100 fw-bold py-3 mb-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#requestServiceModal">
                                 <i class="bi bi-plus-circle me-2"></i> Request New Service

@@ -45,6 +45,17 @@ class DailyServiceQueueTest extends TestCase
             $table->timestamp('created_at')->nullable();
         });
 
+        Schema::create('daily_service_requests', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('branch_id');
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('transaction_id');
+            $table->date('request_date');
+            $table->timestamp('created_at')->nullable();
+            $table->unique(['user_id', 'request_date']);
+            $table->index(['branch_id', 'request_date']);
+        });
+
         DB::table('branches')->insert([
             ['id' => 1, 'branch_name' => 'Carmona'],
             ['id' => 2, 'branch_name' => 'Biñan'],
@@ -184,6 +195,68 @@ class DailyServiceQueueTest extends TestCase
 
         $this->assertDatabaseCount('transactions', 50);
         $this->assertDatabaseMissing('transactions', ['payment_status' => 'Service Request']);
+    }
+
+    public function test_customer_can_submit_only_one_service_request_per_day(): void
+    {
+        $today = Carbon::now('Asia/Manila')->toDateString();
+        DB::table('daily_service_requests')->insert([
+            'branch_id' => 2,
+            'user_id' => 10,
+            'transaction_id' => 100,
+            'request_date' => $today,
+        ]);
+
+        $this->actingAs($this->user(10, 'customer', 1))
+            ->post(route('user.service.request'))
+            ->assertRedirect(route('user.dashboard'))
+            ->assertSessionHas('queue_error', 'You have already submitted a service request today. You can request again tomorrow.');
+
+        $this->assertDatabaseMissing('transactions', ['payment_status' => 'Service Request']);
+    }
+
+    public function test_customer_can_submit_another_request_on_the_next_day(): void
+    {
+        DB::table('daily_service_requests')->insert([
+            'branch_id' => 1,
+            'user_id' => 10,
+            'transaction_id' => 100,
+            'request_date' => Carbon::now('Asia/Manila')->subDay()->toDateString(),
+        ]);
+
+        $this->actingAs($this->user(10, 'customer', 1))
+            ->post(route('user.service.request'))
+            ->assertRedirect(route('user.dashboard'))
+            ->assertSessionHas('success', 'Service request sent to your branch.');
+
+        $this->assertDatabaseHas('transactions', [
+            'user_id' => 10,
+            'payment_status' => 'Service Request',
+        ]);
+        $this->assertDatabaseCount('daily_service_requests', 2);
+    }
+
+    public function test_branch_rejects_customer_requests_after_20_have_been_submitted_today(): void
+    {
+        $today = Carbon::now('Asia/Manila')->toDateString();
+        $requests = [];
+        for ($userId = 100; $userId < 120; $userId++) {
+            $requests[] = [
+                'branch_id' => 1,
+                'user_id' => $userId,
+                'transaction_id' => $userId,
+                'request_date' => $today,
+            ];
+        }
+        DB::table('daily_service_requests')->insert($requests);
+
+        $this->actingAs($this->user(10, 'customer', 1))
+            ->post(route('user.service.request'))
+            ->assertRedirect(route('user.dashboard'))
+            ->assertSessionHas('queue_error', 'This branch has reached its limit of 20 service requests for today. Requests will open again tomorrow.');
+
+        $this->assertDatabaseMissing('transactions', ['payment_status' => 'Service Request']);
+        $this->assertDatabaseCount('daily_service_requests', 20);
     }
 
     public function test_manager_cannot_add_a_new_service_after_branch_cutoff(): void

@@ -10,7 +10,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use App\Services\DailyServiceQueue;
+use App\Services\DailyServiceRequestLimit;
 use App\Exceptions\DailyServiceQueueFull;
+use App\Exceptions\DailyServiceRequestLimitReached;
 
 class UserController extends Controller
 {
@@ -25,6 +27,7 @@ class UserController extends Controller
         $userData = DB::table('users')->select('id', 'fullname', 'email', 'phone', 'profile_pic', 'referral_code', 'branch_id')->where('id', $userId)->first();
         $firstName = $userData ? explode(' ', trim($userData->fullname))[0] : 'User';
         $branchId = $userData->branch_id ?? null;
+        $today = now('Asia/Manila');
         if ($branchId) {
             app(DailyServiceQueue::class)->ensureExistingOrdersHaveNumbers((int) $branchId);
         }
@@ -33,7 +36,13 @@ class UserController extends Controller
             ->orderBy('branch_name')
             ->get(['id', 'branch_name']);
         $dailyQueueFull = $branchId
-            ? app(DailyServiceQueue::class)->isFull((int) $branchId, now('Asia/Manila'))
+            ? app(DailyServiceQueue::class)->isFull((int) $branchId, $today)
+            : false;
+        $dailyRequestsFull = $branchId
+            ? app(DailyServiceRequestLimit::class)->isFull((int) $branchId, $today)
+            : false;
+        $hasRequestedToday = $branchId
+            ? app(DailyServiceRequestLimit::class)->hasUserRequestedToday((int) $userId, $today)
             : false;
 
         $activeOrder = DB::table('transactions')
@@ -110,6 +119,8 @@ class UserController extends Controller
             'firstName',
             'branches',
             'dailyQueueFull',
+            'dailyRequestsFull',
+            'hasRequestedToday',
             'activeOrder',
             'progressPercent',
             'transactions',
@@ -133,12 +144,15 @@ class UserController extends Controller
 
         try {
             DB::transaction(function () use ($userId, $user) {
+                $requestedAt = now('Asia/Manila');
                 app(DailyServiceQueue::class)->assertCanAcceptRequest(
                     (int) $user->branch_id,
-                    now('Asia/Manila')
+                    $requestedAt
                 );
+                $requestLimit = app(DailyServiceRequestLimit::class);
+                $requestLimit->assertCanSubmit((int) $user->branch_id, (int) $userId, $requestedAt);
 
-                DB::table('transactions')->insert([
+                $transactionId = DB::table('transactions')->insertGetId([
                     'user_id' => $userId,
                     'staff_id' => $userId,
                     'branch_id' => $user->branch_id,
@@ -148,9 +162,13 @@ class UserController extends Controller
                     'total_amount' => 0,
                     'order_status' => 'Pending',
                     'payment_status' => 'Service Request',
+                    'created_at' => $requestedAt,
                 ]);
+                $requestLimit->record((int) $user->branch_id, (int) $userId, (int) $transactionId, $requestedAt);
             });
         } catch (DailyServiceQueueFull $e) {
+            return redirect()->route('user.dashboard')->with('queue_error', $e->getMessage());
+        } catch (DailyServiceRequestLimitReached $e) {
             return redirect()->route('user.dashboard')->with('queue_error', $e->getMessage());
         }
 
