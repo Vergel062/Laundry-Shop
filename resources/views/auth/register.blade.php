@@ -75,7 +75,12 @@
 
             <div class="mb-3">
                 <label class="form-label small fw-bold text-secondary">Create Password</label>
-                <input type="password" name="password" id="password" class="form-control shadow-none" placeholder="Min. 8 characters" required>
+                <input type="password" name="password" id="password" class="form-control shadow-none" placeholder="Min. 8 characters" minlength="8" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,}" title="Use at least 8 characters, including an uppercase letter, a lowercase letter, and a number." aria-describedby="password-requirements" required>
+                <ul id="password-requirements" class="list-unstyled small mt-2 mb-0" aria-live="polite">
+                    <li class="text-danger" data-password-check="length"><i class="bi bi-x-circle-fill me-1"></i>At least 8 characters</li>
+                    <li class="text-danger" data-password-check="case"><i class="bi bi-x-circle-fill me-1"></i>Uppercase and lowercase letters</li>
+                    <li class="text-danger" data-password-check="number"><i class="bi bi-x-circle-fill me-1"></i>At least one number</li>
+                </ul>
             </div>
 
             <div class="mb-3">
@@ -180,7 +185,30 @@
         const cpw = document.getElementById('confirm_password');
         const feedback = document.getElementById('pw-feedback');
 
-        cpw.addEventListener('input', () => {
+        const updatePasswordRequirements = () => {
+            const checks = {
+                length: pw.value.length >= 8,
+                case: /[a-z]/.test(pw.value) && /[A-Z]/.test(pw.value),
+                number: /[0-9]/.test(pw.value)
+            };
+
+            Object.entries(checks).forEach(([requirement, isMet]) => {
+                const item = document.querySelector(`[data-password-check="${requirement}"]`);
+                const icon = item.querySelector('i');
+
+                item.classList.toggle('text-danger', !isMet);
+                item.classList.toggle('text-primary', isMet);
+                icon.classList.toggle('bi-x-circle-fill', !isMet);
+                icon.classList.toggle('bi-check-circle-fill', isMet);
+            });
+        };
+
+        const updatePasswordConfirmation = () => {
+            if (!cpw.value) {
+                feedback.innerText = '';
+                return;
+            }
+
             if (pw.value === cpw.value) {
                 feedback.innerText = "✓ Passwords match";
                 feedback.style.color = "green";
@@ -188,7 +216,13 @@
                 feedback.innerText = "✗ Passwords do not match";
                 feedback.style.color = "red";
             }
+        };
+
+        pw.addEventListener('input', () => {
+            updatePasswordRequirements();
+            updatePasswordConfirmation();
         });
+        cpw.addEventListener('input', updatePasswordConfirmation);
     </script>
 </body>
 </html>

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class RegisterController extends Controller
 {
@@ -31,10 +32,14 @@ class RegisterController extends Controller
                 Rule::unique('users', 'phone'),
             ],
             'email' => ['nullable', 'email', 'max:255', Rule::unique('users', 'email')],
-            'password' => 'required|string|min:8|same:confirm_password',
+            'password' => ['required', 'string', Password::min(8)->mixedCase()->numbers(), 'same:confirm_password'],
             'terms' => 'accepted',
         ], [
             'terms.accepted' => 'You must agree to the Terms of Service and Privacy Policy before creating an account.',
+            'password.min' => 'The password must be at least 8 characters long.',
+            'password.mixed' => 'The password must contain at least one uppercase and one lowercase letter.',
+            'password.numbers' => 'The password must contain at least one number.',
+            'password.same' => 'The password confirmation does not match.',
         ]);
 
         // 2. Referral Logic
