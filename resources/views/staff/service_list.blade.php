@@ -161,7 +161,7 @@
                                         <td class="fw-bold">{{ $row->ref_number }}</td>
                                         <td class="fw-semibold">{{ $row->fullname }}</td>
                                         <td>{{ ($row->payment_status === 'Service Request') ? 'New Service Request' : $row->service_type }}</td>
-                                        <td><span class="badge bg-{{ $status_color }}-subtle text-{{ $status_color }} rounded-pill px-3">{{ $row->order_status }}</span></td>
+                                        <td><span class="badge bg-{{ $status_color }}-subtle text-{{ $status_color }} rounded-pill px-3" @if($row->order_status === 'Washing') style="background-color: #fff0e0 !important; color: #c65d00 !important;" @endif>{{ $row->order_status }}</span></td>
                                         <td><span class="badge bg-{{ ($row->payment_status == 'Paid') ? 'success' : 'danger' }} px-3">{{ $row->payment_status }}</span></td>
                                         <td class="text-center">
                                             <div class="btn-group">
