@@ -144,7 +144,8 @@
                                             'Washing' => 'warning', 
                                             'Drying' => 'info', 
                                             'Ready' => 'success', 
-                                            'Claimed' => 'dark', 
+                                            'Claimed' => 'warning',
+                                            'Cancelled' => 'danger',
                                             default => 'secondary'
                                         };
                                         $normalizedOrderStatus = strtolower(trim((string) $row->order_status));
