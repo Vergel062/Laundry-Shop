@@ -76,11 +76,9 @@
             <div class="mb-3">
                 <label class="form-label small fw-bold text-secondary">Create Password</label>
                 <input type="password" name="password" id="password" class="form-control shadow-none" placeholder="Min. 8 characters" minlength="8" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,}" title="Use at least 8 characters, including an uppercase letter, a lowercase letter, and a number." aria-describedby="password-requirements" required>
-                <ul id="password-requirements" class="list-unstyled small mt-2 mb-0" aria-live="polite">
-                    <li class="text-danger" data-password-check="length"><i class="bi bi-x-circle-fill me-1"></i>At least 8 characters</li>
-                    <li class="text-danger" data-password-check="case"><i class="bi bi-x-circle-fill me-1"></i>Uppercase and lowercase letters</li>
-                    <li class="text-danger" data-password-check="number"><i class="bi bi-x-circle-fill me-1"></i>At least one number</li>
-                </ul>
+                <div id="password-requirements" class="form-text mt-1 text-danger" style="font-size: 0.72rem;" aria-live="polite">
+                    <i id="password-requirements-icon" class="bi bi-x-circle-fill me-1"></i>At least 8 characters with uppercase, lowercase, and a number.
+                </div>
             </div>
 
             <div class="mb-3">
@@ -184,23 +182,19 @@
         const pw = document.getElementById('password');
         const cpw = document.getElementById('confirm_password');
         const feedback = document.getElementById('pw-feedback');
+        const passwordRequirements = document.getElementById('password-requirements');
+        const passwordRequirementsIcon = document.getElementById('password-requirements-icon');
 
         const updatePasswordRequirements = () => {
-            const checks = {
-                length: pw.value.length >= 8,
-                case: /[a-z]/.test(pw.value) && /[A-Z]/.test(pw.value),
-                number: /[0-9]/.test(pw.value)
-            };
+            const isValid = pw.value.length >= 8
+                && /[a-z]/.test(pw.value)
+                && /[A-Z]/.test(pw.value)
+                && /[0-9]/.test(pw.value);
 
-            Object.entries(checks).forEach(([requirement, isMet]) => {
-                const item = document.querySelector(`[data-password-check="${requirement}"]`);
-                const icon = item.querySelector('i');
-
-                item.classList.toggle('text-danger', !isMet);
-                item.classList.toggle('text-primary', isMet);
-                icon.classList.toggle('bi-x-circle-fill', !isMet);
-                icon.classList.toggle('bi-check-circle-fill', isMet);
-            });
+            passwordRequirements.classList.toggle('text-danger', !isValid);
+            passwordRequirements.classList.toggle('text-primary', isValid);
+            passwordRequirementsIcon.classList.toggle('bi-x-circle-fill', !isValid);
+            passwordRequirementsIcon.classList.toggle('bi-check-circle-fill', isValid);
         };
 
         const updatePasswordConfirmation = () => {
