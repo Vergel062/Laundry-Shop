@@ -207,7 +207,7 @@
                                 <td>{{ $tx->weight_kg }} kg</td>
                                 <td class="fw-bold">₱{{ number_format((float)$tx->total_amount, 2) }}</td>
                                 <td>
-                                    <span class="badge rounded-pill bg-opacity-10 px-2 {{ $tx->order_status === 'Pending' ? 'bg-warning text-warning' : ($tx->order_status === 'Drying' ? 'bg-info text-info' : 'bg-primary text-primary') }}">
+                                    <span class="badge rounded-pill bg-opacity-10 px-2 {{ $tx->order_status === 'Cancelled' ? 'bg-danger text-danger' : ($tx->order_status === 'Pending' ? 'bg-warning text-warning' : ($tx->order_status === 'Drying' ? 'bg-info text-info' : 'bg-primary text-primary')) }}">
                                         {{ strtoupper($tx->order_status) }}
                                     </span>
                                 </td>
