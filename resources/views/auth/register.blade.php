@@ -87,10 +87,10 @@
                 <div id="pw-feedback" class="form-text small mt-1 fw-bold"></div>
             </div>
 
-            <div class="mb-4 p-3 bg-light rounded-3 border border-dashed text-center">
-                <label class="form-label small fw-bold text-primary"><i class="bi bi-gift me-1"></i> Have a Referral Code?</label>
+            <div class="mb-3 p-2 bg-light rounded-3 border border-dashed text-center">
+                <label class="form-label small fw-bold text-primary mb-1"><i class="bi bi-gift me-1"></i> Have a Referral Code?</label>
                 <input type="text" name="referral_from" class="form-control form-control-sm text-uppercase fw-bold text-center shadow-none" value="{{ old('referral_from') }}" placeholder="EX: WAS123">
-                <div class="form-text extra-small">Enter a friend's code to get 20 bonus points!</div>
+                <div class="form-text small mt-1">Enter a friend's code to get 20 bonus points!</div>
             </div>
 
             <div class="form-check mb-3 d-flex align-items-start gap-2">
