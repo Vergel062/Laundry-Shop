@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageInput = document.getElementById('reportPageSelectionInput');
     const pageError = document.getElementById('reportPageSelectionError');
     const isFinancialPdf = controls.dataset.pdfLayout === 'financial-report';
+    const isTransactionPdf = controls.dataset.pdfLayout === 'transaction-report';
     let selectedMode = null;
 
     const saveReportPdf = async () => {
@@ -28,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.add('is-exporting-financial-pdf');
             window.updatePrintTimestamp?.();
         }
+        if (isTransactionPdf) document.body.classList.add('is-exporting-transaction-pdf');
         let saved = false;
         try {
             if (document.fonts?.ready) await document.fonts.ready;
@@ -49,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     : { mode: ['css', 'legacy'], avoid: ['tr'] }
             }).from(report).toPdf();
 
-            if (isFinancialPdf) {
+            if (isFinancialPdf || isTransactionPdf) {
                 await pdfWorker.get('pdf').then((pdf) => {
                     const pageCount = pdf.internal.getNumberOfPages();
                     const generatedAt = new Intl.DateTimeFormat('en-US', {
@@ -61,7 +63,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     }).format(new Date());
                     const pageWidth = pdf.internal.pageSize.getWidth();
                     const pageHeight = pdf.internal.pageSize.getHeight();
-                    const pageUrl = window.location.href;
+                    const pageUrl = new URL(controls.dataset.returnUrl, window.location.origin);
+                    pageUrl.searchParams.delete('page');
 
                     for (let page = 1; page <= pageCount; page += 1) {
                         pdf.setPage(page);
@@ -69,8 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         pdf.setFontSize(5);
                         pdf.setTextColor(55, 65, 81);
                         pdf.text(generatedAt, 8, 4);
-                        pdf.text('Financial Reports | LaundryCare', pageWidth / 2, 4, { align: 'center' });
-                        pdf.text(pageUrl, 8, pageHeight - 3, { maxWidth: pageWidth - 50 });
+                        pdf.text(controls.dataset.pdfHeader || 'Financial Reports | LaundryCare', pageWidth / 2, 4, { align: 'center' });
+                        pdf.text(pageUrl.href, 8, pageHeight - 3, { maxWidth: pageWidth - 50 });
                         pdf.text(`${page}/${pageCount}`, pageWidth - 8, pageHeight - 3, { align: 'right' });
                     }
                 });
@@ -84,6 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             document.body.classList.remove('is-exporting-pdf');
             if (isFinancialPdf) document.body.classList.remove('is-exporting-financial-pdf');
+            if (isTransactionPdf) document.body.classList.remove('is-exporting-transaction-pdf');
         }
 
         return saved;

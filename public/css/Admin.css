@@ -927,3 +927,189 @@ body.is-exporting-financial-pdf #printableArea .print-footer-block {
 body.is-exporting-financial-pdf #printableArea .signature-block {
     padding-top: 24px !important;
 }
+
+body.is-exporting-transaction-pdf .service-history-report {
+    width: 100% !important;
+    max-width: 680px !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report .print-document-header {
+    align-items: flex-start !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+    padding-bottom: 10px !important;
+    margin-bottom: 12px !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report .print-document-header::after {
+    display: none !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report .print-brand {
+    font-size: 16pt !important;
+    letter-spacing: -0.5px !important;
+    line-height: 1.1 !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report .print-document-header small {
+    font-size: 6pt !important;
+    letter-spacing: 0.3px !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report .print-doc-title h2 {
+    font-size: 10pt !important;
+    letter-spacing: 0 !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report .print-doc-title p {
+    font-size: 6pt !important;
+    margin-top: 2px !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report .service-history-stats {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report .service-history-stats > [class*="col-"] {
+    flex: 1 1 0 !important;
+    width: 25% !important;
+    max-width: 25% !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report .service-history-stats .card {
+    min-height: 36px !important;
+    padding: 3px 4px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report .service-history-stats small {
+    font-size: 5.5pt !important;
+    line-height: 1.2 !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report .service-history-stats h4 {
+    font-size: 8pt !important;
+    line-height: 1.2 !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report > .card {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report .service-history-table-container {
+    max-height: none !important;
+    overflow: visible !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report table th,
+body.is-exporting-transaction-pdf .service-history-report table td {
+    padding: 4px 5px !important;
+    text-align: left !important;
+    vertical-align: middle !important;
+    word-break: normal !important;
+    overflow-wrap: anywhere !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report table th {
+    position: static !important;
+    background: #ffffff !important;
+    color: #64748b !important;
+    font-size: 5.5pt !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.15px !important;
+    border-top: 0 !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report table td {
+    color: #1e293b !important;
+    font-size: 6pt !important;
+    line-height: 1.2 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report table tbody tr:nth-child(even) td {
+    background: #ffffff !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report table th:nth-child(1),
+body.is-exporting-transaction-pdf .service-history-report table td:nth-child(1) {
+    width: 19% !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report table th:nth-child(2),
+body.is-exporting-transaction-pdf .service-history-report table td:nth-child(2) {
+    width: 24% !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report table th:nth-child(3),
+body.is-exporting-transaction-pdf .service-history-report table td:nth-child(3) {
+    width: 22% !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report table th:nth-child(4),
+body.is-exporting-transaction-pdf .service-history-report table td:nth-child(4) {
+    width: 17% !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report table th:nth-child(5),
+body.is-exporting-transaction-pdf .service-history-report table td:nth-child(5) {
+    width: 18% !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report table td .small {
+    font-size: 6pt !important;
+    line-height: 1.2 !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report table td .extra-small {
+    font-size: 5pt !important;
+    line-height: 1.15 !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report table td .badge {
+    padding: 0 !important;
+    font-size: 5pt !important;
+    font-weight: 500 !important;
+    white-space: normal !important;
+    line-height: 1.2 !important;
+    background-color: transparent !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report table td:last-child {
+    white-space: nowrap !important;
+    text-align: right !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report .tracking-dot {
+    width: 3px !important;
+    height: 3px !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report .print-footer-block {
+    margin-top: 18px !important;
+}
+
+body.is-exporting-transaction-pdf .service-history-report .signature-block {
+    padding-top: 24px !important;
+}
