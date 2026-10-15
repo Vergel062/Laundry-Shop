@@ -8,10 +8,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = modalElement ? bootstrap.Modal.getOrCreateInstance(modalElement) : null;
     const pageInput = document.getElementById('reportPageSelectionInput');
     const pageError = document.getElementById('reportPageSelectionError');
-    const financialPdfClass = {
-        'financial-admin': 'is-exporting-financial-admin-pdf',
-        'financial-manager': 'is-exporting-financial-manager-pdf'
-    }[controls.dataset.pdfLayout];
     let selectedMode = null;
 
     const saveReportPdf = async () => {
@@ -27,12 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         document.body.classList.add('is-exporting-pdf');
-        if (financialPdfClass) {
-            document.body.classList.add(financialPdfClass);
-        }
         let saved = false;
         try {
-            if (financialPdfClass) window.updatePrintTimestamp?.();
             if (document.fonts?.ready) await document.fonts.ready;
 
             await html2pdf().set({
@@ -56,7 +48,6 @@ document.addEventListener('DOMContentLoaded', () => {
             alert('Nagkaroon ng problema sa pag-save ng PDF.');
         } finally {
             document.body.classList.remove('is-exporting-pdf');
-            if (financialPdfClass) document.body.classList.remove(financialPdfClass);
         }
 
         return saved;
