@@ -28,19 +28,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (document.fonts?.ready) await document.fonts.ready;
 
             await html2pdf().set({
-                margin: [10, 10, 10, 10],
+                margin: controls.dataset.pdfMargin === '8' ? [8, 8, 8, 8] : [10, 10, 10, 10],
                 filename: `${controls.dataset.pdfFilename}_${new Date().toISOString().slice(0, 10)}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: {
-                    scale: 1.5,
+                    scale: 2,
                     useCORS: true,
                     logging: false,
-                    scrollX: 0,
-                    scrollY: 0,
-                    windowWidth: 756
+                    scrollY: 0
                 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['css', 'legacy'], avoid: ['tr'] }
+                pagebreak: controls.dataset.pdfMargin === '8'
+                    ? { mode: ['css', 'legacy'] }
+                    : { mode: ['css', 'legacy'], avoid: ['tr'] }
             }).from(report).save();
             saved = true;
         } catch (error) {

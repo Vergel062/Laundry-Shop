@@ -528,9 +528,9 @@ body.is-exporting-pdf .service-history-report {
     height: auto !important;
     overflow: visible !important;
     display: block !important;
-    width: 718px !important;
-    max-width: 718px !important;
-    min-width: 718px !important;
+    width: 680px !important;
+    max-width: 680px !important;
+    min-width: 680px !important;
     padding: 0 !important;
     margin: 0 auto !important;
     background: #ffffff !important;
@@ -570,19 +570,6 @@ body.is-exporting-pdf .print-document-header {
     box-sizing: border-box !important;
 }
 
-body.is-exporting-pdf .print-document-header > div {
-    min-width: 0 !important;
-}
-
-body.is-exporting-pdf .print-document-header .print-doc-title {
-    max-width: 55% !important;
-    overflow-wrap: anywhere !important;
-}
-
-body.is-exporting-pdf .print-document-header .print-doc-title h2 {
-    font-size: 11pt !important;
-}
-
 body.is-exporting-pdf .print-document-header::after {
     content: "" !important;
     position: absolute !important;
@@ -595,7 +582,7 @@ body.is-exporting-pdf .print-document-header::after {
 }
 
 body.is-exporting-pdf .print-brand {
-    font-size: 20pt !important;
+    font-size: 18pt !important;
     font-weight: 800 !important;
     color: #0f172a !important;
     line-height: 1.1 !important;
@@ -610,7 +597,7 @@ body.is-exporting-pdf .print-doc-title {
 }
 
 body.is-exporting-pdf .print-doc-title h2 {
-    font-size: 13pt !important;
+    font-size: 12pt !important;
     font-weight: 700 !important;
     margin: 0 !important;
     text-transform: uppercase !important;
@@ -642,7 +629,7 @@ body.is-exporting-pdf .utility-report-container .utility-stats-print .stat-box {
 
 body.is-exporting-pdf .utility-report-container .stat-card {
     padding: 6px 8px !important;
-    border: 1.5px solid #cbd5e1 !important;
+    border: 1.5px solid #e2e8f0 !important;
     border-radius: 8px !important;
     box-shadow: none !important;
 }
@@ -694,8 +681,8 @@ body.is-exporting-pdf .utility-report-container .card {
 
 body.is-exporting-pdf table {
     width: 100% !important;
+    table-layout: fixed !important;
     border-collapse: collapse !important;
-    margin-bottom: 15px !important;
 }
 
 body.is-exporting-pdf tr,
@@ -709,18 +696,20 @@ body.is-exporting-pdf th {
     background-color: #0f172a !important;
     color: #ffffff !important;
     font-size: 7.5pt !important;
-    letter-spacing: 0.35px !important;
     font-weight: 700 !important;
+    letter-spacing: 0.35px !important;
+    padding: 6px 4px !important;
     text-transform: uppercase !important;
-    padding: 7px 8px !important;
     border-bottom: 0 !important;
+    word-break: break-word !important;
 }
 
 body.is-exporting-pdf td {
-    font-size: 8pt !important;
-    padding: 7px 8px !important;
+    font-size: 7.5pt !important;
+    padding: 6px 4px !important;
     border-bottom: 1px solid #e2e8f0 !important;
-    color: #334155 !important;
+    color: #1e293b !important;
+    word-break: break-word !important;
 }
 
 body.is-exporting-pdf tbody tr:nth-child(even) td {
@@ -739,9 +728,9 @@ body.is-exporting-pdf .print-footer-block {
 
 body.is-exporting-pdf .signature-line {
     border-top: 1.5px solid #0f172a !important;
-    width: 180px !important;
+    width: 160px !important;
     margin-left: auto !important;
-    margin-top: 25px !important;
+    margin-top: 20px !important;
 }
 
 body.is-exporting-pdf .signature-block {
