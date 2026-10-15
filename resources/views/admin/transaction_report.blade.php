@@ -106,7 +106,7 @@
         }
     </style>
 </head>
-<body class="bg-light">
+<body class="bg-light" @if($export_mode) data-report-export-mode="{{ $export_mode }}" @endif>
 
 <div class="overlay" id="overlay"></div>
 
@@ -192,14 +192,13 @@
                     <h5 class="fw-bold mb-0">Transaction Report</h5>
                 </div>
                 <div class="ms-auto">
-                    <div class="d-flex gap-2">
-                    <button onclick="exportServiceHistoryToPDF()" id="serviceHistoryPdfBtn" class="btn btn-outline-danger btn-sm rounded-8 px-3 fw-bold">
-                        <i class="bi bi-file-earmark-pdf me-1"></i> Save PDF
-                    </button>
-                    <button onclick="window.print()" class="btn btn-dark btn-sm rounded-8 px-3 fw-bold">
-                        <i class="bi bi-printer me-1"></i> Print Report
-                    </button>
-                    </div>
+                    @include('shared.report-export-controls', [
+                        'exportRoute' => route('admin.transaction.report'),
+                        'pageCount' => $pageCount,
+                        'canExport' => $totalRecords > 0,
+                        'pdfFunction' => 'exportServiceHistoryToPDF',
+                        'printFunction' => 'printCurrentReport',
+                    ])
                 </div>
             </div>
         </nav>
@@ -354,6 +353,7 @@
                         </tbody>
                     </table>
                 </div>
+                @include('shared.report-pagination', ['paginator' => $list])
             </div>
             <div class="print-footer-block border-top pt-3 mt-4">
                 <div class="d-flex justify-content-between align-items-end">
@@ -371,6 +371,7 @@
     </div>
 </div>
 
+@include('shared.report-page-selection-modal')
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ asset('js/Admin_script.js') }}"></script>
 <script>
@@ -403,6 +404,11 @@
             if (button) button.disabled = false;
         }
     }
+
+    function printCurrentReport() {
+        window.print();
+    }
 </script>
+<script src="{{ asset('js/report-page-export.js') }}"></script>
 </body>
 </html>

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use App\Support\TransactionHistoryFilter;
+use App\Support\ReportPageSelection;
 
 class ServiceHistoryController extends Controller
 {
@@ -21,6 +22,7 @@ class ServiceHistoryController extends Controller
         }
 
         if ($request->routeIs('admin.transaction.report')) {
+            ReportPageSelection::validateRequest($request);
             $request->validate([
                 'start_date' => 'nullable|date',
                 'end_date' => 'nullable|date|after_or_equal:start_date',
@@ -132,9 +134,21 @@ class ServiceHistoryController extends Controller
                 default => $listQuery->orderByDesc('t.created_at')->orderByDesc('t.id'),
             };
         }
-        $list = $listQuery
-            ? ($is_report ? $listQuery->get() : $listQuery->paginate(20)->appends($request->query()))
-            : collect();
+        $pageCount = 0;
+        $totalRecords = 0;
+        if ($listQuery) {
+            if ($is_report) {
+                $selection = ReportPageSelection::resolve($listQuery, $request);
+                $list = $selection['records'];
+                $pageCount = $selection['pageCount'];
+                $totalRecords = $selection['total'];
+            } else {
+                $list = $listQuery->paginate(20)->appends($request->except('page'));
+            }
+        } else {
+            $list = collect();
+        }
+        $export_mode = $request->input('export_mode');
 
         // Branches Dropdown data
         $branches_dropdown = DB::table('branches')->select('id', 'branch_name')->orderBy('branch_name', 'ASC')->get();
@@ -157,6 +171,9 @@ class ServiceHistoryController extends Controller
             'sort_by',
             'stats',
             'list',
+            'pageCount',
+            'totalRecords',
+            'export_mode',
             'branches_dropdown',
             'selected_branch_name',
             'report_generated'

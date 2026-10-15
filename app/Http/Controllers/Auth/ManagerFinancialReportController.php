@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
+use App\Support\ReportPageSelection;
 
 class ManagerFinancialReportController extends Controller
 {
@@ -19,6 +20,8 @@ class ManagerFinancialReportController extends Controller
         if (!$user || $user->role !== 'manager') {
             abort(403, 'Unauthorized action.');
         }
+
+        ReportPageSelection::validateRequest($request);
 
         $request->validate([
             'sort_by' => ['nullable', Rule::in([
@@ -71,6 +74,8 @@ class ManagerFinancialReportController extends Controller
         $total_sales = 0;
         $total_expenses = 0;
         $transactions = collect();
+        $pageCount = 0;
+        $totalRecords = 0;
 
         if ($report_generated) {
             $salesQuery = DB::table('transactions as t')
@@ -122,8 +127,12 @@ class ManagerFinancialReportController extends Controller
                 'amount_asc' => $transactions->orderBy('t.total_amount')->orderByDesc('t.created_at')->orderByDesc('t.id'),
                 default => $transactions->orderByDesc('t.created_at')->orderByDesc('t.id'),
             };
-            $transactions = $transactions->get();
+            $selection = ReportPageSelection::resolve($transactions, $request);
+            $transactions = $selection['records'];
+            $pageCount = $selection['pageCount'];
+            $totalRecords = $selection['total'];
         }
+        $export_mode = $request->input('export_mode');
 
         // 5. RETURN VIEW WITH BRANCH NAME
         return view('manager.financial-reports', compact(
@@ -135,7 +144,10 @@ class ManagerFinancialReportController extends Controller
             'search',
             'report_generated',
             'sort_by',
-            'branch_name' // <--- IPINASA NA DITO ANG VARIABLE
+            'branch_name',
+            'pageCount',
+            'totalRecords',
+            'export_mode'
         ));
     }
 }

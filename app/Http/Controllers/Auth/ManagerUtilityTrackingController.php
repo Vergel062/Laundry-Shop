@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
+use App\Support\ReportPageSelection;
 
 class ManagerUtilityTrackingController extends Controller
 {
@@ -18,6 +19,8 @@ class ManagerUtilityTrackingController extends Controller
         if (!$user || $user->role !== 'manager') {
             abort(403, 'Unauthorized action.');
         }
+
+        ReportPageSelection::validateRequest($request);
 
         $request->validate([
             'sort_by' => ['nullable', Rule::in([
@@ -106,13 +109,20 @@ class ManagerUtilityTrackingController extends Controller
             'amount_asc' => $logsQuery->orderBy('e.amount')->orderByDesc("e.{$dateCol}")->orderByDesc('e.id'),
             default => $logsQuery->orderByDesc("e.{$dateCol}")->orderByDesc('e.id'),
         };
-        $logs = $logsQuery->get();
+        $selection = ReportPageSelection::resolve($logsQuery, $request);
+        $logs = $selection['records'];
+        $pageCount = $selection['pageCount'];
+        $totalRecords = $selection['total'];
+        $export_mode = $request->input('export_mode');
 
         // Pass branch_name at branchName sa compact para sigurado sa View
         $branchName = $branch_name;
 
         return view('manager.utility-tracking', compact(
             'logs', 
+            'pageCount',
+            'totalRecords',
+            'export_mode',
             'stats', 
             'date_from', 
             'date_to', 

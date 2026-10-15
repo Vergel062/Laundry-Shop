@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
+use App\Support\ReportPageSelection;
 
 class FinancialReportController extends Controller
 {
@@ -16,6 +17,8 @@ class FinancialReportController extends Controller
         if (!$user || $user->role !== 'admin') {
             return redirect()->route('login');
         }
+
+        ReportPageSelection::validateRequest($request);
 
         $request->validate([
             'sort_by' => ['nullable', Rule::in([
@@ -55,6 +58,8 @@ class FinancialReportController extends Controller
         $total_sales = 0;
         $total_expenses = 0;
         $list_q = collect();
+        $pageCount = 0;
+        $totalRecords = 0;
 
         if ($report_generated) {
             $salesQuery = DB::table('transactions as t')
@@ -91,8 +96,12 @@ class FinancialReportController extends Controller
                 'amount_asc' => $listQuery->orderBy('t.total_amount')->orderByDesc('t.created_at')->orderByDesc('t.id'),
                 default => $listQuery->orderByDesc('t.created_at')->orderByDesc('t.id'),
             };
-            $list_q = $listQuery->get();
+            $selection = ReportPageSelection::resolve($listQuery, $request);
+            $list_q = $selection['records'];
+            $pageCount = $selection['pageCount'];
+            $totalRecords = $selection['total'];
         }
+        $export_mode = $request->input('export_mode');
 
         // Branches Dropdown
         $branches_dropdown = DB::table('branches')->orderBy('branch_name', 'ASC')->get();
@@ -110,6 +119,9 @@ class FinancialReportController extends Controller
             'total_sales',
             'total_expenses',
             'list_q',
+            'pageCount',
+            'totalRecords',
+            'export_mode',
             'branches_dropdown'
         ));
     }
