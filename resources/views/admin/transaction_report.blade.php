@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ asset('css/Admin.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .rounded-15 { border-radius: 15px; }
@@ -215,6 +216,8 @@
                         'exportRoute' => route('admin.transaction.report'),
                         'pageCount' => $pageCount,
                         'canExport' => $totalRecords > 0,
+                        'pdfTarget' => '#serviceHistoryPrintableArea',
+                        'pdfFilename' => 'Service_Transaction_History',
                         'printFunction' => 'printCurrentReport',
                     ])
                 </div>
@@ -326,6 +329,13 @@
                 </div>
                 <div class="table-responsive service-history-table-container">
                     <table class="table table-hover align-middle mb-0">
+                        <colgroup>
+                            <col style="width: 18%;">
+                            <col style="width: 27%;">
+                            <col style="width: 21%;">
+                            <col style="width: 18%;">
+                            <col style="width: 16%;">
+                        </colgroup>
                         <thead class="table-light text-uppercase small text-muted">
                             <tr>
                                 <th>REF # / Date</th>

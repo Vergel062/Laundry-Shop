@@ -4,6 +4,8 @@
     data-export-query="{{ json_encode(request()->except(['page', 'export_mode', 'export_pages']), JSON_HEX_APOS | JSON_HEX_QUOT) }}"
     data-return-url="{{ request()->fullUrlWithoutQuery(['export_mode', 'export_pages']) }}"
     data-page-count="{{ $pageCount }}"
+    data-pdf-target="{{ $pdfTarget }}"
+    data-pdf-filename="{{ $pdfFilename }}"
     data-print-function="{{ $printFunction }}"
 >
     @foreach(['pdf' => ['Save PDF', 'file-earmark-pdf', 'btn-outline-danger'], 'print' => ['Print Report', 'printer', 'btn-dark']] as $mode => [$label, $icon, $buttonClass])
