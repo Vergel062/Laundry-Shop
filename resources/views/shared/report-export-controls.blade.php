@@ -7,7 +7,6 @@
     data-pdf-target="{{ $pdfTarget }}"
     data-pdf-filename="{{ $pdfFilename }}"
     data-pdf-margin="{{ $pdfMargin ?? 10 }}"
-    data-pdf-layout="{{ $pdfLayout ?? 'default' }}"
     data-print-function="{{ $printFunction }}"
 >
     @foreach(['pdf' => ['Save PDF', 'file-earmark-pdf', 'btn-outline-danger'], 'print' => ['Print Report', 'printer', 'btn-dark']] as $mode => [$label, $icon, $buttonClass])
