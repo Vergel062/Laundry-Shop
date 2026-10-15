@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class FinancialReportController extends Controller
 {
@@ -16,10 +17,22 @@ class FinancialReportController extends Controller
             return redirect()->route('login');
         }
 
+        $request->validate([
+            'sort_by' => ['nullable', Rule::in([
+                'newest',
+                'oldest',
+                'name_asc',
+                'name_desc',
+                'amount_desc',
+                'amount_asc',
+            ])],
+        ]);
+
         // 1. FILTER SETTINGS: generate only after both dates are selected.
         $selected_branch = $request->input('branch_id', 'all');
         $start_date = $request->input('start_date');
         $end_date = $request->input('end_date');
+        $sort_by = $request->input('sort_by', 'newest');
         $report_generated = filled($start_date) && filled($end_date);
         $start_datetime = $report_generated
             ? Carbon::parse($start_date, 'Asia/Manila')->startOfDay()->format('Y-m-d H:i:s')
@@ -69,7 +82,16 @@ class FinancialReportController extends Controller
             if ($selected_branch !== 'all') {
                 $listQuery->where('t.branch_id', intval($selected_branch));
             }
-            $list_q = $listQuery->orderBy('t.created_at', 'DESC')->get();
+
+            match ($sort_by) {
+                'oldest' => $listQuery->orderBy('t.created_at')->orderBy('t.id'),
+                'name_asc' => $listQuery->orderBy('customer_name')->orderByDesc('t.created_at')->orderByDesc('t.id'),
+                'name_desc' => $listQuery->orderByDesc('customer_name')->orderByDesc('t.created_at')->orderByDesc('t.id'),
+                'amount_desc' => $listQuery->orderByDesc('t.total_amount')->orderByDesc('t.created_at')->orderByDesc('t.id'),
+                'amount_asc' => $listQuery->orderBy('t.total_amount')->orderByDesc('t.created_at')->orderByDesc('t.id'),
+                default => $listQuery->orderByDesc('t.created_at')->orderByDesc('t.id'),
+            };
+            $list_q = $listQuery->get();
         }
 
         // Branches Dropdown
@@ -82,6 +104,7 @@ class FinancialReportController extends Controller
             'selected_branch',
             'selected_branch_name',
             'report_generated',
+            'sort_by',
             'start_date',
             'end_date',
             'total_sales',

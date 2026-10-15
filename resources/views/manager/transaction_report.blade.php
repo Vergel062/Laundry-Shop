@@ -278,7 +278,23 @@
 
             <div class="card shadow-sm border-0 rounded-15 overflow-hidden">
                 <div class="card-header bg-white py-3 px-4 border-0 no-print">
-                    <h6 class="mb-0 fw-bold"><i class="bi bi-list-stars me-2 text-primary"></i>Transaction History</h6>
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-list-stars me-2 text-primary"></i>Transaction History</h6>
+                        <form method="GET" action="{{ route('manager.transaction.report') }}" class="d-flex align-items-center gap-2">
+                            <input type="hidden" name="search" value="{{ $search ?? '' }}">
+                            <input type="hidden" name="order_status" value="{{ $order_status ?? 'all' }}">
+                            <input type="hidden" name="payment_status" value="{{ $payment_status ?? 'all' }}">
+                            <input type="hidden" name="start_date" value="{{ $start_date ?? '' }}">
+                            <input type="hidden" name="end_date" value="{{ $end_date ?? '' }}">
+                            <label for="transaction-sort" class="small fw-semibold text-muted text-nowrap mb-0">Sort by:</label>
+                            <select id="transaction-sort" name="sort_by" class="form-select form-select-sm" onchange="this.form.submit()" aria-label="Sort transactions">
+                                <option value="newest" {{ ($sort_by ?? 'newest') === 'newest' ? 'selected' : '' }}>Newest First</option>
+                                <option value="oldest" {{ ($sort_by ?? '') === 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                                <option value="name_asc" {{ ($sort_by ?? '') === 'name_asc' ? 'selected' : '' }}>Customer Name: A–Z</option>
+                                <option value="name_desc" {{ ($sort_by ?? '') === 'name_desc' ? 'selected' : '' }}>Customer Name: Z–A</option>
+                            </select>
+                        </form>
+                    </div>
                 </div>
                 <div class="table-responsive service-history-table-container">
                     <table class="table table-hover align-middle mb-0">

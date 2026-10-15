@@ -3,11 +3,13 @@
 namespace Tests\Feature;
 
 use App\Http\Controllers\Auth\ManagerServiceController;
+use App\Http\Controllers\Auth\ManagerTransactionReportController;
 use App\Http\Controllers\Auth\ServiceController;
 use App\Http\Controllers\Auth\ServiceHistoryController;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -93,12 +95,49 @@ class TransactionHistoryActiveOrdersTest extends TestCase
         $this->assertSame([1, 2, 3, 6, 7], $ids);
     }
 
+    public function test_admin_transaction_report_applies_selected_sort_order(): void
+    {
+        $this->actingAs($this->user(1, 'admin', null));
+        $request = $this->reportRequest('/admin/transaction-report', 'admin.transaction.report', [
+            'start_date' => '2026-09-01',
+            'end_date' => '2026-10-31',
+            'sort_by' => 'oldest',
+        ]);
+
+        $response = app(ServiceHistoryController::class)->index($request);
+
+        $this->assertSame([1, 2, 3, 4, 5, 7, 6], $response->getData()['list']->pluck('id')->all());
+    }
+
+    public function test_manager_transaction_report_applies_selected_sort_order(): void
+    {
+        $this->actingAs($this->user(20, 'manager', 1));
+        $request = $this->reportRequest('/manager/transaction-report', 'manager.transaction.report', [
+            'start_date' => '2026-09-01',
+            'end_date' => '2026-10-31',
+            'sort_by' => 'oldest',
+        ]);
+
+        $response = app(ManagerTransactionReportController::class)->index($request);
+
+        $this->assertSame([1, 2, 3, 4, 5, 6], $response->getData()['list']->pluck('id')->all());
+    }
+
     private function octoberRequest(): Request
     {
         return Request::create('/', 'GET', [
             'start_date' => '2026-10-01',
             'end_date' => '2026-10-01',
         ]);
+    }
+
+    private function reportRequest(string $uri, string $routeName, array $query): Request
+    {
+        $request = Request::create($uri, 'GET', $query);
+        $route = new Route(['GET'], $uri, ['as' => $routeName, 'uses' => static fn () => null]);
+        $request->setRouteResolver(static fn () => $route);
+
+        return $request;
     }
 
     private function transaction(

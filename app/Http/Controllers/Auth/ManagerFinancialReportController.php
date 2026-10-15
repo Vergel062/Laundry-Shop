@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class ManagerFinancialReportController extends Controller
 {
@@ -19,6 +20,17 @@ class ManagerFinancialReportController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $request->validate([
+            'sort_by' => ['nullable', Rule::in([
+                'newest',
+                'oldest',
+                'name_asc',
+                'name_desc',
+                'amount_desc',
+                'amount_asc',
+            ])],
+        ]);
+
         $my_branch_id = $user->branch_id;
 
         // --- BAGONG DAGDAG: Kunin ang Branch Name ng Manager ---
@@ -30,6 +42,7 @@ class ManagerFinancialReportController extends Controller
         $start_date = $request->get('start_date');
         $end_date = $request->get('end_date');
         $search = trim((string) $request->get('search', ''));
+        $sort_by = $request->input('sort_by', 'newest');
         $report_generated = filled($start_date) && filled($end_date);
         $start_datetime = $report_generated
             ? Carbon::parse($start_date, 'Asia/Manila')->startOfDay()->format('Y-m-d H:i:s')
@@ -99,9 +112,17 @@ class ManagerFinancialReportController extends Controller
                 ->sum('amount');
 
             $transactions = $transactionsQuery
-                ->select('t.*', 'b.branch_name', DB::raw($customerSelect))
-                ->orderBy('t.created_at', 'DESC')
-                ->get();
+                ->select('t.*', 'b.branch_name', DB::raw($customerSelect));
+
+            match ($sort_by) {
+                'oldest' => $transactions->orderBy('t.created_at')->orderBy('t.id'),
+                'name_asc' => $transactions->orderBy('customer_name')->orderByDesc('t.created_at')->orderByDesc('t.id'),
+                'name_desc' => $transactions->orderByDesc('customer_name')->orderByDesc('t.created_at')->orderByDesc('t.id'),
+                'amount_desc' => $transactions->orderByDesc('t.total_amount')->orderByDesc('t.created_at')->orderByDesc('t.id'),
+                'amount_asc' => $transactions->orderBy('t.total_amount')->orderByDesc('t.created_at')->orderByDesc('t.id'),
+                default => $transactions->orderByDesc('t.created_at')->orderByDesc('t.id'),
+            };
+            $transactions = $transactions->get();
         }
 
         // 5. RETURN VIEW WITH BRANCH NAME
@@ -113,6 +134,7 @@ class ManagerFinancialReportController extends Controller
             'end_date',
             'search',
             'report_generated',
+            'sort_by',
             'branch_name' // <--- IPINASA NA DITO ANG VARIABLE
         ));
     }

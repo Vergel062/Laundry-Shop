@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class ManagerUtilityTrackingController extends Controller
 {
@@ -17,6 +18,17 @@ class ManagerUtilityTrackingController extends Controller
         if (!$user || $user->role !== 'manager') {
             abort(403, 'Unauthorized action.');
         }
+
+        $request->validate([
+            'sort_by' => ['nullable', Rule::in([
+                'newest',
+                'oldest',
+                'type_asc',
+                'type_desc',
+                'amount_desc',
+                'amount_asc',
+            ])],
+        ]);
 
         $my_branch_id = $user->branch_id;
 
@@ -38,6 +50,7 @@ class ManagerUtilityTrackingController extends Controller
         }
         $report_generated = filled($date_from) && filled($date_to);
         $search = $request->get('search', '');
+        $sort_by = $request->input('sort_by', 'newest');
 
         // Auto-detect date column for expenses table
         $dateCol = 'created_at';
@@ -84,9 +97,16 @@ class ManagerUtilityTrackingController extends Controller
         ];
 
         // 3. Query for Utility Logs
-        $logs = $query->select('e.*', 'b.branch_name', "e.{$dateCol} as date_logged")
-            ->orderBy("e.{$dateCol}", 'DESC')
-            ->get();
+        $logsQuery = $query->select('e.*', 'b.branch_name', "e.{$dateCol} as date_logged");
+        match ($sort_by) {
+            'oldest' => $logsQuery->orderBy("e.{$dateCol}")->orderBy('e.id'),
+            'type_asc' => $logsQuery->orderBy('e.expense_type')->orderByDesc("e.{$dateCol}")->orderByDesc('e.id'),
+            'type_desc' => $logsQuery->orderByDesc('e.expense_type')->orderByDesc("e.{$dateCol}")->orderByDesc('e.id'),
+            'amount_desc' => $logsQuery->orderByDesc('e.amount')->orderByDesc("e.{$dateCol}")->orderByDesc('e.id'),
+            'amount_asc' => $logsQuery->orderBy('e.amount')->orderByDesc("e.{$dateCol}")->orderByDesc('e.id'),
+            default => $logsQuery->orderByDesc("e.{$dateCol}")->orderByDesc('e.id'),
+        };
+        $logs = $logsQuery->get();
 
         // Pass branch_name at branchName sa compact para sigurado sa View
         $branchName = $branch_name;
@@ -99,8 +119,9 @@ class ManagerUtilityTrackingController extends Controller
             'search',
             'dateCol',
             'branch_name',
-            'branchName'
-            ,'report_generated'
+            'branchName',
+            'report_generated',
+            'sort_by'
         ));
     }
 }

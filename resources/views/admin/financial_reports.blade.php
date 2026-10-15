@@ -184,8 +184,24 @@
 
             <!-- TRANSACTION HISTORY TABLE -->
             <div class="card shadow-sm border-0 rounded-15 overflow-hidden mb-4">
-                <div class="card-header bg-white py-3 border-0 d-flex align-items-center no-print">
-                    <h6 class="mb-0 fw-bold"><i class="bi bi-list-stars me-2 text-primary"></i>Transaction History</h6>
+                <div class="card-header bg-white py-3 px-4 border-0 no-print">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-list-stars me-2 text-primary"></i>Transaction History</h6>
+                        <form method="GET" action="{{ route('admin.financial.reports') }}" class="d-flex align-items-center gap-2">
+                            <input type="hidden" name="branch_id" value="{{ $selected_branch ?? 'all' }}">
+                            <input type="hidden" name="start_date" value="{{ $start_date ?? '' }}">
+                            <input type="hidden" name="end_date" value="{{ $end_date ?? '' }}">
+                            <label for="financial-sort" class="small fw-semibold text-muted text-nowrap mb-0">Sort by:</label>
+                            <select id="financial-sort" name="sort_by" class="form-select form-select-sm" onchange="this.form.submit()" aria-label="Sort financial report transactions">
+                                <option value="newest" {{ ($sort_by ?? 'newest') === 'newest' ? 'selected' : '' }}>Newest First</option>
+                                <option value="oldest" {{ ($sort_by ?? '') === 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                                <option value="name_asc" {{ ($sort_by ?? '') === 'name_asc' ? 'selected' : '' }}>Customer Name: A–Z</option>
+                                <option value="name_desc" {{ ($sort_by ?? '') === 'name_desc' ? 'selected' : '' }}>Customer Name: Z–A</option>
+                                <option value="amount_desc" {{ ($sort_by ?? '') === 'amount_desc' ? 'selected' : '' }}>Amount: High to Low</option>
+                                <option value="amount_asc" {{ ($sort_by ?? '') === 'amount_asc' ? 'selected' : '' }}>Amount: Low to High</option>
+                            </select>
+                        </form>
+                    </div>
                 </div>
                 
                 <div class="table-responsive scrollable-table-container">

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Validation\Rule;
 
 class UtilityTrackingController extends Controller
 {
@@ -15,6 +16,18 @@ class UtilityTrackingController extends Controller
         if (!$user || $user->role !== 'admin') {
             return redirect()->route('login');
         }
+
+        $request->validate([
+            'sort_by' => ['nullable', Rule::in([
+                'newest',
+                'oldest',
+                'type_asc',
+                'type_desc',
+                'amount_desc',
+                'amount_asc',
+                'branch_asc',
+            ])],
+        ]);
 
         // 1. FILTER SETTINGS: report data is loaded only after both dates are selected.
         $selected_branch = $request->input('branch_id', 'all');
@@ -27,6 +40,7 @@ class UtilityTrackingController extends Controller
         }
         $report_generated = filled($date_from) && filled($date_to);
         $search = $request->input('search', '');
+        $sort_by = $request->input('sort_by', 'newest');
 
         // 2. BASE QUERY PARA SA TABLE LOGS (May alias na 'e')
         $query = DB::table('expenses as e')
@@ -54,7 +68,16 @@ class UtilityTrackingController extends Controller
             });
         }
 
-        $logs = $query->orderBy('e.date_logged', 'desc')->get();
+        match ($sort_by) {
+            'oldest' => $query->orderBy('e.date_logged')->orderBy('e.id'),
+            'type_asc' => $query->orderBy('e.expense_type')->orderByDesc('e.date_logged')->orderByDesc('e.id'),
+            'type_desc' => $query->orderByDesc('e.expense_type')->orderByDesc('e.date_logged')->orderByDesc('e.id'),
+            'amount_desc' => $query->orderByDesc('e.amount')->orderByDesc('e.date_logged')->orderByDesc('e.id'),
+            'amount_asc' => $query->orderBy('e.amount')->orderByDesc('e.date_logged')->orderByDesc('e.id'),
+            'branch_asc' => $query->orderBy('b.branch_name')->orderByDesc('e.date_logged')->orderByDesc('e.id'),
+            default => $query->orderByDesc('e.date_logged')->orderByDesc('e.id'),
+        };
+        $logs = $query->get();
 
         // 3. INDEPENDENT TOTALS PARA SA STAT CARDS (Walang alias para diretsong gumana)
         $totalsQuery = DB::table('expenses');
@@ -86,6 +109,7 @@ class UtilityTrackingController extends Controller
             'selected_branch', 
             'selected_branch_name',
             'report_generated',
+            'sort_by',
             'date_from', 
             'date_to', 
             'search', 
