@@ -10,16 +10,29 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageError = document.getElementById('reportPageSelectionError');
     let selectedMode = null;
 
-    const runCurrentExport = (mode) => {
-        const functionName = mode === 'pdf'
-            ? controls.dataset.pdfFunction
-            : controls.dataset.printFunction;
+    const runCurrentExport = (mode, afterPrint = null) => {
+        const functionName = controls.dataset.printFunction;
         const exportFunction = window[functionName];
 
         if (typeof exportFunction === 'function') {
+            if (mode === 'pdf' || afterPrint) {
+                const originalTitle = document.title;
+                if (mode === 'pdf') {
+                    const safeTitle = originalTitle
+                        .replace(/\s*[|–-]\s*/g, '_')
+                        .replace(/\s+/g, '_');
+                    document.title = `${safeTitle}_${new Date().toISOString().slice(0, 10)}`;
+                }
+
+                window.addEventListener('afterprint', () => {
+                    document.title = originalTitle;
+                    if (afterPrint) afterPrint();
+                }, { once: true });
+            }
+
             exportFunction();
         } else {
-            alert('Hindi available ang napiling export action. I-refresh ang page at subukan muli.');
+            alert('Hindi available ang print action. I-refresh ang page at subukan muli.');
         }
     };
 
@@ -35,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        window.open(url.toString(), '_blank');
+        window.location.assign(url.toString());
     };
 
     controls.addEventListener('click', (event) => {
@@ -83,6 +96,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const exportMode = document.body.dataset.reportExportMode;
     if (exportMode) {
-        window.setTimeout(() => runCurrentExport(exportMode), 500);
+        const returnUrl = controls.dataset.returnUrl;
+        window.history.replaceState(null, '', returnUrl);
+        window.setTimeout(() => {
+            runCurrentExport(exportMode, () => window.location.replace(returnUrl));
+        }, 500);
     }
 });

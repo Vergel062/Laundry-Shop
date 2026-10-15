@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ asset('css/Admin.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; }
         .rounded-15 { border-radius: 15px; }
@@ -61,7 +60,17 @@
             max-height: none !important;
             overflow: visible !important;
         }
-        body.is-exporting-pdf .service-history-report table { width: 100% !important; border-collapse: collapse !important; }
+        body.is-exporting-pdf .service-history-report table {
+            width: 100% !important;
+            max-width: 100% !important;
+            table-layout: fixed !important;
+            border-collapse: collapse !important;
+        }
+        body.is-exporting-pdf .service-history-report th,
+        body.is-exporting-pdf .service-history-report td { overflow-wrap: anywhere; }
+        body.is-exporting-pdf .service-history-report th:last-child,
+        body.is-exporting-pdf .service-history-report td:last-child { white-space: nowrap; }
+        body.is-exporting-pdf .service-history-stats h4 { white-space: nowrap !important; font-size: 10pt !important; }
         body.is-exporting-pdf .service-history-report table th {
             background: #fff !important;
             color: #334155 !important;
@@ -93,7 +102,17 @@
             }
             .service-history-report .table-responsive { overflow: visible !important; }
             .service-history-report .service-history-table-container { max-height: none !important; overflow: visible !important; }
-            .service-history-report table { width: 100% !important; border-collapse: collapse !important; }
+            .service-history-report table {
+                width: 100% !important;
+                max-width: 100% !important;
+                table-layout: fixed !important;
+                border-collapse: collapse !important;
+            }
+            .service-history-report th,
+            .service-history-report td { overflow-wrap: anywhere; }
+            .service-history-report th:last-child,
+            .service-history-report td:last-child { white-space: nowrap; }
+            .service-history-stats h4 { white-space: nowrap !important; font-size: 10pt !important; }
             .service-history-report table th {
                 background: #fff !important;
                 color: #334155 !important;
@@ -196,7 +215,6 @@
                         'exportRoute' => route('admin.transaction.report'),
                         'pageCount' => $pageCount,
                         'canExport' => $totalRecords > 0,
-                        'pdfFunction' => 'exportServiceHistoryToPDF',
                         'printFunction' => 'printCurrentReport',
                     ])
                 </div>
@@ -356,13 +374,14 @@
                 @include('shared.report-pagination', ['paginator' => $list])
             </div>
             <div class="print-footer-block border-top pt-3 mt-4">
-                <div class="d-flex justify-content-between align-items-end">
+                <div class="d-flex justify-content-between align-items-start">
                     <div class="small text-muted">
                         <strong>Report Prepared By:</strong> {{ Auth::user()->fullname ?? 'System Administrator' }}<br>
                         <strong>Date & Time Generated:</strong> {{ date('F d, Y - h:i A') }}
                     </div>
-                    <div class="text-end small text-muted">
-                        <div class="border-top border-dark pt-1" style="width: 180px;">Authorized Signature</div>
+                    <div class="signature-block text-end small text-muted">
+                        <div class="signature-line"></div>
+                        <div class="pt-1">Authorized Signature</div>
                         <span>Administrator</span>
                     </div>
                 </div>
@@ -375,36 +394,6 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="{{ asset('js/Admin_script.js') }}"></script>
 <script>
-    async function exportServiceHistoryToPDF() {
-        const button = document.getElementById('serviceHistoryPdfBtn');
-        const report = document.getElementById('serviceHistoryPrintableArea');
-
-        if (!report || typeof html2pdf !== 'function') {
-            alert('Hindi ma-load ang PDF report. I-refresh ang page at subukan muli.');
-            return;
-        }
-
-        if (button) button.disabled = true;
-        document.body.classList.add('is-exporting-pdf');
-
-        try {
-            await html2pdf().set({
-                margin: [10, 10, 10, 10],
-                filename: 'Service_Transaction_History_' + new Date().toISOString().slice(0, 10) + '.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true, logging: false, scrollY: 0 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                pagebreak: { mode: ['css', 'legacy'], avoid: ['tr'] }
-            }).from(report).save();
-        } catch (error) {
-            console.error('Service History PDF Export Error:', error);
-            alert('Nagkaroon ng problema sa pag-save ng PDF.');
-        } finally {
-            document.body.classList.remove('is-exporting-pdf');
-            if (button) button.disabled = false;
-        }
-    }
-
     function printCurrentReport() {
         window.print();
     }
