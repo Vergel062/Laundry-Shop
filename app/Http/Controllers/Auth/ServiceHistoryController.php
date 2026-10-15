@@ -132,7 +132,9 @@ class ServiceHistoryController extends Controller
                 default => $listQuery->orderByDesc('t.created_at')->orderByDesc('t.id'),
             };
         }
-        $list = $listQuery ? $listQuery->get() : collect();
+        $list = $listQuery
+            ? ($is_report ? $listQuery->get() : $listQuery->paginate(20)->appends($request->query()))
+            : collect();
 
         // Branches Dropdown data
         $branches_dropdown = DB::table('branches')->select('id', 'branch_name')->orderBy('branch_name', 'ASC')->get();

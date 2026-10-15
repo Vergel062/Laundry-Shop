@@ -207,6 +207,12 @@
                             </tbody>
                         </table>
                     </div>
+                    @if($transactions->total() > 0)
+                        <div class="card-footer bg-white border-0 px-3 py-2 d-flex flex-wrap justify-content-between align-items-center gap-2 no-print">
+                            <small class="text-muted">Showing {{ $transactions->firstItem() }}-{{ $transactions->lastItem() }} of {{ $transactions->total() }} records</small>
+                            {{ $transactions->links('pagination::bootstrap-5') }}
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

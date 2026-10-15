@@ -293,6 +293,12 @@
                         </tbody>
                     </table>
                 </div>
+                @if($list instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator && $list->total() > 0)
+                    <div class="card-footer bg-white border-0 px-3 py-2 d-flex flex-wrap justify-content-between align-items-center gap-2 no-print">
+                        <small class="text-muted">Showing {{ $list->firstItem() }}-{{ $list->lastItem() }} of {{ $list->total() }} records</small>
+                        {{ $list->links('pagination::bootstrap-5') }}
+                    </div>
+                @endif
             </div>
             <div class="print-footer-block border-top pt-3 mt-4">
                 <div class="d-flex justify-content-between align-items-end">
