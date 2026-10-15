@@ -287,6 +287,9 @@
             </div>
 
             <div class="card shadow-sm border-0 rounded-15 overflow-hidden">
+                <div class="card-header bg-white py-3 px-4 border-0 no-print">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-list-stars me-2 text-primary"></i>Transaction History</h6>
+                </div>
                 <div class="table-responsive service-history-table-container">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light text-uppercase small text-muted">
