@@ -96,6 +96,7 @@
                         'pdfTarget' => '#printableArea',
                         'pdfFilename' => 'Financial_Report',
                         'pdfMargin' => 8,
+                        'pdfLayout' => 'financial-report',
                         'printFunction' => 'triggerPrint',
                     ])
                 </div>

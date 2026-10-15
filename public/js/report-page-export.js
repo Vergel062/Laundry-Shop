@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = modalElement ? bootstrap.Modal.getOrCreateInstance(modalElement) : null;
     const pageInput = document.getElementById('reportPageSelectionInput');
     const pageError = document.getElementById('reportPageSelectionError');
+    const isFinancialPdf = controls.dataset.pdfLayout === 'financial-report';
     let selectedMode = null;
 
     const saveReportPdf = async () => {
@@ -23,11 +24,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         document.body.classList.add('is-exporting-pdf');
+        if (isFinancialPdf) {
+            document.body.classList.add('is-exporting-financial-pdf');
+            window.updatePrintTimestamp?.();
+        }
         let saved = false;
         try {
             if (document.fonts?.ready) await document.fonts.ready;
 
-            await html2pdf().set({
+            const pdfWorker = html2pdf().set({
                 margin: controls.dataset.pdfMargin === '8' ? [8, 8, 8, 8] : [10, 10, 10, 10],
                 filename: `${controls.dataset.pdfFilename}_${new Date().toISOString().slice(0, 10)}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
@@ -41,13 +46,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 pagebreak: controls.dataset.pdfMargin === '8'
                     ? { mode: ['css', 'legacy'] }
                     : { mode: ['css', 'legacy'], avoid: ['tr'] }
-            }).from(report).save();
+            }).from(report).toPdf();
+
+            if (isFinancialPdf) {
+                await pdfWorker.get('pdf').then((pdf) => {
+                    const pageCount = pdf.internal.getNumberOfPages();
+                    const generatedAt = new Intl.DateTimeFormat('en-US', {
+                        month: 'numeric',
+                        day: 'numeric',
+                        year: '2-digit',
+                        hour: 'numeric',
+                        minute: '2-digit'
+                    }).format(new Date());
+                    const pageWidth = pdf.internal.pageSize.getWidth();
+                    const pageHeight = pdf.internal.pageSize.getHeight();
+                    const pageUrl = window.location.href;
+
+                    for (let page = 1; page <= pageCount; page += 1) {
+                        pdf.setPage(page);
+                        pdf.setFont('helvetica', 'normal');
+                        pdf.setFontSize(5);
+                        pdf.setTextColor(55, 65, 81);
+                        pdf.text(generatedAt, 8, 4);
+                        pdf.text('Financial Reports | LaundryCare', pageWidth / 2, 4, { align: 'center' });
+                        pdf.text(pageUrl, 8, pageHeight - 3, { maxWidth: pageWidth - 50 });
+                        pdf.text(`${page}/${pageCount}`, pageWidth - 8, pageHeight - 3, { align: 'right' });
+                    }
+                });
+            }
+
+            await pdfWorker.save();
             saved = true;
         } catch (error) {
             console.error('Report PDF Export Error:', error);
             alert('Nagkaroon ng problema sa pag-save ng PDF.');
         } finally {
             document.body.classList.remove('is-exporting-pdf');
+            if (isFinancialPdf) document.body.classList.remove('is-exporting-financial-pdf');
         }
 
         return saved;
