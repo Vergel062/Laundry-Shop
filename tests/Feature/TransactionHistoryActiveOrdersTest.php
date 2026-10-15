@@ -9,6 +9,7 @@ use App\Http\Controllers\Auth\ServiceHistoryController;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
@@ -124,6 +125,55 @@ class TransactionHistoryActiveOrdersTest extends TestCase
 
             $this->assertSame([8, 9, 12, 11, 10, 3, 2, 1, 6], $response->getData()['transactions']->pluck('id')->all());
         }
+    }
+
+    public function test_staff_and_manager_history_paginate_while_preserving_filters_in_page_links(): void
+    {
+        for ($id = 20; $id < 45; $id++) {
+            DB::table('transactions')->insert(
+                $this->transaction($id, 10, 1, '2026-10-10', 'Washing', 'Unpaid')
+            );
+        }
+
+        foreach ([
+            [ServiceController::class, 'staff'],
+            [ManagerServiceController::class, 'manager'],
+        ] as [$controllerClass, $role]) {
+            $this->actingAs($this->user(20, $role, 1));
+            $response = app($controllerClass)->index(Request::create('/', 'GET', [
+                'start_date' => '2026-10-01',
+                'end_date' => '2026-10-31',
+                'search' => 'LC',
+            ]));
+
+            $transactions = $response->getData()['transactions'];
+            $this->assertInstanceOf(LengthAwarePaginator::class, $transactions);
+            $this->assertSame(20, $transactions->perPage());
+            $this->assertSame(29, $transactions->total());
+            $this->assertStringContainsString('start_date=2026-10-01', $transactions->url(2));
+            $this->assertStringContainsString('search=LC', $transactions->url(2));
+        }
+    }
+
+    public function test_admin_transaction_history_uses_pagination_but_report_remains_unpaginated(): void
+    {
+        for ($id = 20; $id < 45; $id++) {
+            DB::table('transactions')->insert(
+                $this->transaction($id, 10, 1, '2026-10-10', 'Washing', 'Unpaid')
+            );
+        }
+
+        $this->actingAs($this->user(1, 'admin', null));
+        $history = app(ServiceHistoryController::class)->index($this->octoberRequest());
+        $this->assertInstanceOf(LengthAwarePaginator::class, $history->getData()['list']);
+        $this->assertSame(20, $history->getData()['list']->perPage());
+
+        $reportRequest = $this->reportRequest('/admin/transaction-report', 'admin.transaction.report', [
+            'start_date' => '2026-10-01',
+            'end_date' => '2026-10-31',
+        ]);
+        $report = app(ServiceHistoryController::class)->index($reportRequest);
+        $this->assertSame(26, $report->getData()['list']->count());
     }
 
     public function test_admin_transaction_history_keeps_active_orders_from_previous_month(): void

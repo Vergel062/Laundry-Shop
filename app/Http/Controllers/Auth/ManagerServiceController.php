@@ -82,7 +82,8 @@ class ManagerServiceController extends Controller
             ->orderBy('t.queue_number')
             ->orderBy('t.created_at', 'DESC')
             ->orderBy('t.id', 'DESC')
-            ->get();
+            ->paginate(20)
+            ->appends($request->query());
 
         return view('manager.service_list', compact(
             'branch_name',
