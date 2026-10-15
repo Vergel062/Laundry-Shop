@@ -301,13 +301,14 @@
                 @endif
             </div>
             <div class="print-footer-block border-top pt-3 mt-4">
-                <div class="d-flex justify-content-between align-items-end">
+                <div class="d-flex justify-content-between align-items-start">
                     <div class="small text-muted">
                         <strong>Report Prepared By:</strong> {{ Auth::user()->fullname ?? 'System Administrator' }}<br>
                         <strong>Date & Time Generated:</strong> {{ date('F d, Y - h:i A') }}
                     </div>
-                    <div class="text-end small text-muted">
-                        <div class="border-top border-dark pt-1" style="width: 180px;">Authorized Signature</div>
+                    <div class="signature-block text-end small text-muted">
+                        <div class="signature-line"></div>
+                        <div class="pt-1">Authorized Signature</div>
                         <span>Administrator</span>
                     </div>
                 </div>

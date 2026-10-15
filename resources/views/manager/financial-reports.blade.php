@@ -19,7 +19,6 @@
     
     <!-- SWEETALERT2 & HTML2PDF JS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body class="bg-light" @if($export_mode) data-report-export-mode="{{ $export_mode }}" @endif>
 
@@ -103,7 +102,6 @@
                         'exportRoute' => route('manager.financial.reports'),
                         'pageCount' => $pageCount,
                         'canExport' => $totalRecords > 0,
-                        'pdfFunction' => 'exportToPDF',
                         'printFunction' => 'triggerPrint',
                     ])
                 </div>
@@ -265,7 +263,7 @@
 
                 <!-- FOOTER & SIGNATURE -->
                 <div class="d-none print-footer-block" style="width: 100%; margin-top: 30px; box-sizing: border-box;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; width: 100%;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%;">
                         <div style="flex: 1; max-width: 60%;">
                             <p class="mb-1" style="font-size: 8.5pt; color: #475569;">
                                 <strong>Report Prepared By:</strong> {{ Auth::user()->fullname ?? 'Branch Manager' }}
@@ -278,8 +276,10 @@
                             </p>
                         </div>
                         <div style="width: 200px; text-align: right;">
-                            <div style="border-top: 1.5px solid #0f172a; width: 100%; margin-bottom: 5px;"></div>
-                            <p class="fw-bold mb-0" style="font-size: 8.5pt; text-transform: uppercase; color: #0f172a;">Authorized Signature</p>
+                            <div class="signature-block">
+                                <div class="signature-line" style="width: 100%;"></div>
+                                <p class="fw-bold mb-0 mt-1" style="font-size: 8.5pt; text-transform: uppercase; color: #0f172a;">Authorized Signature</p>
+                            </div>
                             <small style="font-size: 7.5pt; color: #64748b;">Branch Manager</small>
                         </div>
                     </div>
@@ -315,50 +315,6 @@ function triggerPrint() {
     window.print();
 }
 
-async function exportToPDF() {
-    const pdfBtn = document.getElementById('pdfBtn');
-    const element = document.getElementById('printableArea');
-
-    if (!element) {
-        alert("Error: Printable area not found!");
-        return;
-    }
-
-    if (pdfBtn) {
-        pdfBtn.disabled = true;
-    }
-
-    updatePrintTimestamp();
-
-    document.body.classList.add('is-exporting-pdf');
-
-    const opt = {
-        margin:       [8, 8, 8, 8],
-        filename:     'Manager_Financial_Report_' + new Date().toISOString().slice(0,10) + '.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { 
-            scale: 2, 
-            useCORS: true, 
-            logging: false,
-            scrollY: 0
-        },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-        pagebreak:    { mode: ['css', 'legacy'] }
-    };
-
-    try {
-        await html2pdf().set(opt).from(element).save();
-    } catch (error) {
-        console.error('PDF Export Error:', error);
-        alert('Failed to generate PDF. Check console for details.');
-    } finally {
-        document.body.classList.remove('is-exporting-pdf');
-
-        if (pdfBtn) {
-            pdfBtn.disabled = false;
-        }
-    }
-}
 </script>
 <script src="{{ asset('js/report-page-export.js') }}"></script>
 

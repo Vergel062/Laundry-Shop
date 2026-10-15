@@ -14,7 +14,6 @@
     <!-- EXTERNAL ADMIN CSS -->
     <link rel="stylesheet" href="{{ asset('css/Admin.css') }}">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body class="bg-light" @if($export_mode) data-report-export-mode="{{ $export_mode }}" @endif>
 
@@ -81,7 +80,6 @@
                         'exportRoute' => route('admin.utility.tracking'),
                         'pageCount' => $pageCount,
                         'canExport' => $totalRecords > 0,
-                        'pdfFunction' => 'exportUtilityToPDF',
                         'printFunction' => 'printCurrentReport',
                     ])
                 </div>
@@ -268,7 +266,7 @@
 
             <!-- FOOTER & SIGNATURE -->
             <div class="d-none print-footer-block">
-                <div class="row align-items-end">
+                <div class="row align-items-start">
                     <div class="col-7">
                         <p class="mb-1" style="font-size: 8.5pt; color: #475569;">
                             <strong>Report Prepared By:</strong> {{ Auth::user()->fullname ?? 'System Administrator' }}
@@ -281,8 +279,10 @@
                         </p>
                     </div>
                     <div class="col-5 text-end">
-                        <div class="signature-line"></div>
-                        <p class="fw-bold mb-0 mt-1" style="font-size: 9pt; text-transform: uppercase;">Authorized Signature</p>
+                        <div class="signature-block">
+                            <div class="signature-line"></div>
+                            <p class="fw-bold mb-0 mt-1" style="font-size: 9pt; text-transform: uppercase;">Authorized Signature</p>
+                        </div>
                         <small style="font-size: 8pt; color: #64748b;">Administrator</small>
                     </div>
                 </div>
@@ -300,48 +300,6 @@
 <script src="{{ asset('js/Admin_script.js') }}"></script>
 
 <script>
-    async function exportUtilityToPDF() {
-        const pdfBtn = document.getElementById('pdfBtn');
-        const originalElement = document.getElementById('printableArea');
-
-        if (!originalElement) {
-            alert('Error: Element #printableArea not found.');
-            return;
-        }
-
-        if (typeof html2pdf !== 'function') {
-            alert('Hindi ma-load ang PDF generator. I-refresh ang page at subukan muli.');
-            return;
-        }
-
-        if (pdfBtn) {
-            pdfBtn.disabled = true;
-        }
-
-        document.body.classList.add('is-exporting-pdf');
-
-        const options = {
-            margin: [10, 10, 10, 10],
-            filename: 'Utility_Expenses_Report_' + new Date().toISOString().slice(0, 10) + '.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, logging: false },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: ['css', 'legacy'], avoid: ['tr'] }
-        };
-
-        try {
-            await html2pdf().set(options).from(originalElement).save();
-        } catch (error) {
-            console.error('Utility PDF Export Error:', error);
-            alert('Nagkaroon ng problema sa pag-save ng PDF.');
-        } finally {
-            document.body.classList.remove('is-exporting-pdf');
-            if (pdfBtn) {
-                pdfBtn.disabled = false;
-            }
-        }
-    }
-
     function printCurrentReport() {
         window.print();
     }
