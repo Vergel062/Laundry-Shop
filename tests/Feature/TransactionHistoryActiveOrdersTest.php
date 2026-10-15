@@ -81,7 +81,48 @@ class TransactionHistoryActiveOrdersTest extends TestCase
             $this->actingAs($this->user(20, $role, 1));
             $response = app($controllerClass)->index($this->octoberRequest());
 
-            $this->assertSame([1, 2, 3, 6], $response->getData()['transactions']->pluck('id')->all());
+            $this->assertSame([3, 2, 1, 6], $response->getData()['transactions']->pluck('id')->all());
+        }
+    }
+
+    public function test_pending_requests_appear_first_then_recent_queue_dates_keep_fifo_order(): void
+    {
+        DB::table('transactions')->insert([
+            array_merge($this->transaction(8, 10, 1, '2026-10-13', 'Pending', 'Service Request'), [
+                'created_at' => '2026-10-13 08:00:00',
+                'queue_date' => null,
+                'queue_number' => null,
+            ]),
+            array_merge($this->transaction(9, 10, 1, '2026-10-13', 'Pending', 'Service Request'), [
+                'created_at' => '2026-10-13 09:00:00',
+                'queue_date' => null,
+                'queue_number' => null,
+            ]),
+            array_merge($this->transaction(10, 10, 1, '2026-10-13', 'Washing', 'Unpaid'), [
+                'queue_date' => '2026-10-13',
+                'queue_number' => 2,
+            ]),
+            array_merge($this->transaction(11, 10, 1, '2026-10-13', 'Pending', 'Unpaid'), [
+                'queue_date' => '2026-10-13',
+                'queue_number' => 1,
+            ]),
+            array_merge($this->transaction(12, 10, 1, '2026-10-14', 'Pending', 'Unpaid'), [
+                'queue_date' => '2026-10-14',
+                'queue_number' => 1,
+            ]),
+        ]);
+
+        foreach ([
+            [ServiceController::class, 'staff'],
+            [ManagerServiceController::class, 'manager'],
+        ] as [$controllerClass, $role]) {
+            $this->actingAs($this->user(20, $role, 1));
+            $response = app($controllerClass)->index(Request::create('/', 'GET', [
+                'start_date' => '2026-10-01',
+                'end_date' => '2026-10-31',
+            ]));
+
+            $this->assertSame([8, 9, 12, 11, 10, 3, 2, 1, 6], $response->getData()['transactions']->pluck('id')->all());
         }
     }
 
@@ -156,6 +197,8 @@ class TransactionHistoryActiveOrdersTest extends TestCase
             'created_at' => $date . ' 12:00:00',
             'order_status' => $orderStatus,
             'payment_status' => $paymentStatus,
+            'queue_date' => $date,
+            'queue_number' => $id,
             'total_amount' => 100,
         ];
     }

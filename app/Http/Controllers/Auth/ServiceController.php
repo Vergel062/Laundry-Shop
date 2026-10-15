@@ -67,13 +67,16 @@ class ServiceController extends Controller
             });
         }
 
-        // PAG-AYOS NG PRIORITY
+        // Keep requests in FIFO order, then show recent service days first while
+        // preserving the queue sequence within each day. Completed rows stay last.
         $transactions = $query->select('t.*', 'u.fullname')
-            ->orderByRaw("CASE WHEN t.order_status = 'Cancelled' OR (t.order_status = 'Claimed' AND t.payment_status = 'Paid') THEN 1 ELSE 0 END ASC")
+            ->orderByRaw("CASE WHEN t.order_status = 'Pending' AND t.payment_status = 'Service Request' THEN 0 WHEN t.order_status = 'Cancelled' OR (t.order_status = 'Claimed' AND t.payment_status = 'Paid') THEN 2 ELSE 1 END ASC")
+            ->orderByRaw("CASE WHEN t.order_status = 'Pending' AND t.payment_status = 'Service Request' THEN t.created_at END ASC")
             ->orderByRaw('CASE WHEN t.queue_number IS NULL THEN 1 ELSE 0 END ASC')
-            ->orderBy('t.queue_date')
+            ->orderBy('t.queue_date', 'DESC')
             ->orderBy('t.queue_number')
-            ->orderBy('t.created_at', 'ASC')
+            ->orderBy('t.created_at', 'DESC')
+            ->orderBy('t.id', 'DESC')
             ->get();
 
         return view('staff.service_list', compact(
@@ -156,31 +159,61 @@ class ServiceController extends Controller
     {
         $request->validate([
             'transaction_id' => 'required|exists:transactions,id',
-            'new_status' => 'required|string',
-            'payment_status' => 'required|string',
+            'new_status' => 'required|in:Pending,Washing,Drying,Ready,Claimed',
+            'payment_status' => 'required|in:Unpaid,Paid',
         ]);
 
-        $transaction = DB::table('transactions as t')
-            ->join('users as u', 't.user_id', '=', 'u.id')
-            ->select('t.*', 'u.email', 'u.fullname')
-            ->where('t.id', $request->transaction_id)
-            ->first();
-
-        if (!$transaction) {
-            return redirect()->back()->with('error', 'Transaction not found.');
+        $user = auth()->user();
+        if (!$user || $user->role !== 'staff') {
+            abort(403, 'Unauthorized action.');
         }
 
-        $old_status = $transaction->order_status;
+        $result = DB::transaction(function () use ($request, $user) {
+            $transaction = DB::table('transactions')
+                ->where('id', $request->transaction_id)
+                ->where('branch_id', $user->branch_id)
+                ->lockForUpdate()
+                ->first();
 
-        DB::table('transactions')
-            ->where('id', $request->transaction_id)
-            ->update([
-                'order_status' => $request->new_status,
-                'payment_status' => $request->payment_status,
-            ]);
+            if (!$transaction) {
+                return ['error' => 'Transaction not found.'];
+            }
+
+            if ($transaction->order_status === 'Claimed' && $transaction->payment_status === 'Paid') {
+                return ['error' => 'Completed transactions cannot be changed.'];
+            }
+
+            if ($transaction->payment_status === 'Paid' && $request->payment_status === 'Unpaid') {
+                return ['error' => 'A paid transaction cannot be changed back to unpaid.'];
+            }
+
+            DB::table('transactions')
+                ->where('id', $request->transaction_id)
+                ->update([
+                    'order_status' => $request->new_status,
+                    'payment_status' => $request->payment_status,
+                ]);
+
+            return [
+                'transaction' => $transaction,
+                'old_status' => $transaction->order_status,
+            ];
+        });
+
+        if (isset($result['error'])) {
+            return redirect()->back()->with('error', $result['error']);
+        }
+
+        $transaction = $result['transaction'];
+        $old_status = $result['old_status'];
+        $customer = DB::table('users')
+            ->where('id', $transaction->user_id)
+            ->first(['email', 'fullname']);
 
         if ($request->new_status === 'Ready' && $old_status !== 'Ready') {
-            if (!empty($transaction->email)) {
+            if (!empty($customer->email)) {
+                $transaction->email = $customer->email;
+                $transaction->fullname = $customer->fullname;
                 $transaction->payment_status = $request->payment_status;
 
                 try {
