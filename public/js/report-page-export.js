@@ -32,8 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             if (document.fonts?.ready) await document.fonts.ready;
 
+            const pdfMargin = Number(controls.dataset.pdfMargin) || 10;
             const pdfWorker = html2pdf().set({
-                margin: controls.dataset.pdfMargin === '8' ? [8, 8, 8, 8] : [10, 10, 10, 10],
+                margin: [pdfMargin, pdfMargin, pdfMargin, pdfMargin],
                 filename: `${controls.dataset.pdfFilename}_${new Date().toISOString().slice(0, 10)}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: {
