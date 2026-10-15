@@ -183,6 +183,8 @@
                                         && $normalizedPaymentStatus === 'service request';
                                     $isCancelledServiceRequest = $normalizedOrderStatus === 'cancelled'
                                         && $normalizedPaymentStatus === 'service request';
+                                    $isCompletedTransaction = $normalizedOrderStatus === 'claimed'
+                                        && $normalizedPaymentStatus === 'paid';
                                 @endphp
                                 <tr>
                                     <td class="ps-4 small text-muted">{{ date('M d', strtotime($row->created_at)) }}</td>
@@ -218,7 +220,7 @@
                                                         <i class="bi bi-x-lg"></i>
                                                     </button>
                                                 </form>
-                                            @elseif(!$isCancelledServiceRequest)
+                                            @elseif(!$isCancelledServiceRequest && !$isCompletedTransaction)
                                             <button class="btn btn-sm btn-light border edit-btn" 
                                                     data-id="{{ $row->id }}" 
                                                     data-status="{{ $row->order_status }}" 
@@ -229,7 +231,7 @@
                                             </button>
                                             @endif
                                             
-                                            @if($row->payment_status !== 'Service Request')
+                                            @if($row->payment_status !== 'Service Request' && !$isCompletedTransaction)
                                                 <a href="{{ route('manager.print.receipt', $row->id) }}" target="_blank" class="btn btn-sm btn-light border" title="Print Receipt">
                                                     <i class="bi bi-printer text-secondary"></i>
                                                 </a>
