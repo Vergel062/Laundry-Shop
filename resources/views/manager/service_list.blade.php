@@ -349,7 +349,7 @@
                                 </div>
                             </div>
                         </div>
-                        <small class="text-muted d-block mt-1" style="font-size: 10px;">I-type ang bilang ng sachet na nagamit (iwanang blanko kung wala).</small>
+                        <small class="text-muted d-block mt-1" style="font-size: 10px;">Enter the quantity of sachets consumed (leave blank if not applicable).</small>
                     </div>
 
                     <div class="mb-3">
