@@ -30,55 +30,55 @@
         }
         .service-history-report .print-document-header,
         .service-history-report .print-footer-block { display: none; }
-        body.is-exporting-pdf .service-history-report .print-document-header {
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report .print-document-header {
             display: flex !important;
             width: 100% !important;
             border-bottom: 2px solid #0f172a !important;
         }
-        body.is-exporting-pdf .service-history-report .print-footer-block { display: block !important; }
-        body.is-exporting-pdf .service-history-report {
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report .print-footer-block { display: block !important; }
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report {
             width: 100% !important;
             padding: 0 !important;
             background: #fff !important;
         }
-        body.is-exporting-pdf .service-history-report .service-history-stats {
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report .service-history-stats {
             display: flex !important;
             flex-wrap: nowrap !important;
             gap: 8px !important;
             width: 100% !important;
         }
-        body.is-exporting-pdf .service-history-report .service-history-stats > [class*="col-"] {
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report .service-history-stats > [class*="col-"] {
             flex: 1 1 0 !important;
             width: 25% !important;
             max-width: 25% !important;
             min-width: 0 !important;
         }
-        body.is-exporting-pdf .service-history-report .service-history-stats .card {
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report .service-history-stats .card {
             padding: 12px !important;
         }
-        body.is-exporting-pdf .service-history-report .table-responsive { overflow: visible !important; }
-        body.is-exporting-pdf .service-history-report .service-history-table-container {
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report .table-responsive { overflow: visible !important; }
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report .service-history-table-container {
             max-height: none !important;
             overflow: visible !important;
         }
-        body.is-exporting-pdf .service-history-report table {
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report table {
             width: 100% !important;
             max-width: 100% !important;
             table-layout: fixed !important;
             border-collapse: collapse !important;
         }
-        body.is-exporting-pdf .service-history-report th,
-        body.is-exporting-pdf .service-history-report td { overflow-wrap: anywhere; }
-        body.is-exporting-pdf .service-history-report th:last-child,
-        body.is-exporting-pdf .service-history-report td:last-child { white-space: nowrap; }
-        body.is-exporting-pdf .service-history-stats h4 { white-space: nowrap !important; font-size: 10pt !important; }
-        body.is-exporting-pdf .service-history-report table th {
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report th,
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report td { overflow-wrap: anywhere; }
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report th:last-child,
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report td:last-child { white-space: nowrap; }
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-stats h4 { white-space: nowrap !important; font-size: 10pt !important; }
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report table th {
             background: #fff !important;
             color: #334155 !important;
             border-bottom: 1px solid #e2e8f0 !important;
         }
-        body.is-exporting-pdf .service-history-report thead { display: table-header-group !important; }
-        body.is-exporting-pdf .service-history-report tr { break-inside: avoid !important; page-break-inside: avoid !important; }
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report thead { display: table-header-group !important; }
+        body.is-exporting-pdf:not(.is-exporting-transaction-pdf) .service-history-report tr { break-inside: avoid !important; page-break-inside: avoid !important; }
         @media print { 
             .no-print, #sidebar, .overlay, #sidebarToggle, .navbar, button { display: none !important; } 
             .main-wrapper { margin-left: 0 !important; width: 100% !important; padding: 0 !important; }
@@ -218,6 +218,9 @@
                         'canExport' => $totalRecords > 0,
                         'pdfTarget' => '#serviceHistoryPrintableArea',
                         'pdfFilename' => 'Service_Transaction_History',
+                        'pdfMargin' => 12,
+                        'pdfLayout' => 'transaction-report',
+                        'pdfHeader' => 'Transaction Report | LaundryCare Admin',
                         'printFunction' => 'printCurrentReport',
                     ])
                 </div>
