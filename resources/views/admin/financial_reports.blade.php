@@ -95,6 +95,7 @@
                         'canExport' => $totalRecords > 0,
                         'pdfTarget' => '#printableArea',
                         'pdfFilename' => 'Financial_Report',
+                        'pdfMargin' => 8,
                         'printFunction' => 'triggerPrint',
                     ])
                 </div>
