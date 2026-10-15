@@ -40,6 +40,12 @@ class ServiceHistoryController extends Controller
                     'Pending Verification',
                     'Service Request',
                 ])],
+                'sort_by' => ['nullable', Rule::in([
+                    'newest',
+                    'oldest',
+                    'name_asc',
+                    'name_desc',
+                ])],
             ]);
         }
 
@@ -55,6 +61,7 @@ class ServiceHistoryController extends Controller
         $search = $request->input('search', '');
         $order_status = $request->input('order_status', 'all');
         $payment_status = $request->input('payment_status', 'all');
+        $sort_by = $request->input('sort_by', 'newest');
         $report_generated = !$is_report || ($start_date && $end_date);
 
         // 2. DETECT COLUMN para sa users table kung fullname o username
@@ -111,13 +118,21 @@ class ServiceHistoryController extends Controller
         ];
 
         // 4. MAIN LIST
-        $list = $report_generated ? $query->select(
+        $listQuery = $report_generated ? $query->select(
             't.*',
             'b.branch_name',
             "u.{$user_col} as customer_name"
-        )
-        ->orderBy('t.created_at', 'DESC')
-        ->get() : collect();
+        ) : null;
+
+        if ($listQuery) {
+            match ($sort_by) {
+                'oldest' => $listQuery->orderBy('t.created_at')->orderBy('t.id'),
+                'name_asc' => $listQuery->orderBy("u.{$user_col}")->orderByDesc('t.created_at')->orderByDesc('t.id'),
+                'name_desc' => $listQuery->orderByDesc("u.{$user_col}")->orderByDesc('t.created_at')->orderByDesc('t.id'),
+                default => $listQuery->orderByDesc('t.created_at')->orderByDesc('t.id'),
+            };
+        }
+        $list = $listQuery ? $listQuery->get() : collect();
 
         // Branches Dropdown data
         $branches_dropdown = DB::table('branches')->select('id', 'branch_name')->orderBy('branch_name', 'ASC')->get();
@@ -137,6 +152,7 @@ class ServiceHistoryController extends Controller
             'search',
             'order_status',
             'payment_status',
+            'sort_by',
             'stats',
             'list',
             'branches_dropdown',

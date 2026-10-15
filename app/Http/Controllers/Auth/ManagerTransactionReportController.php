@@ -36,6 +36,12 @@ class ManagerTransactionReportController extends Controller
                 'Pending Verification',
                 'Service Request',
             ])],
+            'sort_by' => ['nullable', Rule::in([
+                'newest',
+                'oldest',
+                'name_asc',
+                'name_desc',
+            ])],
         ]);
 
         $start_date = $request->input('start_date');
@@ -43,6 +49,7 @@ class ManagerTransactionReportController extends Controller
         $search = $request->input('search', '');
         $order_status = $request->input('order_status', 'all');
         $payment_status = $request->input('payment_status', 'all');
+        $sort_by = $request->input('sort_by', 'newest');
         $report_generated = (bool) ($start_date && $end_date);
         $branch = DB::table('branches')->where('id', $manager->branch_id)->first();
         $branch_name = \App\Support\BranchName::format($branch->branch_name ?? null);
@@ -90,11 +97,19 @@ class ManagerTransactionReportController extends Controller
             'total_in' => $rawStats->total_in ?? 0,
         ];
 
-        $list = $report_generated
+        $listQuery = $report_generated
             ? $query->select('t.*', 'u.fullname as customer_name', 'b.branch_name')
-                ->orderByDesc('t.created_at')
-                ->get()
-            : collect();
+            : null;
+
+        if ($listQuery) {
+            match ($sort_by) {
+                'oldest' => $listQuery->orderBy('t.created_at')->orderBy('t.id'),
+                'name_asc' => $listQuery->orderBy('u.fullname')->orderByDesc('t.created_at')->orderByDesc('t.id'),
+                'name_desc' => $listQuery->orderByDesc('u.fullname')->orderByDesc('t.created_at')->orderByDesc('t.id'),
+                default => $listQuery->orderByDesc('t.created_at')->orderByDesc('t.id'),
+            };
+        }
+        $list = $listQuery ? $listQuery->get() : collect();
 
         return view('manager.transaction_report', compact(
             'start_date',
@@ -102,6 +117,7 @@ class ManagerTransactionReportController extends Controller
             'search',
             'order_status',
             'payment_status',
+            'sort_by',
             'stats',
             'list',
             'report_generated',
