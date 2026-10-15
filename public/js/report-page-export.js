@@ -37,40 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     logging: false,
                     scrollX: 0,
                     scrollY: 0,
-                    windowWidth: 1024,
-                    onclone: (clonedDocument) => {
-                        const clonedBody = clonedDocument.body;
-                        const appContainer = clonedDocument.querySelector('.app-container');
-                        const mainWrapper = clonedDocument.querySelector('.main-wrapper');
-                        const reportClone = clonedDocument.querySelector(controls.dataset.pdfTarget);
-
-                        clonedBody.style.cssText += 'width:718px;min-width:718px;margin:0;padding:0;overflow:visible;background:#fff;';
-
-                        if (appContainer) {
-                            appContainer.style.cssText += 'display:block;width:718px;min-width:718px;max-width:718px;height:auto;margin:0;padding:0;overflow:visible;transform:none;';
-                        }
-
-                        if (mainWrapper) {
-                            mainWrapper.style.cssText += 'display:block;position:static;width:718px;min-width:718px;max-width:718px;height:auto;margin:0;padding:0;overflow:visible;transform:none;';
-                        }
-
-                        for (const selector of ['#sidebar', '.overlay', '.sticky-header', '.navbar']) {
-                            clonedDocument.querySelectorAll(selector).forEach((element) => {
-                                element.style.setProperty('display', 'none', 'important');
-                            });
-                        }
-
-                        if (reportClone) {
-                            reportClone.style.setProperty('display', 'block', 'important');
-                            reportClone.style.setProperty('position', 'static', 'important');
-                            reportClone.style.setProperty('float', 'none', 'important');
-                            reportClone.style.setProperty('width', '718px', 'important');
-                            reportClone.style.setProperty('min-width', '718px', 'important');
-                            reportClone.style.setProperty('max-width', '718px', 'important');
-                            reportClone.style.setProperty('margin', '0', 'important');
-                            reportClone.style.setProperty('transform', 'none', 'important');
-                        }
-                    }
+                    windowWidth: 756
                 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
                 pagebreak: { mode: ['css', 'legacy'], avoid: ['tr'] }
