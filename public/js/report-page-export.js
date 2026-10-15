@@ -10,6 +10,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageError = document.getElementById('reportPageSelectionError');
     const isFinancialPdf = controls.dataset.pdfLayout === 'financial-report';
     const isTransactionPdf = controls.dataset.pdfLayout === 'transaction-report';
+    const isUtilityPdf = controls.dataset.pdfLayout.startsWith('utility-report-');
+    const isAdminUtilityPdf = controls.dataset.pdfLayout === 'utility-report-admin';
     let selectedMode = null;
 
     const saveReportPdf = async () => {
@@ -30,6 +32,10 @@ document.addEventListener('DOMContentLoaded', () => {
             window.updatePrintTimestamp?.();
         }
         if (isTransactionPdf) document.body.classList.add('is-exporting-transaction-pdf');
+        if (isUtilityPdf) {
+            document.body.classList.add('is-exporting-utility-pdf');
+            if (isAdminUtilityPdf) document.body.classList.add('is-exporting-admin-utility-pdf');
+        }
         let saved = false;
         try {
             if (document.fonts?.ready) await document.fonts.ready;
@@ -51,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     : { mode: ['css', 'legacy'], avoid: ['tr'] }
             }).from(report).toPdf();
 
-            if (isFinancialPdf || isTransactionPdf) {
+            if (isFinancialPdf || isTransactionPdf || isUtilityPdf) {
                 await pdfWorker.get('pdf').then((pdf) => {
                     const pageCount = pdf.internal.getNumberOfPages();
                     const generatedAt = new Intl.DateTimeFormat('en-US', {
@@ -88,6 +94,10 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.classList.remove('is-exporting-pdf');
             if (isFinancialPdf) document.body.classList.remove('is-exporting-financial-pdf');
             if (isTransactionPdf) document.body.classList.remove('is-exporting-transaction-pdf');
+            if (isUtilityPdf) {
+                document.body.classList.remove('is-exporting-utility-pdf');
+                if (isAdminUtilityPdf) document.body.classList.remove('is-exporting-admin-utility-pdf');
+            }
         }
 
         return saved;

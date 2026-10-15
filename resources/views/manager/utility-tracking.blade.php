@@ -83,6 +83,9 @@
                         'canExport' => $totalRecords > 0,
                         'pdfTarget' => '#pdfContentArea',
                         'pdfFilename' => 'Utility_Report_' . Str::slug($branch_name ?? "branch"),
+                        'pdfMargin' => 12,
+                        'pdfLayout' => 'utility-report-manager',
+                        'pdfHeader' => 'Utility Tracking | LaundryCare Manager',
                         'printFunction' => 'printCurrentReport',
                     ])
                 </div>
