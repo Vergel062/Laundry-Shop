@@ -11,6 +11,7 @@
     
     <!-- EXTERNAL ADMIN/MANAGER CSS -->
     <link rel="stylesheet" href="{{ asset('css/Admin.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 </head>
 <body class="bg-light" @if($export_mode) data-report-export-mode="{{ $export_mode }}" @endif>
@@ -80,6 +81,8 @@
                         'exportRoute' => route('manager.utility.tracking'),
                         'pageCount' => $pageCount,
                         'canExport' => $totalRecords > 0,
+                        'pdfTarget' => '#pdfContentArea',
+                        'pdfFilename' => 'Utility_Report_' . Str::slug($branch_name ?? "branch"),
                         'printFunction' => 'printCurrentReport',
                     ])
                 </div>

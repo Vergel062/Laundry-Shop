@@ -10,23 +10,63 @@ document.addEventListener('DOMContentLoaded', () => {
     const pageError = document.getElementById('reportPageSelectionError');
     let selectedMode = null;
 
-    const runCurrentExport = (mode, afterPrint = null) => {
+    const saveReportPdf = async () => {
+        const report = document.querySelector(controls.dataset.pdfTarget);
+        if (!report) {
+            alert('Hindi makita ang report na ise-save. I-refresh ang page at subukan muli.');
+            return;
+        }
+
+        if (typeof html2pdf !== 'function') {
+            alert('Hindi ma-load ang PDF generator. I-refresh ang page at subukan muli.');
+            return;
+        }
+
+        document.body.classList.add('is-exporting-pdf');
+        let saved = false;
+        try {
+            if (document.fonts?.ready) await document.fonts.ready;
+
+            await html2pdf().set({
+                margin: [10, 10, 10, 10],
+                filename: `${controls.dataset.pdfFilename}_${new Date().toISOString().slice(0, 10)}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: {
+                    scale: 1.5,
+                    useCORS: true,
+                    logging: false,
+                    scrollX: 0,
+                    scrollY: 0,
+                    windowWidth: 756
+                },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak: { mode: ['css', 'legacy'], avoid: ['tr'] }
+            }).from(report).save();
+            saved = true;
+        } catch (error) {
+            console.error('Report PDF Export Error:', error);
+            alert('Nagkaroon ng problema sa pag-save ng PDF.');
+        } finally {
+            document.body.classList.remove('is-exporting-pdf');
+        }
+
+        return saved;
+    };
+
+    const runCurrentExport = async (mode, afterPrint = null) => {
+        if (mode === 'pdf') {
+            const saved = await saveReportPdf();
+            if (saved && afterPrint) afterPrint();
+            return;
+        }
+
         const functionName = controls.dataset.printFunction;
         const exportFunction = window[functionName];
 
         if (typeof exportFunction === 'function') {
-            if (mode === 'pdf' || afterPrint) {
-                const originalTitle = document.title;
-                if (mode === 'pdf') {
-                    const safeTitle = originalTitle
-                        .replace(/\s*[|–-]\s*/g, '_')
-                        .replace(/\s+/g, '_');
-                    document.title = `${safeTitle}_${new Date().toISOString().slice(0, 10)}`;
-                }
-
+            if (afterPrint) {
                 window.addEventListener('afterprint', () => {
-                    document.title = originalTitle;
-                    if (afterPrint) afterPrint();
+                    afterPrint();
                 }, { once: true });
             }
 

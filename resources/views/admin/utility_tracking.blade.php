@@ -14,6 +14,7 @@
     <!-- EXTERNAL ADMIN CSS -->
     <link rel="stylesheet" href="{{ asset('css/Admin.css') }}">
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body class="bg-light" @if($export_mode) data-report-export-mode="{{ $export_mode }}" @endif>
 
@@ -80,6 +81,8 @@
                         'exportRoute' => route('admin.utility.tracking'),
                         'pageCount' => $pageCount,
                         'canExport' => $totalRecords > 0,
+                        'pdfTarget' => '#printableArea',
+                        'pdfFilename' => 'Utility_Expenses_Report',
                         'printFunction' => 'printCurrentReport',
                     ])
                 </div>
