@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use App\Support\ReportPageSelection;
 
 class ManagerTransactionReportController extends Controller
 {
@@ -16,6 +17,8 @@ class ManagerTransactionReportController extends Controller
         if (!$manager || $manager->role !== 'manager') {
             abort(403, 'Unauthorized action.');
         }
+
+        ReportPageSelection::validateRequest($request);
 
         $request->validate([
             'start_date' => 'nullable|date',
@@ -109,7 +112,17 @@ class ManagerTransactionReportController extends Controller
                 default => $listQuery->orderByDesc('t.created_at')->orderByDesc('t.id'),
             };
         }
-        $list = $listQuery ? $listQuery->get() : collect();
+        $pageCount = 0;
+        $totalRecords = 0;
+        if ($listQuery) {
+            $selection = ReportPageSelection::resolve($listQuery, $request);
+            $list = $selection['records'];
+            $pageCount = $selection['pageCount'];
+            $totalRecords = $selection['total'];
+        } else {
+            $list = collect();
+        }
+        $export_mode = $request->input('export_mode');
 
         return view('manager.transaction_report', compact(
             'start_date',
@@ -121,7 +134,10 @@ class ManagerTransactionReportController extends Controller
             'stats',
             'list',
             'report_generated',
-            'branch_name'
+            'branch_name',
+            'pageCount',
+            'totalRecords',
+            'export_mode'
         ));
     }
 }

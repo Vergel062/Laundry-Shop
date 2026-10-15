@@ -14,7 +14,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
-<body class="bg-light">
+<body class="bg-light" @if($export_mode) data-report-export-mode="{{ $export_mode }}" @endif>
 
 <div class="overlay" id="overlay"></div>
 
@@ -77,12 +77,13 @@
                 <button class="btn btn-light d-lg-none me-3" id="sidebarToggle"><i class="bi bi-list fs-4"></i></button>
                 <h5 class="fw-bold mb-0">Utility & Expenses Report</h5>
                 <div class="ms-auto d-flex gap-2">
-                    <button id="managerUtilityPdfBtn" onclick="exportManagerUtilityToPDF()" class="btn btn-outline-danger btn-sm rounded-8 px-3 fw-bold">
-                        <i class="bi bi-file-earmark-pdf me-1"></i> Save PDF
-                    </button>
-                    <button onclick="window.print()" class="btn btn-dark btn-sm rounded-8 px-3 fw-bold">
-                        <i class="bi bi-printer me-1"></i> Print Report
-                    </button>
+                    @include('shared.report-export-controls', [
+                        'exportRoute' => route('manager.utility.tracking'),
+                        'pageCount' => $pageCount,
+                        'canExport' => $totalRecords > 0,
+                        'pdfFunction' => 'exportManagerUtilityToPDF',
+                        'printFunction' => 'printCurrentReport',
+                    ])
                 </div>
             </div>
         </nav>
@@ -249,6 +250,7 @@
                         </tbody>
                     </table>
                 </div>
+                @include('shared.report-pagination', ['paginator' => $logs])
             </div>
 
             <!-- FOOTER & SIGNATURE -->
@@ -277,6 +279,7 @@
     </div>
 </div>
 
+@include('shared.report-page-selection-modal')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
@@ -323,10 +326,15 @@
             }
         }
     }
+
+    function printCurrentReport() {
+        window.print();
+    }
 </script>
 
 <!-- EXTERNAL MANAGER/ADMIN JS -->
 <script src="{{ asset('js/Admin_script.js') }}"></script>
+<script src="{{ asset('js/report-page-export.js') }}"></script>
 
 </body>
 </html>

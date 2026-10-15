@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use Illuminate\Validation\Rule;
+use App\Support\ReportPageSelection;
 
 class UtilityTrackingController extends Controller
 {
@@ -16,6 +17,8 @@ class UtilityTrackingController extends Controller
         if (!$user || $user->role !== 'admin') {
             return redirect()->route('login');
         }
+
+        ReportPageSelection::validateRequest($request);
 
         $request->validate([
             'sort_by' => ['nullable', Rule::in([
@@ -77,7 +80,11 @@ class UtilityTrackingController extends Controller
             'branch_asc' => $query->orderBy('b.branch_name')->orderByDesc('e.date_logged')->orderByDesc('e.id'),
             default => $query->orderByDesc('e.date_logged')->orderByDesc('e.id'),
         };
-        $logs = $query->get();
+        $selection = ReportPageSelection::resolve($query, $request);
+        $logs = $selection['records'];
+        $pageCount = $selection['pageCount'];
+        $totalRecords = $selection['total'];
+        $export_mode = $request->input('export_mode');
 
         // 3. INDEPENDENT TOTALS PARA SA STAT CARDS (Walang alias para diretsong gumana)
         $totalsQuery = DB::table('expenses');
@@ -114,6 +121,9 @@ class UtilityTrackingController extends Controller
             'date_to', 
             'search', 
             'logs', 
+            'pageCount',
+            'totalRecords',
+            'export_mode',
             'electricity_total', 
             'water_total', 
             'rent_total',

@@ -155,7 +155,7 @@ class TransactionHistoryActiveOrdersTest extends TestCase
         }
     }
 
-    public function test_admin_transaction_history_uses_pagination_but_report_remains_unpaginated(): void
+    public function test_admin_transaction_history_and_report_are_paginated(): void
     {
         for ($id = 20; $id < 45; $id++) {
             DB::table('transactions')->insert(
@@ -173,7 +173,9 @@ class TransactionHistoryActiveOrdersTest extends TestCase
             'end_date' => '2026-10-31',
         ]);
         $report = app(ServiceHistoryController::class)->index($reportRequest);
-        $this->assertSame(26, $report->getData()['list']->count());
+        $this->assertInstanceOf(LengthAwarePaginator::class, $report->getData()['list']);
+        $this->assertSame(20, $report->getData()['list']->count());
+        $this->assertSame(26, $report->getData()['list']->total());
     }
 
     public function test_admin_transaction_history_keeps_active_orders_from_previous_month(): void

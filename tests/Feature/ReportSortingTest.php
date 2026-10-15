@@ -4,13 +4,18 @@ namespace Tests\Feature;
 
 use App\Http\Controllers\Auth\FinancialReportController;
 use App\Http\Controllers\Auth\ManagerFinancialReportController;
+use App\Http\Controllers\Auth\ManagerTransactionReportController;
 use App\Http\Controllers\Auth\ManagerUtilityTrackingController;
+use App\Http\Controllers\Auth\ServiceHistoryController;
 use App\Http\Controllers\Auth\UtilityTrackingController;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Route;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 class ReportSortingTest extends TestCase
@@ -124,9 +129,126 @@ class ReportSortingTest extends TestCase
         $this->assertSame([2, 1], $response->getData()['logs']->pluck('id')->all());
     }
 
+    public function test_financial_reports_can_export_only_selected_result_pages(): void
+    {
+        for ($id = 1; $id <= 25; $id++) {
+            $this->addTransaction($id, 10, '2026-10-01', $id * 10);
+        }
+
+        foreach ([
+            [FinancialReportController::class, 1, 'admin', null, 'list_q'],
+            [ManagerFinancialReportController::class, 2, 'manager', 1, 'transactions'],
+        ] as [$controllerClass, $userId, $role, $branchId, $recordsKey]) {
+            $this->actingAs($this->user($userId, $role, $branchId));
+            $response = app($controllerClass)->index($this->request([
+                'start_date' => '2026-10-01',
+                'end_date' => '2026-10-31',
+                'export_mode' => 'pdf',
+                'export_pages' => '2',
+            ]));
+
+            $this->assertSame([5, 4, 3, 2, 1], $response->getData()[$recordsKey]->pluck('id')->all());
+            $this->assertSame(25, $response->getData()['totalRecords']);
+            $this->assertSame(2, $response->getData()['pageCount']);
+        }
+
+        $this->actingAs($this->user(1, 'admin', null));
+        $allResults = app(FinancialReportController::class)->index($this->request([
+            'start_date' => '2026-10-01',
+            'end_date' => '2026-10-31',
+            'export_mode' => 'pdf',
+            'export_pages' => 'all',
+        ]));
+        $this->assertCount(25, $allResults->getData()['list_q']);
+    }
+
+    public function test_report_export_rejects_page_numbers_beyond_the_result_page_count(): void
+    {
+        for ($id = 1; $id <= 25; $id++) {
+            $this->addTransaction($id, 10, '2026-10-01', $id * 10);
+        }
+
+        $this->actingAs($this->user(1, 'admin', null));
+        $this->expectException(ValidationException::class);
+
+        app(FinancialReportController::class)->index($this->request([
+            'start_date' => '2026-10-01',
+            'end_date' => '2026-10-31',
+            'export_mode' => 'print',
+            'export_pages' => '3',
+        ]));
+    }
+
+    public function test_utility_reports_can_export_only_selected_result_pages(): void
+    {
+        for ($id = 1; $id <= 25; $id++) {
+            $this->addExpense($id, 'Water', $id * 10, '2026-10-01');
+        }
+
+        foreach ([
+            [UtilityTrackingController::class, 1, 'admin', null],
+            [ManagerUtilityTrackingController::class, 2, 'manager', 1],
+        ] as [$controllerClass, $userId, $role, $branchId]) {
+            $this->actingAs($this->user($userId, $role, $branchId));
+            $response = app($controllerClass)->index($this->request([
+                'date_from' => '2026-10-01',
+                'date_to' => '2026-10-31',
+                'export_mode' => 'print',
+                'export_pages' => '2',
+            ]));
+
+            $this->assertSame([5, 4, 3, 2, 1], $response->getData()['logs']->pluck('id')->all());
+            $this->assertSame(25, $response->getData()['totalRecords']);
+            $this->assertSame(2, $response->getData()['pageCount']);
+        }
+    }
+
+    public function test_transaction_reports_paginate_and_export_selected_result_pages(): void
+    {
+        for ($id = 1; $id <= 25; $id++) {
+            $this->addTransaction($id, 10, '2026-10-01', $id * 10);
+        }
+
+        foreach ([
+            [ServiceHistoryController::class, 1, 'admin', null, '/admin/transaction-report', 'admin.transaction.report'],
+            [ManagerTransactionReportController::class, 2, 'manager', 1, '/manager/transaction-report', 'manager.transaction.report'],
+        ] as [$controllerClass, $userId, $role, $branchId, $uri, $routeName]) {
+            $this->actingAs($this->user($userId, $role, $branchId));
+            $request = $this->routeRequest($uri, $routeName, [
+                'start_date' => '2026-10-01',
+                'end_date' => '2026-10-31',
+            ]);
+            $response = app($controllerClass)->index($request);
+
+            $records = $response->getData()['list'];
+            $this->assertInstanceOf(LengthAwarePaginator::class, $records);
+            $this->assertSame(20, $records->perPage());
+            $this->assertSame(25, $records->total());
+
+            $exportRequest = $this->routeRequest($uri, $routeName, [
+                'start_date' => '2026-10-01',
+                'end_date' => '2026-10-31',
+                'export_mode' => 'pdf',
+                'export_pages' => '2',
+            ]);
+            $export = app($controllerClass)->index($exportRequest);
+            $this->assertSame([5, 4, 3, 2, 1], $export->getData()['list']->pluck('id')->all());
+        }
+    }
+
     private function request(array $query): Request
     {
         return Request::create('/', 'GET', $query);
+    }
+
+    private function routeRequest(string $uri, string $routeName, array $query): Request
+    {
+        $request = Request::create($uri, 'GET', $query);
+        $request->setRouteResolver(static function () use ($uri, $routeName) {
+            return (new Route('GET', $uri, []))->name($routeName);
+        });
+
+        return $request;
     }
 
     private function addTransaction(int $id, int $userId, string $date, float $amount): void
