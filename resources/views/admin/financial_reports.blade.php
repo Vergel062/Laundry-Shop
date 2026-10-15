@@ -186,7 +186,7 @@
             <div class="card shadow-sm border-0 rounded-15 overflow-hidden mb-4">
                 <div class="card-header bg-white py-3 px-4 border-0 no-print">
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-                        <h6 class="mb-0 fw-bold"><i class="bi bi-list-stars me-2 text-primary"></i>Transaction History</h6>
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-list-stars me-2 text-primary"></i>Financial History</h6>
                         <form method="GET" action="{{ route('admin.financial.reports') }}" class="d-flex align-items-center gap-2">
                             <input type="hidden" name="branch_id" value="{{ $selected_branch ?? 'all' }}">
                             <input type="hidden" name="start_date" value="{{ $start_date ?? '' }}">
