@@ -127,4 +127,32 @@ class PaymentQrTest extends TestCase
             ->assertOk()
             ->assertSee('storage/' . $imagePath, false);
     }
+
+    public function test_selected_about_image_missing_from_request_does_not_report_success(): void
+    {
+        $admin = new User();
+        $admin->forceFill([
+            'id' => 1,
+            'role' => 'admin',
+        ]);
+
+        $this->actingAs($admin)
+            ->from(route('admin.modified.content'))
+            ->post(route('admin.modified.content.update'), [
+                'about_title' => 'About',
+                'about_content' => 'Main content',
+                'about_secondary' => 'Secondary content',
+                'about_image_upload_requested' => '1',
+                'gcash_number' => '09123456789',
+                'paymaya_number' => '09987654321',
+                'contact_description' => 'Contact us',
+                'contact_address' => 'Carmona',
+                'contact_email' => 'support@example.com',
+                'contact_phone' => '09123456789',
+                'contact_hours' => 'Daily',
+            ])
+            ->assertRedirect(route('admin.modified.content'))
+            ->assertSessionHasErrors('about_image')
+            ->assertSessionMissing('success');
+    }
 }

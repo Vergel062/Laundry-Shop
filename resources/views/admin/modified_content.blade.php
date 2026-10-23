@@ -80,6 +80,7 @@
                         <label class="small fw-bold text-muted mb-2 mt-3">ABOUT US IMAGE</label>
                         <img src="{{ $aboutImageUrl }}" id="aboutImagePreview" alt="About Us preview" class="img-fluid rounded-3 border mb-2" style="height: 180px; width: 100%; object-fit: cover;" onerror="this.onerror=null; this.src='{{ asset('image/laundry.jpg') }}';">
                         <input type="file" name="about_image" id="aboutImageInput" class="form-control" accept="image/jpeg,image/png,image/jpg,image/gif,image/webp">
+                        <input type="hidden" name="about_image_upload_requested" id="aboutImageUploadRequested" value="0">
                         <div class="form-text">Optional. JPG, PNG, GIF, or WEBP up to 5 MB.</div>
                         @error('about_image')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                     </div></div>
@@ -119,6 +120,7 @@
 <script>
     document.getElementById('aboutImageInput')?.addEventListener('change', function (event) {
         const file = event.target.files[0];
+        document.getElementById('aboutImageUploadRequested').value = file ? '1' : '0';
         if (file) {
             document.getElementById('aboutImagePreview').src = URL.createObjectURL(file);
         }

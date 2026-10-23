@@ -86,6 +86,7 @@ class LandingContentController extends Controller
             'about_title' => 'required|string|max:255',
             'about_content' => 'required|string|max:5000',
             'about_secondary' => 'required|string|max:5000',
+            'about_image_upload_requested' => 'nullable|boolean',
             'about_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             'gcash_number' => 'required|string|max:32',
             'gcash_qr_upload' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
@@ -105,6 +106,12 @@ class LandingContentController extends Controller
             ->whereIn('content_key', ['gcash_qr', 'paymaya_qr'])
             ->pluck('content_value', 'content_key')
             ->all();
+
+        if ($request->boolean('about_image_upload_requested') && !$request->hasFile('about_image')) {
+            throw ValidationException::withMessages([
+                'about_image' => 'Napili ang bagong image pero hindi ito natanggap ng server. Piliin muli ang file at subukan ulit.',
+            ]);
+        }
 
         if ($request->hasFile('about_image')) {
             $storedImage = $request->file('about_image')->store('landing_images', 'public');
