@@ -91,7 +91,7 @@
     </section>
 
     @php
-        $aboutImage = $content['about_image'] ?? 'image/laundry.jpg';
+        $aboutImage = $content['about_image'] ?? 'image/laundry2.jpg';
         $aboutImageUrl = str_starts_with($aboutImage, 'http://') || str_starts_with($aboutImage, 'https://')
             ? $aboutImage
             : (str_starts_with($aboutImage, 'image/') ? asset($aboutImage) : asset('storage/' . $aboutImage));
