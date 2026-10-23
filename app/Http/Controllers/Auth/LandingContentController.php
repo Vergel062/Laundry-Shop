@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class LandingContentController extends Controller
 {
@@ -106,7 +107,14 @@ class LandingContentController extends Controller
             ->all();
 
         if ($request->hasFile('about_image')) {
-            $validated['about_image'] = $request->file('about_image')->store('landing_images', 'public');
+            $storedImage = $request->file('about_image')->store('landing_images', 'public');
+            if (!is_string($storedImage) || !Storage::disk('public')->exists($storedImage)) {
+                throw ValidationException::withMessages([
+                    'about_image' => 'The About Us image could not be saved. Please try again.',
+                ]);
+            }
+
+            $validated['about_image'] = $storedImage;
         } else {
             $validated['about_image'] = $currentImage;
         }

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -83,5 +84,47 @@ class PaymentQrTest extends TestCase
             'content_key' => 'paymaya_qr',
             'content_value' => 'Gcash/maya_qr.jpg',
         ]);
+    }
+
+    public function test_admin_about_image_upload_is_saved_and_used_on_the_landing_page(): void
+    {
+        Storage::fake('public');
+
+        $admin = new User();
+        $admin->forceFill([
+            'id' => 1,
+            'role' => 'admin',
+        ]);
+
+        $this->actingAs($admin)
+            ->post(route('admin.modified.content.update'), [
+                'about_title' => 'About',
+                'about_content' => 'Main content',
+                'about_secondary' => 'Secondary content',
+                'about_image' => UploadedFile::fake()->createWithContent(
+                    'about.png',
+                    base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/FZ8AAAAASUVORK5CYII=')
+                ),
+                'gcash_number' => '09123456789',
+                'paymaya_number' => '09987654321',
+                'contact_description' => 'Contact us',
+                'contact_address' => 'Carmona',
+                'contact_email' => 'support@example.com',
+                'contact_phone' => '09123456789',
+                'contact_hours' => 'Daily',
+            ])
+            ->assertRedirect();
+
+        $imagePath = DB::table('landing_contents')
+            ->where('content_key', 'about_image')
+            ->value('content_value');
+
+        $this->assertIsString($imagePath);
+        $this->assertStringStartsWith('landing_images/', $imagePath);
+        Storage::disk('public')->assertExists($imagePath);
+
+        $this->get(route('landing'))
+            ->assertOk()
+            ->assertSee('storage/' . $imagePath, false);
     }
 }
