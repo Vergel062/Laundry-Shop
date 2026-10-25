@@ -12,7 +12,7 @@ class AdminController extends Controller
     {
         $selected_branch = $request->input('branch_id', 'all');
 
-        // 1. Query para sa Cards (Sales, Expenses, Total KG)
+        // 1. Query for Cards (Sales, Expenses, Total KG)
         $salesQuery = DB::table('transactions')->where('payment_status', 'Paid');
         $expensesQuery = DB::table('expenses');
         $kgQuery = DB::table('transactions');
