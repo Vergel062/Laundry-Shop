@@ -45,6 +45,34 @@ class LandingContentController extends Controller
         return view('landing', compact('content'));
     }
 
+    public function aboutImage()
+    {
+        $path = DB::table('landing_contents')
+            ->where('content_key', 'about_image')
+            ->value('content_value') ?: self::DEFAULTS['about_image'];
+
+        if (preg_match('/\Alanding_images\/[A-Za-z0-9_-]+\.(?:jpe?g|png|gif|webp)\z/i', $path)) {
+            $disk = Storage::disk('public');
+            abort_unless($disk->exists($path), 404);
+
+            return $disk->response($path, null, [
+                'Cache-Control' => 'no-store, no-cache, must-revalidate',
+            ]);
+        }
+
+        abort_unless(
+            preg_match('/\Aimage\/[A-Za-z0-9_-]+\.(?:jpe?g|png|gif|webp)\z/i', $path),
+            404
+        );
+
+        $publicPath = public_path($path);
+        abort_unless(is_file($publicPath), 404);
+
+        return response()->file($publicPath, [
+            'Cache-Control' => 'no-store, no-cache, must-revalidate',
+        ]);
+    }
+
     public function paymentQr(string $provider)
     {
         abort_unless(in_array($provider, ['gcash', 'paymaya'], true), 404);

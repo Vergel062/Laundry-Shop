@@ -125,7 +125,27 @@ class PaymentQrTest extends TestCase
 
         $this->get(route('landing'))
             ->assertOk()
-            ->assertSee('storage/' . $imagePath, false);
+            ->assertSee(route('about.image'), false);
+
+        $imageResponse = $this->get(route('about.image'));
+        $imageResponse->assertOk();
+        $this->assertStringContainsString('no-store', $imageResponse->headers->get('Cache-Control'));
+        $this->assertStringStartsWith("\x89PNG", $imageResponse->streamedContent());
+    }
+
+    public function test_about_image_route_serves_uploaded_image_without_public_storage_symlink(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('landing_images/about-test.png', 'test-about-image');
+        DB::table('landing_contents')->insert([
+            'content_key' => 'about_image',
+            'content_value' => 'landing_images/about-test.png',
+        ]);
+
+        $response = $this->get(route('about.image'));
+
+        $response->assertOk();
+        $this->assertSame('test-about-image', $response->streamedContent());
     }
 
     public function test_selected_about_image_missing_from_request_does_not_report_success(): void

@@ -34,6 +34,7 @@ use App\Http\Controllers\Auth\PaymentProofController;
 
 // --- 1. PUBLIC ROUTES ---
 Route::get('/', [LandingContentController::class, 'landing'])->name('landing');
+Route::get('/about-image', [LandingContentController::class, 'aboutImage'])->name('about.image');
 Route::post('/contact-message', [LandingContentController::class, 'sendMessage'])->name('contact.message');
 
 Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');

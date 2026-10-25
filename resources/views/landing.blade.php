@@ -94,7 +94,7 @@
         $aboutImage = $content['about_image'] ?? 'image/laundry2.jpg';
         $aboutImageUrl = str_starts_with($aboutImage, 'http://') || str_starts_with($aboutImage, 'https://')
             ? $aboutImage
-            : (str_starts_with($aboutImage, 'image/') ? asset($aboutImage) : asset('storage/' . $aboutImage));
+            : (str_starts_with($aboutImage, 'landing_images/') ? route('about.image') : asset($aboutImage));
     @endphp
 
     <!-- Enhanced About Us Section -->
@@ -141,7 +141,7 @@
                 <div class="col-lg-6">
                     <div class="about-image-card position-relative">
                        <div class="image-wrapper rounded-5 overflow-hidden shadow-lg border border-white border-4">
-                            <img src="{{ $aboutImageUrl }}" alt="Laundry Care Operations" class="img-fluid object-fit-cover w-100" onerror="this.onerror=null; this.src='{{ asset('image/laundry.jpg') }}';">
+                            <img src="{{ $aboutImageUrl }}" alt="Laundry Care Operations" class="img-fluid object-fit-cover w-100">
 </div>
                         <div class="floating-badge bg-white p-3 rounded-4 shadow-lg border d-flex align-items-center gap-3">
                             <div class="badge-icon bg-success-subtle text-success rounded-circle p-3 fs-4">
