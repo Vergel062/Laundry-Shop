@@ -111,9 +111,9 @@
             <div class="row g-3 mb-4">
                 <div class="col-6 col-xl-4">
                     <div class="card stat-card bg-white p-3 shadow-sm h-100">
-                        <small class="text-muted fw-bold">TOTAL SALES</small>
+                        <small class="text-muted fw-bold">SALES</small>
                         <h3 class="fw-bold text-primary mt-1 mb-0">₱{{ number_format($total_sales, 0) }}</h3>
-                        <small class="text-success small mt-1"><i class="bi bi-arrow-up"></i>Real-time</small>
+                        <small class="text-success small mt-1"><i class="bi bi-arrow-up"></i>Total Sales</small>
                     </div>
                 </div>
                 <div class="col-6 col-xl-4">
