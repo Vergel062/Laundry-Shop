@@ -697,7 +697,12 @@
                         <!-- Current Password -->
                         <div class="col-md-12">
                             <label class="form-label small fw-bold text-dark">Current Password</label>
-                            <input type="password" name="current_password" class="form-control @error('current_password') is-invalid @enderror" placeholder="Enter current password">
+                            <div class="input-group">
+                                <input type="password" name="current_password" id="currentPassword" class="form-control @error('current_password') is-invalid @enderror" placeholder="Enter current password" autocomplete="current-password">
+                                <button type="button" class="btn btn-outline-secondary password-visibility-toggle" data-target="currentPassword" aria-label="Show current password" aria-pressed="false">
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
+                                </button>
+                            </div>
                             @error('current_password')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
@@ -706,7 +711,12 @@
                         <!-- New Password -->
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">New Password</label>
-                            <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" id="newPassword" placeholder="Min. 6 characters">
+                            <div class="input-group">
+                                <input type="password" name="password" class="form-control @error('password') is-invalid @enderror" id="newPassword" placeholder="Min. 8 characters" autocomplete="new-password">
+                                <button type="button" class="btn btn-outline-secondary password-visibility-toggle" data-target="newPassword" aria-label="Show new password" aria-pressed="false">
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
+                                </button>
+                            </div>
                             @error('password')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
@@ -715,7 +725,12 @@
                         <!-- Confirm New Password -->
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-dark">Confirm New Password</label>
-                            <input type="password" name="password_confirmation" class="form-control" id="confirmPassword" placeholder="Re-type new password">
+                            <div class="input-group">
+                                <input type="password" name="password_confirmation" class="form-control" id="confirmPassword" placeholder="Re-type new password" autocomplete="new-password">
+                                <button type="button" class="btn btn-outline-secondary password-visibility-toggle" data-target="confirmPassword" aria-label="Show password confirmation" aria-pressed="false">
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -804,6 +819,23 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/User_script.js') }}"></script>
     <script>
+            document.querySelectorAll('.password-visibility-toggle').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var passwordInput = document.getElementById(button.dataset.target);
+                    var icon = button.querySelector('i');
+                    var isVisible = passwordInput.type === 'text';
+
+                    passwordInput.type = isVisible ? 'password' : 'text';
+                    button.setAttribute('aria-pressed', String(!isVisible));
+                    button.setAttribute(
+                        'aria-label',
+                        (isVisible ? 'Show ' : 'Hide ') + button.dataset.target.replace(/([A-Z])/g, ' $1').toLowerCase()
+                    );
+                    icon.classList.toggle('bi-eye', isVisible);
+                    icon.classList.toggle('bi-eye-slash', !isVisible);
+                });
+            });
+
             document.querySelectorAll('.cancel-service-request-form').forEach(function (form) {
                 form.addEventListener('submit', function (event) {
                     event.preventDefault();
