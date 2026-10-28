@@ -75,7 +75,12 @@
 
             <div class="mb-3">
                 <label class="form-label small fw-bold text-secondary">Create Password</label>
-                <input type="password" name="password" id="password" class="form-control shadow-none" placeholder="Min. 8 characters" minlength="8" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,}" title="Use at least 8 characters, including an uppercase letter, a lowercase letter, and a number." aria-describedby="password-requirements" required>
+                <div class="input-group">
+                    <input type="password" name="password" id="password" class="form-control shadow-none" placeholder="Min. 8 characters" minlength="8" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,}" title="Use at least 8 characters, including an uppercase letter, a lowercase letter, and a number." aria-describedby="password-requirements" autocomplete="new-password" required>
+                    <button type="button" class="btn btn-outline-secondary password-visibility-toggle" data-target="password" aria-label="Show create password" aria-pressed="false">
+                        <i class="bi bi-eye" aria-hidden="true"></i>
+                    </button>
+                </div>
                 <div id="password-requirements" class="form-text mt-1 text-danger" style="font-size: 0.72rem;" aria-live="polite">
                     <i id="password-requirements-icon" class="bi bi-x-circle-fill me-1"></i>At least 8 characters with uppercase, lowercase, and a number.
                 </div>
@@ -83,7 +88,12 @@
 
             <div class="mb-3">
                 <label class="form-label small fw-bold text-secondary">Confirm Password</label>
-                <input type="password" name="confirm_password" id="confirm_password" class="form-control shadow-none" placeholder="Repeat password" required>
+                <div class="input-group">
+                    <input type="password" name="confirm_password" id="confirm_password" class="form-control shadow-none" placeholder="Repeat password" autocomplete="new-password" required>
+                    <button type="button" class="btn btn-outline-secondary password-visibility-toggle" data-target="confirm_password" aria-label="Show confirm password" aria-pressed="false">
+                        <i class="bi bi-eye" aria-hidden="true"></i>
+                    </button>
+                </div>
                 <div id="pw-feedback" class="form-text small mt-1 fw-bold"></div>
             </div>
 
@@ -184,6 +194,20 @@
         const feedback = document.getElementById('pw-feedback');
         const passwordRequirements = document.getElementById('password-requirements');
         const passwordRequirementsIcon = document.getElementById('password-requirements-icon');
+
+        document.querySelectorAll('.password-visibility-toggle').forEach((button) => {
+            button.addEventListener('click', () => {
+                const passwordInput = document.getElementById(button.dataset.target);
+                const icon = button.querySelector('i');
+                const isVisible = passwordInput.type === 'text';
+
+                passwordInput.type = isVisible ? 'password' : 'text';
+                button.setAttribute('aria-label', `${isVisible ? 'Show' : 'Hide'} ${button.dataset.target === 'password' ? 'create' : 'confirm'} password`);
+                button.setAttribute('aria-pressed', String(!isVisible));
+                icon.classList.toggle('bi-eye', isVisible);
+                icon.classList.toggle('bi-eye-slash', !isVisible);
+            });
+        });
 
         const updatePasswordRequirements = () => {
             const isValid = pw.value.length >= 8
