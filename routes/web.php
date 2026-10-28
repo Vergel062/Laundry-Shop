@@ -93,6 +93,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/staff/verify-payments', [PaymentVerificationController::class, 'index'])->name('staff.verify.payments');
     Route::put('/staff/verify-payments/approve', [PaymentVerificationController::class, 'approve'])->name('staff.verify.payments.approve');
+    Route::put('/staff/verify-payments/reject', [PaymentVerificationController::class, 'reject'])->name('staff.verify.payments.reject');
     Route::get('/staff/inventory', [InventoryController::class, 'index'])->name('staff.inventory');
     Route::post('/staff/inventory/deduct', [InventoryController::class, 'deductManual'])->name('staff.inventory.deduct');
     Route::get('/staff/daily-expenses', [DailyExpenseController::class, 'index'])->name('staff.expenses');
@@ -114,6 +115,7 @@ Route::middleware(['auth'])->group(function () {
     // Manager Payment Verification Routes
     Route::get('/manager/verify-payments', [ManagerPaymentVerificationController::class, 'index'])->name('manager.verify.payments');
     Route::put('/manager/verify-payments/approve', [ManagerPaymentVerificationController::class, 'approve'])->name('manager.verify.payments.approve');
+    Route::put('/manager/verify-payments/reject', [ManagerPaymentVerificationController::class, 'reject'])->name('manager.verify.payments.reject');
     Route::post('/manager/verify-payments/submit', [ManagerPaymentVerificationController::class, 'submitPayment'])->name('manager.verify.payments.submit');
 
     // Manager Inventory Routes

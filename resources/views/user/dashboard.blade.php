@@ -146,6 +146,13 @@
                                     <div class="col-4"><small class="d-block text-muted">Total</small><b>₱{{ number_format($activeOrder->total_amount, 2) }}</b></div>
                                 </div>
 
+                                @if($activeOrder->payment_status == 'Unpaid' && !empty($activeOrder->payment_rejection_reason))
+                                    <div class="alert alert-danger small mb-3">
+                                        <strong>Payment was rejected.</strong> {{ $activeOrder->payment_rejection_reason }}
+                                        <div class="mt-1">Please submit a new proof of payment.</div>
+                                    </div>
+                                @endif
+
                                 @if($activeOrder->order_status == 'Ready')
                                     <div class="mt-3">
                                         @if($activeOrder->payment_status == 'Unpaid')

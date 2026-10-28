@@ -94,35 +94,50 @@ class PaymentVerificationController extends Controller
 
     public function approve(Request $request)
     {
-        $request->validate([
-            'approve_id' => 'required|exists:transactions,id',
+        $validated = $request->validate([
+            'approve_id' => 'required|integer|exists:transactions,id',
         ]);
 
         $user = auth()->user();
-        $currentDateTime = Carbon::now('Asia/Manila');
-
-        // 1. Kunin muna ang transaksyon pati ang email at pangalan ng customer bago i-update
-        $transaction = DB::table('transactions as t')
-            ->join('users as u', 't.user_id', '=', 'u.id')
-            ->select('t.*', 'u.email', 'u.fullname')
-            ->where('t.id', $request->approve_id)
-            ->where('t.branch_id', $user->branch_id)
-            ->first();
-
-        if (!$transaction) {
-            return redirect()->back()->with('error', 'Transaction not found.');
+        if ($user->role !== 'staff' || !$user->branch_id) {
+            abort(403, 'Unauthorized action.');
         }
 
-        // 2. I-update ang payment status sa database patungong 'Paid' kasama ang tamang petsa ngayon
-        DB::table('transactions')
-            ->where('id', $request->approve_id)
-            ->where('branch_id', $user->branch_id)
-            ->update([
-                'payment_status' => 'Paid',
-                'date_paid' => $currentDateTime,
-            ]);
+        $currentDateTime = Carbon::now('Asia/Manila');
 
-        // 3. Magpadala ng email notification sa customer na aprubado na ang bayad
+        $transaction = DB::transaction(function () use ($validated, $user, $currentDateTime) {
+            $transaction = DB::table('transactions as t')
+                ->join('users as u', 't.user_id', '=', 'u.id')
+                ->select('t.*', 'u.email', 'u.fullname')
+                ->where('t.id', $validated['approve_id'])
+                ->where('t.branch_id', $user->branch_id)
+                ->whereIn('t.payment_status', ['Pending', 'Pending Verification'])
+                ->whereNotNull('t.proof_of_payment')
+                ->lockForUpdate()
+                ->first();
+
+            if (!$transaction) {
+                return null;
+            }
+
+            $updated = DB::table('transactions')
+                ->where('id', $transaction->id)
+                ->where('branch_id', $user->branch_id)
+                ->whereIn('payment_status', ['Pending', 'Pending Verification'])
+                ->whereNotNull('proof_of_payment')
+                ->update([
+                    'payment_status' => 'Paid',
+                    'date_paid' => $currentDateTime,
+                    'payment_rejection_reason' => null,
+                ]);
+
+            return $updated ? $transaction : null;
+        });
+
+        if (!$transaction) {
+            return back()->with('error', 'Payment is no longer awaiting verification or does not belong to your branch.');
+        }
+
         if (!empty($transaction->email)) {
             $transaction->payment_status = 'Paid';
 
@@ -134,6 +149,64 @@ class PaymentVerificationController extends Controller
         }
 
         return redirect()->route('staff.verify.payments', ['status' => 'verified'])->with('success', 'Payment approved and email notification sent successfully.');
+    }
+
+    public function reject(Request $request)
+    {
+        $validated = $request->validate([
+            'reject_id' => 'required|integer|exists:transactions,id',
+            'rejection_reason' => 'required|string|max:500',
+        ]);
+
+        $user = auth()->user();
+        if ($user->role !== 'staff' || !$user->branch_id) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $transaction = DB::transaction(function () use ($validated, $user) {
+            $transaction = DB::table('transactions as t')
+                ->join('users as u', 't.user_id', '=', 'u.id')
+                ->select('t.*', 'u.email', 'u.fullname')
+                ->where('t.id', $validated['reject_id'])
+                ->where('t.branch_id', $user->branch_id)
+                ->whereIn('t.payment_status', ['Pending', 'Pending Verification'])
+                ->whereNotNull('t.proof_of_payment')
+                ->lockForUpdate()
+                ->first();
+
+            if (!$transaction) {
+                return null;
+            }
+
+            DB::table('transactions')
+                ->where('id', $transaction->id)
+                ->update([
+                    'payment_status' => 'Unpaid',
+                    'payment_rejection_reason' => $validated['rejection_reason'],
+                    'date_paid' => null,
+                ]);
+
+            return $transaction;
+        });
+
+        if (!$transaction) {
+            return back()->with('error', 'Payment is no longer awaiting verification or does not belong to your branch.');
+        }
+
+        if (!empty($transaction->email)) {
+            try {
+                Mail::raw(
+                    "Your payment for order {$transaction->ref_number} was not approved.\n\nReason: {$validated['rejection_reason']}\n\nPlease review the reason and submit a new payment proof from your account.",
+                    fn ($mail) => $mail->to($transaction->email)
+                        ->subject('Payment proof needs correction - LaundryCare')
+                );
+            } catch (\Exception $e) {
+                Log::error('Payment rejection email notification failed: ' . $e->getMessage());
+            }
+        }
+
+        return redirect()->route('staff.verify.payments')
+            ->with('success', 'Payment rejected. The customer can submit a new proof of payment.');
     }
 
     // --- FINAL SUBMIT PAYMENT METHOD ---
@@ -165,6 +238,7 @@ class PaymentVerificationController extends Controller
                     'proof_of_payment' => $targetFile,
                     'payment_status' => 'Pending Verification',
                     'date_paid' => $currentDateTime,
+                    'payment_rejection_reason' => null,
                 ]);
 
             return back()->with('success', 'Payment submitted successfully! Please wait for verification.');

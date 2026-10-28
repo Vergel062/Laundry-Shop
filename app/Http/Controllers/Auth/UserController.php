@@ -226,7 +226,8 @@ class UserController extends Controller
                 'payment_method'    => $request->payment_method,
                 'payment_reference' => $request->payment_reference ?? null,
                 'proof_of_payment'  => $imagePath,
-                'payment_status'   => 'Pending',
+                'payment_status'   => 'Pending Verification',
+                'payment_rejection_reason' => null,
             ]);
 
         return back()->with('success', 'Payment submitted successfully!');

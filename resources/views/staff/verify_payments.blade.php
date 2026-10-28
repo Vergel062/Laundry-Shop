@@ -156,7 +156,7 @@
                                             <div style="font-size: 10px;" class="text-muted mt-1">
                                                 {{ $row->date_paid ? date('M d, h:i A', strtotime($row->date_paid)) : '' }}
                                             </div>
-                                        @else
+                                        @elseif(in_array($row->payment_status, ['Pending', 'Pending Verification'], true) && !empty($row->proof_of_payment))
                                             <form action="{{ route('staff.verify.payments.approve') }}" method="POST" class="d-inline" onsubmit="return confirmApproval(event, this);">
                                                 @csrf
                                                 @method('PUT')
@@ -165,6 +165,21 @@
                                                     Approve
                                                 </button>
                                             </form>
+                                            @if(in_array($row->payment_status, ['Pending', 'Pending Verification'], true) && !empty($row->proof_of_payment))
+                                                <form action="{{ route('staff.verify.payments.reject') }}" method="POST" class="d-inline" onsubmit="return confirmRejection(event, this);">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="hidden" name="reject_id" value="{{ $row->id }}">
+                                                    <input type="hidden" name="rejection_reason">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm fw-bold px-3 rounded-pill">
+                                                        Reject
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @else
+                                            <span class="status-badge bg-secondary-subtle text-secondary">
+                                                {{ !empty($row->payment_rejection_reason) ? 'Rejected' : $row->payment_status }}
+                                            </span>
                                         @endif
                                     </td>
                                 </tr>
@@ -202,6 +217,28 @@
                 confirmButtonText: 'Yes, Approve it!'
             }).then((result) => {
                 if (result.isConfirmed) form.submit();
+            });
+        }
+
+        function confirmRejection(e, form) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Reject payment?',
+                text: 'Enter a reason so the customer knows what to correct.',
+                input: 'textarea',
+                inputPlaceholder: 'Reason for rejection...',
+                inputAttributes: { maxlength: 500, 'aria-label': 'Reason for rejecting payment' },
+                inputValidator: (value) => !value?.trim() ? 'Please provide a rejection reason.' : undefined,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Reject Payment'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.querySelector('[name="rejection_reason"]').value = result.value.trim();
+                    form.submit();
+                }
             });
         }
 
