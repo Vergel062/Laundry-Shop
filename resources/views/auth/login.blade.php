@@ -14,6 +14,17 @@
         .btn-login { background: #0dcaf0; color: white; font-weight: 600; border-radius: 12px; padding: 12px; border: none; transition: 0.3s; }
         .btn-login:hover { background: #0baccc; color: white; transform: translateY(-2px); }
         .form-control { border-radius: 10px; }
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 12px;
+            z-index: 5;
+            transform: translateY(-50%);
+            border: 0;
+            background: transparent;
+            color: #6c757d;
+        }
+        #floatingPassword { padding-right: 3rem; }
         .forgot-link { font-size: 0.85rem; color: #6c757d; text-decoration: none; transition: 0.2s; }
         .forgot-link:hover { color: #0dcaf0; text-decoration: underline; }
     </style>
@@ -45,9 +56,12 @@
                 <label for="floatingInput" class="text-muted small">Email Address</label>
             </div>
 
-            <div class="form-floating mb-3 text-start">
-                <input type="password" name="password" class="form-control border-light-subtle" id="floatingPassword" placeholder="Password" required>
+            <div class="form-floating mb-3 text-start position-relative">
+                <input type="password" name="password" class="form-control border-light-subtle" id="floatingPassword" placeholder="Password" autocomplete="current-password" required>
                 <label for="floatingPassword" class="text-muted small">Password</label>
+                <button type="button" class="password-toggle" id="toggleLoginPassword" aria-label="Show password" aria-pressed="false">
+                    <i class="bi bi-eye" aria-hidden="true"></i>
+                </button>
             </div>
 
             <!-- Forgot Password Link -->
@@ -68,5 +82,18 @@
         </div>
     </div>
 
+    <script>
+        document.getElementById('toggleLoginPassword').addEventListener('click', function () {
+            var passwordInput = document.getElementById('floatingPassword');
+            var icon = this.querySelector('i');
+            var isVisible = passwordInput.type === 'text';
+
+            passwordInput.type = isVisible ? 'password' : 'text';
+            this.setAttribute('aria-label', isVisible ? 'Show password' : 'Hide password');
+            this.setAttribute('aria-pressed', String(!isVisible));
+            icon.classList.toggle('bi-eye', isVisible);
+            icon.classList.toggle('bi-eye-slash', !isVisible);
+        });
+    </script>
 </body>
 </html>
