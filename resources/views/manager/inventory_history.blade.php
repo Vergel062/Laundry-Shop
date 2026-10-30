@@ -73,11 +73,7 @@
                     <form method="GET" action="{{ route('manager.inventory.history') }}" class="row g-3 align-items-end" autocomplete="off">
                         <div class="col-md-3">
                             <label class="small fw-bold text-muted text-uppercase mb-2">Branch</label>
-                            <select name="branch_id" class="form-select bg-light border-0 rounded-8 py-2">
-                                @foreach($branches_dropdown as $branch)
-                                    <option value="{{ $branch->id }}" selected>{{ $branch->branch_name }}</option>
-                                @endforeach
-                            </select>
+                            <input type="text" class="form-control bg-light border-0 rounded-8 py-2" value="{{ $branches_dropdown->first()->branch_name }}" readonly>
                         </div>
                         <div class="col-md-3">
                             <label class="small fw-bold text-muted text-uppercase mb-2">Item</label>
