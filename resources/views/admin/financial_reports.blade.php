@@ -107,24 +107,14 @@
 
             <div id="printableArea" style="width: 100%; max-width: 100%; box-sizing: border-box;">
 
-            <!-- PRINT / PDF HEADER -->
-           <div class="d-none print-document-header" style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px; width: 100%;">
-                    <div>
-                        <div class="print-brand">LaundryCare</div>
-                        <small class="text-muted" style="font-size: 8pt; letter-spacing: 0.5px;">BRANCH: {{ strtoupper($selected_branch_name ?? 'ALL BRANCHES') }}</small>
-                    </div>
-                    <div class="print-doc-title text-end">
-                        <h2 style="font-size: 14pt; font-weight: 700; margin: 0; color: #0f172a;">Financial Statement</h2>
-                        <p class="mb-0" style="font-size: 8.5pt;"><strong>Generated Date:</strong> <span class="printGeneratedDate">{{ date('F d, Y h:i A') }}</span></p>
-                        <p class="mb-0" style="font-size: 8.5pt;"><strong>Filter Period:</strong> 
-                            <span id="printFilterPeriod">
-                                {{ isset($start_date) && $start_date ? \Carbon\Carbon::parse($start_date)->format('M d, Y') : 'All Time' }} 
-                                — 
-                                {{ isset($end_date) && $end_date ? \Carbon\Carbon::parse($end_date)->format('M d, Y') : 'Present' }}
-                            </span>
-                        </p>
-                    </div>
-                </div>
+            @include('shared.report-print-header', [
+                'reportTitle' => 'OFFICIAL SALES REPORT',
+                'branchLabel' => $selected_branch_name ?? 'ALL BRANCHES',
+                'generatedDate' => date('F d, Y h:i A'),
+                'filterPeriod' => (isset($start_date) && $start_date ? \Carbon\Carbon::parse($start_date)->format('M d, Y') : 'All Time')
+                    . ' — '
+                    . (isset($end_date) && $end_date ? \Carbon\Carbon::parse($end_date)->format('M d, Y') : 'Present'),
+            ])
 
             <!-- FILTER CONTROLS -->
             <div class="card shadow-sm border-0 rounded-15 mb-4 filter-section no-print">

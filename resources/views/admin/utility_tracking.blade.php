@@ -94,24 +94,14 @@
 
         <div class="container-fluid p-4 utility-report-container" id="printableArea">
 
-            <!-- PRINT HEADER -->
-            <div class="d-none print-document-header">
-                <div>
-                    <div class="print-brand">LaundryCare</div>
-                    <small class="text-muted" style="font-size: 8pt; letter-spacing: 0.5px;">
-                        BRANCH: <strong>{{ strtoupper($selected_branch_name ?? 'ALL BRANCHES') }}</strong>
-                    </small>
-                </div>
-                <div class="print-doc-title">
-                    <h2>Utility & Expenses Report</h2>
-                    <p class="mb-0"><strong>Generated Date:</strong> {{ date('F d, Y h:i A') }}</p>
-                    <p class="mb-0"><strong>Filter Period:</strong> 
-                        {{ isset($date_from) && $date_from ? \Carbon\Carbon::parse($date_from)->format('M d, Y') : 'All Time' }} 
-                        — 
-                        {{ isset($date_to) && $date_to ? \Carbon\Carbon::parse($date_to)->format('M d, Y') : 'Present' }}
-                    </p>
-                </div>
-            </div>
+            @include('shared.report-print-header', [
+                'reportTitle' => 'UTILITY & EXPENSES REPORT',
+                'branchLabel' => $selected_branch_name ?? 'ALL BRANCHES',
+                'generatedDate' => date('F d, Y h:i A'),
+                'filterPeriod' => (isset($date_from) && $date_from ? \Carbon\Carbon::parse($date_from)->format('M d, Y') : 'All Time')
+                    . ' — '
+                    . (isset($date_to) && $date_to ? \Carbon\Carbon::parse($date_to)->format('M d, Y') : 'Present'),
+            ])
 
             <!-- STAT CARDS -->
             <div class="row g-3 mb-4 utility-stats-print">

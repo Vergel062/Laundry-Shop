@@ -95,25 +95,14 @@
         <!-- IDINAGDAG ANG utility-report-container PARA BASAHIN NG ADMIN.CSS ANG PRINT/PDF RULES -->
         <div class="container-fluid p-4 utility-report-container" id="pdfContentArea">
 
-            <!-- PRINT HEADER (ONLY FOR PRINT & CLONED PDF) -->
-            <div class="d-none print-document-header">
-                <div>
-                    <div class="print-brand">LaundryCare</div>
-                    <small class="text-muted" style="font-size: 8pt; letter-spacing: 0.5px;">
-                        BRANCH: 
-                        <strong>{{ strtoupper($branch_name ?? $branchName ?? 'SPECIFIC BRANCH') }}</strong>
-                    </small>
-                </div>
-                <div class="print-doc-title">
-                    <h2>Utility & Expenses Report</h2>
-                    <p class="mb-0"><strong>Generated Date:</strong> {{ date('F d, Y h:i A') }}</p>
-                    <p class="mb-0"><strong>Filter Period:</strong> 
-                        {{ isset($date_from) && $date_from ? \Carbon\Carbon::parse($date_from)->format('M d, Y') : 'All Time' }} 
-                        — 
-                        {{ isset($date_to) && $date_to ? \Carbon\Carbon::parse($date_to)->format('M d, Y') : 'Present' }}
-                    </p>
-                </div>
-            </div>
+            @include('shared.report-print-header', [
+                'reportTitle' => 'UTILITY & EXPENSES REPORT',
+                'branchLabel' => $branch_name ?? $branchName ?? 'SPECIFIC BRANCH',
+                'generatedDate' => date('F d, Y h:i A'),
+                'filterPeriod' => (isset($date_from) && $date_from ? \Carbon\Carbon::parse($date_from)->format('M d, Y') : 'All Time')
+                    . ' — '
+                    . (isset($date_to) && $date_to ? \Carbon\Carbon::parse($date_to)->format('M d, Y') : 'Present'),
+            ])
 
             <!-- STAT CARDS (ELECTRICITY, WATER, RENT, SUPPLIES) - NAKALAGAY SA UTILITY-STATS-PRINT -->
             <div class="row g-3 mb-4 utility-stats-print">

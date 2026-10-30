@@ -223,23 +223,14 @@
         </nav>
 
         <div class="container-fluid p-4 service-history-report" id="serviceHistoryPrintableArea">
-            <div class="print-document-header align-items-end justify-content-between border-bottom border-2 pb-3 mb-4">
-                <div>
-                    <div class="print-brand">LaundryCare</div>
-                    <small class="text-muted">BRANCH: {{ strtoupper($branch_name) }}</small>
-                </div>
-                <div class="print-doc-title text-end">
-                    <h2 class="mb-1">Service Transaction History</h2>
-                    <p class="mb-0 small"><strong>Generated Date:</strong> {{ date('F d, Y h:i A') }}</p>
-                    <p class="mb-0 small"><strong>Filter Period:</strong>
-                        @if($report_generated)
-                            {{ \Carbon\Carbon::parse($start_date)->format('M d, Y') }} — {{ \Carbon\Carbon::parse($end_date)->format('M d, Y') }}
-                        @else
-                            Date range not selected
-                        @endif
-                    </p>
-                </div>
-            </div>
+            @include('shared.report-print-header', [
+                'reportTitle' => 'SERVICE TRANSACTION HISTORY',
+                'branchLabel' => $branch_name,
+                'generatedDate' => date('F d, Y h:i A'),
+                'filterPeriod' => $report_generated
+                    ? \Carbon\Carbon::parse($start_date)->format('M d, Y') . ' — ' . \Carbon\Carbon::parse($end_date)->format('M d, Y')
+                    : 'Date range not selected',
+            ])
             <div class="card shadow-sm border-0 rounded-15 mb-4 no-print">
                 <div class="card-body p-4">
                     <form method="GET" action="{{ route('manager.transaction.report') }}" class="row g-3 align-items-end">

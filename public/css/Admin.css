@@ -1376,3 +1376,6 @@ body.is-exporting-utility-pdf .utility-report-container .signature-block p,
 body.is-exporting-utility-pdf .utility-report-container .print-footer-block small {
     font-size: 6pt !important;
 }
+.report-print-header::after {
+    display: none !important;
+}
