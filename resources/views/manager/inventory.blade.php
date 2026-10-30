@@ -120,7 +120,7 @@
                         <a href="{{ route('manager.inventory.history') }}" class="btn btn-outline-primary fw-bold shadow-sm px-3">
                             <i class="bi bi-clock-history me-2"></i> INVENTORY HISTORY
                         </a>
-                        <button class="btn btn-primary fw-bold shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#inventoryModal">
+                        <button class="btn btn-outline-primary fw-bold shadow-sm px-3" data-bs-toggle="modal" data-bs-target="#inventoryModal">
                             <i class="bi bi-pencil-square me-2"></i> UPDATE STOCKS
                         </button>
                     </div>
