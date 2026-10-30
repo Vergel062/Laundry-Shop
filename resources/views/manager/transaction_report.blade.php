@@ -224,11 +224,6 @@
         <div class="container-fluid p-4 service-history-report" id="serviceHistoryPrintableArea">
             @include('shared.report-print-header', [
                 'reportTitle' => 'SERVICE TRANSACTION HISTORY',
-                'branchLabel' => $branch_name,
-                'generatedDate' => date('F d, Y h:i A'),
-                'filterPeriod' => $report_generated
-                    ? \Carbon\Carbon::parse($start_date)->format('M d, Y') . ' — ' . \Carbon\Carbon::parse($end_date)->format('M d, Y')
-                    : 'Date range not selected',
             ])
             <div class="card shadow-sm border-0 rounded-15 mb-4 no-print">
                 <div class="card-body p-4">

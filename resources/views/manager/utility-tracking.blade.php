@@ -96,11 +96,6 @@
 
             @include('shared.report-print-header', [
                 'reportTitle' => 'UTILITY & EXPENSES REPORT',
-                'branchLabel' => $branch_name ?? $branchName ?? 'SPECIFIC BRANCH',
-                'generatedDate' => date('F d, Y h:i A'),
-                'filterPeriod' => (isset($date_from) && $date_from ? \Carbon\Carbon::parse($date_from)->format('M d, Y') : 'All Time')
-                    . ' — '
-                    . (isset($date_to) && $date_to ? \Carbon\Carbon::parse($date_to)->format('M d, Y') : 'Present'),
             ])
 
             <!-- STAT CARDS (ELECTRICITY, WATER, RENT, SUPPLIES) - NAKALAGAY SA UTILITY-STATS-PRINT -->

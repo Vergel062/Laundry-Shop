@@ -57,33 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     : { mode: ['css', 'legacy'], avoid: ['tr'] }
             }).from(report).toPdf();
 
-            if (isFinancialPdf || isTransactionPdf || isUtilityPdf) {
-                await pdfWorker.get('pdf').then((pdf) => {
-                    const pageCount = pdf.internal.getNumberOfPages();
-                    const generatedAt = new Intl.DateTimeFormat('en-US', {
-                        month: 'numeric',
-                        day: 'numeric',
-                        year: '2-digit',
-                        hour: 'numeric',
-                        minute: '2-digit'
-                    }).format(new Date());
-                    const pageWidth = pdf.internal.pageSize.getWidth();
-                    const pageHeight = pdf.internal.pageSize.getHeight();
-                    const pageUrl = new URL(controls.dataset.returnUrl, window.location.origin);
-                    pageUrl.searchParams.delete('page');
-
-                    for (let page = 1; page <= pageCount; page += 1) {
-                        pdf.setPage(page);
-                        pdf.setFont('helvetica', 'normal');
-                        pdf.setFontSize(5);
-                        pdf.setTextColor(55, 65, 81);
-                        pdf.text(generatedAt, 8, 4);
-                        pdf.text(pageUrl.href, 8, pageHeight - 3, { maxWidth: pageWidth - 50 });
-                        pdf.text(`${page}/${pageCount}`, pageWidth - 8, pageHeight - 3, { align: 'right' });
-                    }
-                });
-            }
-
             await pdfWorker.save();
             saved = true;
         } catch (error) {
@@ -114,12 +87,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (typeof exportFunction === 'function') {
             const originalTitle = document.title;
+            const report = document.querySelector(controls.dataset.pdfTarget);
             const restoreTitle = () => {
                 document.title = originalTitle;
+                report?.classList.remove('report-print-page');
                 if (afterPrint) afterPrint();
             };
 
             document.title = '';
+            report?.classList.add('report-print-page');
             window.addEventListener('afterprint', restoreTitle, { once: true });
             exportFunction();
         } else {

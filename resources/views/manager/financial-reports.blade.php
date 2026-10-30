@@ -145,11 +145,6 @@
 
                 @include('shared.report-print-header', [
                     'reportTitle' => 'OFFICIAL SERVICE REPORT',
-                    'branchLabel' => $branch_name ?? $branchName ?? 'SPECIFIC BRANCH',
-                    'generatedDate' => date('F d, Y h:i A'),
-                    'filterPeriod' => (isset($start_date) && $start_date ? \Carbon\Carbon::parse($start_date)->format('M d, Y') : 'All Time')
-                        . ' — '
-                        . (isset($end_date) && $end_date ? \Carbon\Carbon::parse($end_date)->format('M d, Y') : 'Present'),
                 ])
             
                 <!-- SCREEN TITLE HEADER -->
