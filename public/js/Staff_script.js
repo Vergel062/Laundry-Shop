@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(res => res.json())
             .then(data => {
                 if (data.status === 'success') {
-                    Swal.fire('Success!', 'Order added.', 'success').then(() => location.reload());
+                    Swal.fire('Success!', 'Service added.', 'success').then(() => location.reload());
                 } else {
                     Swal.fire({
                         icon: 'warning',

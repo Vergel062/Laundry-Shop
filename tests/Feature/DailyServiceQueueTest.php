@@ -130,7 +130,9 @@ class DailyServiceQueueTest extends TestCase
                 'service' => 'Wash-Dry',
                 'amount' => 130,
             ]);
-        $response->assertOk()->assertJsonPath('status', 'success');
+        $response->assertOk()
+            ->assertJsonPath('status', 'success')
+            ->assertJsonPath('message', 'Service added and inventory updated successfully!');
 
         $this->assertDatabaseCount('transactions', 1);
         $this->assertDatabaseHas('transactions', [
@@ -160,7 +162,7 @@ class DailyServiceQueueTest extends TestCase
                 'service' => 'Wash-Dry',
                 'amount' => 130,
             ])
-            ->assertSessionHas('success');
+            ->assertSessionHas('success', 'Service added successfully!');
 
         $this->assertDatabaseCount('transactions', 1);
         $this->assertDatabaseHas('transactions', [

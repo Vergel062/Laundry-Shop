@@ -216,7 +216,7 @@ class StaffController extends Controller
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Order saved and inventory updated successfully!'
+                'message' => 'Service added and inventory updated successfully!'
             ]);
 
         } catch (DailyServiceQueueFull $e) {

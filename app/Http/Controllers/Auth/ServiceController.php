@@ -148,12 +148,12 @@ class ServiceController extends Controller
             if ($request->wantsJson()) {
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Order saved and inventory updated successfully!'
+                    'message' => 'Service added and inventory updated successfully!'
                 ]);
             }
 
             // Kung karaniwang Form Submit / Blade submission
-            return redirect()->back()->with('success', 'New service order added successfully!');
+            return redirect()->back()->with('success', 'Service added successfully!');
 
         } catch (\InvalidArgumentException $e) {
             if ($request->wantsJson()) {

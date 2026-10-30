@@ -185,11 +185,11 @@ class ManagerServiceController extends Controller
             if ($request->wantsJson()) {
                 return response()->json([
                     'status' => 'success',
-                    'message' => 'Order saved and inventory updated successfully!'
+                    'message' => 'Service added and inventory updated successfully!'
                 ]);
             }
 
-            return redirect()->back()->with('success', 'New service order added successfully!');
+            return redirect()->back()->with('success', 'Service added successfully!');
 
         } catch (DailyServiceQueueFull $e) {
             if ($request->wantsJson()) {
