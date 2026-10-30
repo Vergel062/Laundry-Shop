@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Exceptions\DailyServiceQueueFull;
 use App\Models\User;
 use App\Services\DailyServiceQueue;
+use App\Services\LaundrySachetUsage;
 use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
@@ -398,6 +399,26 @@ class DailyServiceQueueTest extends TestCase
         $this->assertDatabaseCount('transactions', 0);
         $this->assertDatabaseHas('inventory', ['id' => $powderId, 'stock_level' => 1]);
         $this->assertDatabaseCount('inventory_history', 0);
+    }
+
+    public function test_sachet_dropdown_items_include_powder_and_softener_names_from_only_the_current_branch(): void
+    {
+        $powderId = $this->createSachetItem(1, 'Ariel Powder', '', 8);
+        $downyId = $this->createSachetItem(1, 'Downy', '', 6);
+        $softenerId = $this->createSachetItem(1, 'Fabric Softener', '', 5);
+        $this->createSachetItem(1, 'Fabric Spray', '', 5);
+        $this->createSachetItem(2, 'Surf Powder', '', 9);
+
+        $sachetUsage = app(LaundrySachetUsage::class);
+
+        $this->assertSame(
+            [$powderId],
+            $sachetUsage->itemsForBranch(1, 'detergent')->pluck('id')->all()
+        );
+        $this->assertSame(
+            [$downyId, $softenerId],
+            $sachetUsage->itemsForBranch(1, 'softener')->pluck('id')->all()
+        );
     }
 
     public function test_unapproved_requests_do_not_consume_queue_numbers(): void

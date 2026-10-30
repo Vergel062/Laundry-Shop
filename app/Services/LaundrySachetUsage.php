@@ -22,14 +22,18 @@ class LaundrySachetUsage
     public function itemsForBranch(int $branchId, string $type): Collection
     {
         $systemKey = $this->systemKey($type);
-        $namePattern = $type === 'detergent' ? '%detergent%' : '%downy%';
+        $namePatterns = $this->itemNamePatterns($type);
 
         return DB::table('inventory')
             ->where('branch_id', $branchId)
             ->whereRaw("LOWER(unit) = 'sachets'")
-            ->where(function ($query) use ($systemKey, $namePattern) {
+            ->where(function ($query) use ($systemKey, $namePatterns) {
                 $query->where('system_key', $systemKey)
-                    ->orWhereRaw('LOWER(item_name) LIKE ?', [$namePattern]);
+                    ->orWhere(function ($nameQuery) use ($namePatterns) {
+                        foreach ($namePatterns as $pattern) {
+                            $nameQuery->orWhereRaw('LOWER(item_name) LIKE ?', [$pattern]);
+                        }
+                    });
             })
             ->orderBy('item_name')
             ->get(['id', 'item_name', 'stock_level']);
@@ -85,14 +89,18 @@ class LaundrySachetUsage
         }
 
         $systemKey = $this->systemKey($type);
-        $namePattern = $type === 'detergent' ? '%detergent%' : '%downy%';
+        $namePatterns = $this->itemNamePatterns($type);
         $item = DB::table('inventory')
             ->where('id', $itemId)
             ->where('branch_id', $branchId)
             ->whereRaw("LOWER(unit) = 'sachets'")
-            ->where(function ($query) use ($systemKey, $namePattern) {
+            ->where(function ($query) use ($systemKey, $namePatterns) {
                 $query->where('system_key', $systemKey)
-                    ->orWhereRaw('LOWER(item_name) LIKE ?', [$namePattern]);
+                    ->orWhere(function ($nameQuery) use ($namePatterns) {
+                        foreach ($namePatterns as $pattern) {
+                            $nameQuery->orWhereRaw('LOWER(item_name) LIKE ?', [$pattern]);
+                        }
+                    });
             })
             ->lockForUpdate()
             ->first();
@@ -122,5 +130,12 @@ class LaundrySachetUsage
         }
 
         return $type;
+    }
+
+    private function itemNamePatterns(string $type): array
+    {
+        return $type === 'detergent'
+            ? ['%detergent%', '%powder%']
+            : ['%downy%', '%softener%'];
     }
 }
