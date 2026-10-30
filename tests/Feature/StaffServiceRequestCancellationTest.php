@@ -25,6 +25,9 @@ class StaffServiceRequestCancellationTest extends TestCase
             $table->unsignedBigInteger('branch_id');
             $table->string('order_status');
             $table->string('payment_status');
+            $table->text('service_request_rejection_reason')->nullable();
+            $table->timestamp('service_request_rejection_read_at')->nullable();
+            $table->timestamp('service_request_rejection_deleted_at')->nullable();
         });
     }
 
@@ -38,13 +41,14 @@ class StaffServiceRequestCancellationTest extends TestCase
         ]);
 
         $this->actingAs($this->user(1, 'staff', 4))
-            ->post(route('staff.services.cancel-request', 1))
+            ->post(route('staff.services.cancel-request', 1), ['reason' => 'The branch is at capacity.'])
             ->assertRedirect(route('staff.services'));
 
         $this->assertDatabaseHas('transactions', [
             'id' => 1,
             'order_status' => 'Cancelled',
             'payment_status' => 'Service Request',
+            'service_request_rejection_reason' => 'The branch is at capacity.',
         ]);
     }
 
@@ -58,12 +62,33 @@ class StaffServiceRequestCancellationTest extends TestCase
         ]);
 
         $this->actingAs($this->user(2, 'manager', 4))
-            ->post(route('manager.services.cancel-request', 1))
+            ->post(route('manager.services.cancel-request', 1), ['reason' => 'The branch is at capacity.'])
             ->assertRedirect(route('manager.services'));
 
         $this->assertDatabaseHas('transactions', [
             'id' => 1,
             'order_status' => 'Cancelled',
+            'service_request_rejection_reason' => 'The branch is at capacity.',
+        ]);
+    }
+
+    public function test_staff_must_provide_a_reason_to_reject_a_service_request(): void
+    {
+        DB::table('transactions')->insert([
+            'id' => 1,
+            'branch_id' => 4,
+            'order_status' => 'Pending',
+            'payment_status' => 'Service Request',
+        ]);
+
+        $this->actingAs($this->user(1, 'staff', 4))
+            ->post(route('staff.services.cancel-request', 1))
+            ->assertSessionHasErrors('reason');
+
+        $this->assertDatabaseHas('transactions', [
+            'id' => 1,
+            'order_status' => 'Pending',
+            'service_request_rejection_reason' => null,
         ]);
     }
 
@@ -85,10 +110,10 @@ class StaffServiceRequestCancellationTest extends TestCase
         ]);
 
         $this->actingAs($this->user(1, 'staff', 4))
-            ->post(route('staff.services.cancel-request', 1))
+            ->post(route('staff.services.cancel-request', 1), ['reason' => 'Not a request.'])
             ->assertSessionHas('error');
 
-        $this->post(route('staff.services.cancel-request', 2))
+        $this->post(route('staff.services.cancel-request', 2), ['reason' => 'Another branch.'])
             ->assertSessionHas('error');
 
         $this->assertDatabaseHas('transactions', ['id' => 1, 'order_status' => 'Pending']);

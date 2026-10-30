@@ -25,6 +25,9 @@ class ManagerServiceRequestCancellationTest extends TestCase
             $table->unsignedBigInteger('branch_id');
             $table->string('order_status');
             $table->string('payment_status');
+            $table->text('service_request_rejection_reason')->nullable();
+            $table->timestamp('service_request_rejection_read_at')->nullable();
+            $table->timestamp('service_request_rejection_deleted_at')->nullable();
         });
     }
 
@@ -45,7 +48,7 @@ class ManagerServiceRequestCancellationTest extends TestCase
         ]);
 
         $this->actingAs($manager)
-            ->post(route('manager.services.cancel-request', 1))
+            ->post(route('manager.services.cancel-request', 1), ['reason' => 'Request belongs to another branch.'])
             ->assertSessionHas('error');
 
         $this->assertDatabaseHas('transactions', [

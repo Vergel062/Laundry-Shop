@@ -104,6 +104,18 @@ class UserController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $serviceRequestRejections = DB::table('transactions')
+            ->where('user_id', $userId)
+            ->where('payment_status', 'Service Request')
+            ->where('order_status', 'Cancelled')
+            ->whereNotNull('service_request_rejection_reason')
+            ->whereNull('service_request_rejection_deleted_at')
+            ->orderByDesc('created_at')
+            ->get();
+        $unreadServiceRequestRejections = $serviceRequestRejections
+            ->whereNull('service_request_rejection_read_at')
+            ->count();
+
         $pendingServiceRequests = DB::table('transactions')
             ->where('user_id', $userId)
             ->where('branch_id', $branchId)
@@ -128,9 +140,49 @@ class UserController extends Controller
             'currentPoints',
             'historyTransactions',
             'readyOrders',
+            'serviceRequestRejections',
+            'unreadServiceRequestRejections',
             'pendingServiceRequests',
             'paymentSettings'
         ));
+    }
+
+    public function markServiceRequestRejectionRead($id)
+    {
+        abort_unless(Auth::user()?->role === 'customer', 403);
+
+        $updated = DB::table('transactions')
+            ->where('id', $id)
+            ->where('user_id', Auth::id())
+            ->where('payment_status', 'Service Request')
+            ->where('order_status', 'Cancelled')
+            ->whereNotNull('service_request_rejection_reason')
+            ->whereNull('service_request_rejection_deleted_at')
+            ->update(['service_request_rejection_read_at' => now()]);
+
+        return redirect()->route('user.dashboard')->with(
+            $updated ? 'success' : 'error',
+            $updated ? 'Notification marked as read.' : 'This notification is no longer available.'
+        );
+    }
+
+    public function deleteServiceRequestRejection($id)
+    {
+        abort_unless(Auth::user()?->role === 'customer', 403);
+
+        $deleted = DB::table('transactions')
+            ->where('id', $id)
+            ->where('user_id', Auth::id())
+            ->where('payment_status', 'Service Request')
+            ->where('order_status', 'Cancelled')
+            ->whereNotNull('service_request_rejection_reason')
+            ->whereNull('service_request_rejection_deleted_at')
+            ->update(['service_request_rejection_deleted_at' => now()]);
+
+        return redirect()->route('user.dashboard')->with(
+            $deleted ? 'success' : 'error',
+            $deleted ? 'Notification deleted.' : 'This notification is no longer available.'
+        );
     }
 
     public function requestService(Request $request)

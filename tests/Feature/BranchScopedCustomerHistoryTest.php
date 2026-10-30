@@ -43,6 +43,9 @@ class BranchScopedCustomerHistoryTest extends TestCase
             $table->unsignedSmallInteger('queue_number')->nullable();
             $table->decimal('total_amount', 10, 2)->default(0);
             $table->decimal('weight_kg', 10, 2)->default(0);
+            $table->text('service_request_rejection_reason')->nullable();
+            $table->timestamp('service_request_rejection_read_at')->nullable();
+            $table->timestamp('service_request_rejection_deleted_at')->nullable();
             $table->timestamp('created_at')->nullable();
         });
 
@@ -53,6 +56,15 @@ class BranchScopedCustomerHistoryTest extends TestCase
             $table->integer('points_earned')->default(0);
             $table->integer('points_redeemed')->default(0);
             $table->string('source');
+            $table->timestamp('created_at')->nullable();
+        });
+
+        Schema::create('daily_service_requests', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('branch_id');
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('transaction_id');
+            $table->date('request_date');
             $table->timestamp('created_at')->nullable();
         });
 
@@ -132,6 +144,73 @@ class BranchScopedCustomerHistoryTest extends TestCase
 
         $this->assertSame([202], $binanData['transactions']->pluck('id')->all());
         $this->assertSame(25, (int) $binanData['currentPoints']);
+    }
+
+    public function test_customer_can_mark_their_service_rejection_notification_as_read(): void
+    {
+        $customer = new User();
+        $customer->forceFill([
+            'id' => 10,
+            'role' => 'customer',
+            'branch_id' => 1,
+        ]);
+        DB::table('transactions')->insert([
+            'id' => 303,
+            'user_id' => 10,
+            'branch_id' => 1,
+            'ref_number' => 'REJECT-303',
+            'order_status' => 'Cancelled',
+            'payment_status' => 'Service Request',
+            'service_request_rejection_reason' => 'Branch is at capacity.',
+            'created_at' => now(),
+        ]);
+
+        $this->actingAs($customer)
+            ->post(route('user.notifications.service-rejection.read', 303))
+            ->assertRedirect(route('user.dashboard'));
+
+        $this->assertNotNull(DB::table('transactions')->where('id', 303)->value('service_request_rejection_read_at'));
+    }
+
+    public function test_customer_can_delete_only_their_service_rejection_notification(): void
+    {
+        $customer = new User();
+        $customer->forceFill([
+            'id' => 10,
+            'role' => 'customer',
+            'branch_id' => 1,
+        ]);
+        DB::table('transactions')->insert([
+            [
+                'id' => 303,
+                'user_id' => 10,
+                'branch_id' => 1,
+                'ref_number' => 'OWN-REJECTION',
+                'order_status' => 'Cancelled',
+                'payment_status' => 'Service Request',
+                'service_request_rejection_reason' => 'Branch is at capacity.',
+                'created_at' => now(),
+            ],
+            [
+                'id' => 404,
+                'user_id' => 11,
+                'branch_id' => 1,
+                'ref_number' => 'OTHER-REJECTION',
+                'order_status' => 'Cancelled',
+                'payment_status' => 'Service Request',
+                'service_request_rejection_reason' => 'Another customer request.',
+                'created_at' => now(),
+            ],
+        ]);
+
+        $this->actingAs($customer)
+            ->delete(route('user.notifications.service-rejection.delete', 303))
+            ->assertRedirect(route('user.dashboard'));
+        $this->delete(route('user.notifications.service-rejection.delete', 404))
+            ->assertSessionHas('error');
+
+        $this->assertNotNull(DB::table('transactions')->where('id', 303)->value('service_request_rejection_deleted_at'));
+        $this->assertNull(DB::table('transactions')->where('id', 404)->value('service_request_rejection_deleted_at'));
     }
 
     public function test_rewards_adjustments_use_only_the_customers_active_branch_balance(): void

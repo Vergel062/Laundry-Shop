@@ -72,6 +72,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/user', [UserController::class, 'index'])->name('user.dashboard');
     Route::post('/user/service-request', [UserController::class, 'requestService'])->name('user.service.request');
     Route::post('/user/service-request/{id}/cancel', [UserController::class, 'cancelServiceRequest'])->name('user.service.cancel');
+    Route::post('/user/notifications/service-rejection/{id}/read', [UserController::class, 'markServiceRequestRejectionRead'])
+        ->whereNumber('id')
+        ->name('user.notifications.service-rejection.read');
+    Route::delete('/user/notifications/service-rejection/{id}', [UserController::class, 'deleteServiceRequestRejection'])
+        ->whereNumber('id')
+        ->name('user.notifications.service-rejection.delete');
     
     // Profile at Password Update Routes
     Route::post('/user/update-profile', [UserController::class, 'updateProfile'])->name('user.update.profile');

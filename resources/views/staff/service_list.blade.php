@@ -177,12 +177,13 @@
                                                             title="Approve Request">
                                                         <i class="bi bi-check-lg"></i>
                                                     </button>
-                                                    <form action="{{ route('staff.services.cancel-request', $row->id) }}" method="POST" class="d-inline cancel-service-request-form">
-                                                        @csrf
-                                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Cancel Request" aria-label="Cancel Request">
-                                                            <i class="bi bi-x-lg"></i>
-                                                        </button>
-                                                    </form>
+                                                    <button type="button"
+                                                            class="btn btn-sm btn-outline-danger reject-service-request-btn"
+                                                            data-action="{{ route('staff.services.cancel-request', $row->id) }}"
+                                                            title="Reject Request"
+                                                            aria-label="Reject Request">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
                                                 @elseif(!$isCancelledServiceRequest && !$isCompletedTransaction)
                                                 <button class="btn btn-sm btn-light border edit-btn" 
                                                         data-id="{{ $row->id }}" 
@@ -338,6 +339,28 @@
         </div>
     </div>
 
+    <div class="modal fade" id="rejectServiceRequestModal" tabindex="-1" aria-labelledby="rejectServiceRequestModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <form id="rejectServiceRequestForm" method="POST">
+                    @csrf
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title fw-bold" id="rejectServiceRequestModalLabel">Reject Service Request</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body pt-0">
+                        <label for="serviceRequestRejectionReason" class="form-label">Reason for rejection</label>
+                        <textarea id="serviceRequestRejectionReason" name="reason" class="form-control" rows="4" maxlength="1000" required placeholder="Write the reason that will be sent to the customer."></textarea>
+                    </div>
+                    <div class="modal-footer border-0">
+                        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Keep Request</button>
+                        <button type="submit" class="btn btn-danger">Reject Request</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/Staff_script.js') }}"></script>
     <script>
@@ -355,25 +378,14 @@
             });
         });
 
-        document.querySelectorAll('.cancel-service-request-form').forEach(form => {
-            form.addEventListener('submit', function (event) {
-                event.preventDefault();
-                const requestForm = this;
-
-                Swal.fire({
-                    title: 'Cancel service request?',
-                    text: 'This will mark the customer request as cancelled.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#dc3545',
-                    cancelButtonColor: '#64748b',
-                    confirmButtonText: 'Yes, cancel it',
-                    cancelButtonText: 'Keep request'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        requestForm.submit();
-                    }
-                });
+        document.querySelectorAll('.reject-service-request-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const form = document.getElementById('rejectServiceRequestForm');
+                form.action = this.dataset.action;
+                form.reset();
+                bootstrap.Modal.getOrCreateInstance(
+                    document.getElementById('rejectServiceRequestModal')
+                ).show();
             });
         });
 

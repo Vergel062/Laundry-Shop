@@ -86,22 +86,34 @@
                         <div class="dropdown ms-3">
                             <button class="btn btn-light rounded-circle position-relative shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false" aria-label="Open notifications">
                                 <i class="bi bi-bell fs-5 text-primary"></i>
-                                @if($readyOrders->count() > 0)
+                                @if($readyOrders->count() + $unreadServiceRequestRejections > 0)
                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                        {{ $readyOrders->count() }}
+                                        {{ $readyOrders->count() + $unreadServiceRequestRejections }}
                                     </span>
                                 @endif
                             </button>
                             <div class="dropdown-menu dropdown-menu-end shadow border-0 p-0 notification-menu">
                                 <div class="px-3 py-2 border-bottom fw-bold">Laundry Notifications</div>
-                                @forelse($readyOrders as $readyOrder)
+                                @foreach($readyOrders as $readyOrder)
                                     <button type="button" class="dropdown-item py-3 text-wrap text-start" data-bs-toggle="modal" data-bs-target="#readyOrderModal{{ $readyOrder->id }}">
                                         <div class="fw-semibold text-success"><i class="bi bi-check-circle-fill me-1"></i> Ready for pickup</div>
                                         <small class="text-muted">Ref #{{ $readyOrder->ref_number }} - Please claim your laundry.</small>
                                     </button>
-                                @empty
-                                    <div class="px-3 py-3 text-muted small">No new laundry notifications.</div>
-                                @endforelse
+                                @endforeach
+                                @foreach($serviceRequestRejections as $rejection)
+                                    <button type="button" class="dropdown-item py-3 text-wrap text-start" data-bs-toggle="modal" data-bs-target="#serviceRejectionModal{{ $rejection->id }}">
+                                        <div class="fw-semibold text-danger">
+                                            <i class="bi bi-x-circle-fill me-1"></i> Service request rejected
+                                            @if(!$rejection->service_request_rejection_read_at)
+                                                <span class="badge bg-primary ms-1">New</span>
+                                            @endif
+                                        </div>
+                                        <small class="text-muted">Ref #{{ $rejection->ref_number }} - View the reason.</small>
+                                    </button>
+                                @endforeach
+                                @if($readyOrders->isEmpty() && $serviceRequestRejections->isEmpty())
+                                    <div class="px-3 py-3 text-muted small">No laundry notifications.</div>
+                                @endif
                             </div>
                         </div>
                     </div>
@@ -359,6 +371,43 @@
                     </div>
                     <div class="modal-footer border-0">
                         <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
+
+    @foreach($serviceRequestRejections as $rejection)
+        <div class="modal fade" id="serviceRejectionModal{{ $rejection->id }}" tabindex="-1" aria-labelledby="serviceRejectionModalLabel{{ $rejection->id }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4">
+                    <div class="modal-header border-0 pb-0">
+                        <div>
+                            <h5 class="modal-title fw-bold text-danger" id="serviceRejectionModalLabel{{ $rejection->id }}">
+                                <i class="bi bi-x-circle-fill me-2"></i>Service request rejected
+                            </h5>
+                            <small class="text-muted">Reference #{{ $rejection->ref_number }}</small>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <p class="mb-2 fw-semibold">Reason from the branch:</p>
+                        <div class="alert alert-light border mb-0">{{ $rejection->service_request_rejection_reason }}</div>
+                    </div>
+                    <div class="modal-footer border-0 d-flex justify-content-end gap-2">
+                        <form method="POST" action="{{ route('user.notifications.service-rejection.read', $rejection->id) }}">
+                            @csrf
+                            <button type="submit" class="btn btn-primary rounded-pill px-3">
+                                <i class="bi bi-check2 me-1"></i>Mark as read
+                            </button>
+                        </form>
+                        <form method="POST" action="{{ route('user.notifications.service-rejection.delete', $rejection->id) }}">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-outline-danger rounded-pill px-3">
+                                <i class="bi bi-trash me-1"></i>Delete
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -809,6 +858,19 @@
             icon: 'success',
             title: 'Success!',
             text: "{{ session('success') }}",
+            confirmButtonColor: '#0d6efd'
+        });
+    });
+</script>
+@endif
+
+@if (session('error'))
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        Swal.fire({
+            icon: 'error',
+            title: 'Unable to update notification',
+            text: @json(session('error')),
             confirmButtonColor: '#0d6efd'
         });
     });

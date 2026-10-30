@@ -266,16 +266,25 @@ class ServiceController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        $validated = request()->validate([
+            'reason' => 'required|string|max:1000',
+        ]);
+
         $updated = DB::table('transactions')
             ->where('id', $id)
             ->where('branch_id', $user->branch_id)
             ->where('order_status', 'Pending')
             ->where('payment_status', 'Service Request')
-            ->update(['order_status' => 'Cancelled']);
+            ->update([
+                'order_status' => 'Cancelled',
+                'service_request_rejection_reason' => $validated['reason'],
+                'service_request_rejection_read_at' => null,
+                'service_request_rejection_deleted_at' => null,
+            ]);
 
         return redirect()->route('staff.services')->with(
             $updated ? 'success' : 'error',
-            $updated ? 'Service request cancelled.' : 'Only pending service requests from your branch can be cancelled.'
+            $updated ? 'Service request rejected and customer notified.' : 'Only pending service requests from your branch can be rejected.'
         );
     }
 
