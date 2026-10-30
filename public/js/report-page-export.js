@@ -78,7 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
                         pdf.setFontSize(5);
                         pdf.setTextColor(55, 65, 81);
                         pdf.text(generatedAt, 8, 4);
-                        pdf.text(controls.dataset.pdfHeader || 'Financial Reports | LaundryCare', pageWidth / 2, 4, { align: 'center' });
                         pdf.text(pageUrl.href, 8, pageHeight - 3, { maxWidth: pageWidth - 50 });
                         pdf.text(`${page}/${pageCount}`, pageWidth - 8, pageHeight - 3, { align: 'right' });
                     }
@@ -114,12 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const exportFunction = window[functionName];
 
         if (typeof exportFunction === 'function') {
-            if (afterPrint) {
-                window.addEventListener('afterprint', () => {
-                    afterPrint();
-                }, { once: true });
-            }
+            const originalTitle = document.title;
+            const restoreTitle = () => {
+                document.title = originalTitle;
+                if (afterPrint) afterPrint();
+            };
 
+            document.title = '';
+            window.addEventListener('afterprint', restoreTitle, { once: true });
             exportFunction();
         } else {
             alert('Hindi available ang print action. I-refresh ang page at subukan muli.');

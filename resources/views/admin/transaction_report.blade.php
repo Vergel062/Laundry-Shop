@@ -220,7 +220,6 @@
                         'pdfFilename' => 'Service_Transaction_History',
                         'pdfMargin' => 12,
                         'pdfLayout' => 'transaction-report',
-                        'pdfHeader' => 'Transaction Report | LaundryCare Admin',
                         'printFunction' => 'printCurrentReport',
                     ])
                 </div>

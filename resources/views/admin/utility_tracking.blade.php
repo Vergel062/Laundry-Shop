@@ -85,7 +85,6 @@
                         'pdfFilename' => 'Utility_Expenses_Report',
                         'pdfMargin' => 12,
                         'pdfLayout' => 'utility-report-admin',
-                        'pdfHeader' => 'Utility Tracking | LaundryCare Admin',
                         'printFunction' => 'printCurrentReport',
                     ])
                 </div>
