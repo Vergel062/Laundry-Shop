@@ -98,7 +98,8 @@
                 <h5 class="fw-bold mb-0">Branch Inventory</h5>
                 <div class="ms-auto">
                     <select class="form-select form-select-sm d-inline-block" style="width: 220px;" onchange="location.href='{{ route('admin.inventory') }}?branch_id='+this.value">
-                        <option value="all">All Branches</option>
+                        <option value="" {{ $selected_branch === '' ? 'selected' : '' }}>Select a branch</option>
+                        <option value="all" {{ $selected_branch === 'all' ? 'selected' : '' }}>All Branches</option>
                         @foreach($branches_dropdown as $b)
                             <option value="{{ $b->id }}" {{ $selected_branch == $b->id ? 'selected' : '' }}>{{ htmlspecialchars($b->branch_name) }}</option>
                         @endforeach
@@ -117,7 +118,7 @@
                     <button type="button" class="btn btn-outline-primary btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#editInventoryItemModal">
                         <i class="bi bi-pencil-square me-1"></i> Edit Items
                     </button>
-                    <button type="button" class="btn btn-primary btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addInventoryItemModal">
+                    <button type="button" class="btn btn-outline-primary btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addInventoryItemModal">
                         <i class="bi bi-plus-lg me-1"></i> Add Items
                     </button>
                 </div>
@@ -178,7 +179,11 @@
                                     </td>
                                 </tr>
                             @empty
-                                <tr><td colspan="7" class="text-center py-5 text-muted">No inventory items found for the selected branch.</td></tr>
+                                <tr>
+                                    <td colspan="7" class="text-center py-5 text-muted">
+                                        {{ $selected_branch === '' ? 'Select a branch to view its inventory, or choose All Branches.' : 'No inventory items found for the selected branch.' }}
+                                    </td>
+                                </tr>
                             @endforelse
                         </tbody>
                     </table>

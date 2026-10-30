@@ -20,13 +20,15 @@ class BranchInventoryController extends Controller
         }
 
         // Get selected branch for filtering
-        $selected_branch = $request->input('branch_id', 'all');
+        $selected_branch = $request->input('branch_id', '');
 
         // Query for inventory data
         $query = DB::table('inventory as i')
             ->join('branches as b', 'i.branch_id', '=', 'b.id');
 
-        if ($selected_branch !== 'all') {
+        if ($selected_branch === '') {
+            $query->whereRaw('1 = 0');
+        } elseif ($selected_branch !== 'all') {
             $query->where('i.branch_id', intval($selected_branch));
         }
 
@@ -42,12 +44,19 @@ class BranchInventoryController extends Controller
             ->orderBy('branch_name', 'ASC')
             ->get();
 
-        $inventory_items = DB::table('inventory as i')
+        $inventoryItemsQuery = DB::table('inventory as i')
             ->join('branches as b', 'i.branch_id', '=', 'b.id')
             ->select('i.id', 'i.branch_id', 'i.item_name', 'i.stock_level', 'i.min_threshold', 'b.branch_name')
             ->orderBy('b.branch_name')
-            ->orderBy('i.item_name')
-            ->get();
+            ->orderBy('i.item_name');
+
+        if ($selected_branch === '') {
+            $inventoryItemsQuery->whereRaw('1 = 0');
+        } elseif ($selected_branch !== 'all') {
+            $inventoryItemsQuery->where('i.branch_id', intval($selected_branch));
+        }
+
+        $inventory_items = $inventoryItemsQuery->get();
 
         return view('admin.branch_inventory', compact('inventory', 'inventory_items', 'branches_dropdown', 'selected_branch'));
     }

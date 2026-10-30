@@ -81,6 +81,48 @@ class AdminAddInventoryItemTest extends TestCase
         ]);
     }
 
+    public function test_inventory_page_requires_a_branch_selection_by_default(): void
+    {
+        DB::table('inventory')->insert([
+            'branch_id' => 1,
+            'item_name' => 'Detergent',
+            'stock_level' => 12,
+            'unit' => 'Sachets',
+            'min_threshold' => 4,
+        ]);
+
+        $this->actingAs($this->user('admin'))
+            ->get(route('admin.inventory'))
+            ->assertOk()
+            ->assertSee('Select a branch to view its inventory, or choose All Branches.');
+    }
+
+    public function test_inventory_page_shows_only_the_selected_branch_items(): void
+    {
+        DB::table('inventory')->insert([
+            [
+                'branch_id' => 1,
+                'item_name' => 'Carmona Detergent',
+                'stock_level' => 12,
+                'unit' => 'Sachets',
+                'min_threshold' => 4,
+            ],
+            [
+                'branch_id' => 2,
+                'item_name' => 'Binan Detergent',
+                'stock_level' => 15,
+                'unit' => 'Sachets',
+                'min_threshold' => 4,
+            ],
+        ]);
+
+        $this->actingAs($this->user('admin'))
+            ->get(route('admin.inventory', ['branch_id' => 1]))
+            ->assertOk()
+            ->assertSee('Carmona Detergent')
+            ->assertDontSee('Binan Detergent');
+    }
+
     public function test_admin_cannot_add_the_same_item_twice_to_one_branch(): void
     {
         DB::table('inventory')->insert([
