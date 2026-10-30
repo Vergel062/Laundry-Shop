@@ -98,7 +98,6 @@
                 <h5 class="fw-bold mb-0">Branch Inventory</h5>
                 <div class="ms-auto">
                     <select class="form-select form-select-sm d-inline-block" style="width: 220px;" onchange="location.href='{{ route('admin.inventory') }}?branch_id='+this.value">
-                        <option value="" {{ $selected_branch === '' ? 'selected' : '' }}>Select a branch</option>
                         <option value="all" {{ $selected_branch === 'all' ? 'selected' : '' }}>All Branches</option>
                         @foreach($branches_dropdown as $b)
                             <option value="{{ $b->id }}" {{ $selected_branch == $b->id ? 'selected' : '' }}>{{ htmlspecialchars($b->branch_name) }}</option>
@@ -181,7 +180,7 @@
                             @empty
                                 <tr>
                                     <td colspan="7" class="text-center py-5 text-muted">
-                                        {{ $selected_branch === '' ? 'Select a branch to view its inventory, or choose All Branches.' : 'No inventory items found for the selected branch.' }}
+                                        No inventory items found for the selected branch.
                                     </td>
                                 </tr>
                             @endforelse
@@ -209,17 +208,30 @@
                 <input type="hidden" name="return_branch_id" value="{{ $selected_branch }}">
                 <div class="modal-body p-4">
                     <div class="mb-3">
+                        <label for="editInventoryBranch" class="form-label small fw-bold">Branch</label>
+                        <select name="edit_branch_id" id="editInventoryBranch" class="form-select @error('edit_branch_id') is-invalid @enderror" required>
+                            <option value="">Select a branch</option>
+                            @foreach($branches_dropdown as $branch)
+                                <option value="{{ $branch->id }}" @selected((string) old('edit_branch_id', $selected_branch !== 'all' ? $selected_branch : '') === (string) $branch->id)>
+                                    {{ $branch->branch_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('edit_branch_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="mb-3">
                         <label for="editInventorySelect" class="form-label small fw-bold">Select Item</label>
-                        <select name="item_id" id="editInventorySelect" class="form-select @error('item_id') is-invalid @enderror" required>
-                            <option value="">Select an item</option>
+                        <select name="item_id" id="editInventorySelect" class="form-select @error('item_id') is-invalid @enderror" required disabled>
+                            <option value="">Select a branch first</option>
                             @foreach($inventory_items as $inventoryItem)
                                 <option
                                     value="{{ $inventoryItem->id }}"
+                                    data-branch-id="{{ $inventoryItem->branch_id }}"
                                     data-item-name="{{ $inventoryItem->item_name }}"
                                     data-threshold="{{ $inventoryItem->min_threshold }}"
                                     @selected((string) old('item_id') === (string) $inventoryItem->id)
                                 >
-                                    {{ $inventoryItem->branch_name }} — {{ $inventoryItem->item_name }}
+                                    {{ $inventoryItem->item_name }}
                                 </option>
                             @endforeach
                         </select>
@@ -355,15 +367,37 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    const editInventoryBranch = document.getElementById('editInventoryBranch');
     const editInventorySelect = document.getElementById('editInventorySelect');
     const editInventoryName = document.getElementById('editInventoryName');
     const editInventoryThreshold = document.getElementById('editInventoryThreshold');
+    const editInventoryOptions = Array.from(editInventorySelect.querySelectorAll('option[data-branch-id]'));
+    const oldEditItemId = @js((string) old('item_id', ''));
 
-    editInventorySelect?.addEventListener('change', function () {
-        const selectedOption = this.options[this.selectedIndex];
+    function populateEditInventoryItems(selectedItemId) {
+        const branchId = editInventoryBranch.value;
+        editInventorySelect.replaceChildren(new Option(branchId ? 'Select an item' : 'Select a branch first', ''));
+        editInventoryOptions
+            .filter((option) => option.dataset.branchId === branchId)
+            .forEach((option) => editInventorySelect.add(option.cloneNode(true)));
+        editInventorySelect.disabled = !branchId;
+        editInventorySelect.value = selectedItemId || '';
+        updateEditInventoryFields();
+    }
+
+    function updateEditInventoryFields() {
+        const selectedOption = editInventorySelect.options[editInventorySelect.selectedIndex];
         editInventoryName.value = selectedOption.dataset.itemName || '';
         editInventoryThreshold.value = selectedOption.dataset.threshold || '';
+    }
+
+    editInventoryBranch?.addEventListener('change', function () {
+        populateEditInventoryItems('');
     });
+    editInventorySelect?.addEventListener('change', updateEditInventoryFields);
+    if (editInventoryBranch?.value) {
+        populateEditInventoryItems(oldEditItemId);
+    }
 
     @if($errors->has('item_name') && old('item_id'))
         editInventoryName.value = @js(old('item_name'));

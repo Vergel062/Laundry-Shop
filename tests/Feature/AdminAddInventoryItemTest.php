@@ -81,7 +81,7 @@ class AdminAddInventoryItemTest extends TestCase
         ]);
     }
 
-    public function test_inventory_page_requires_a_branch_selection_by_default(): void
+    public function test_inventory_page_shows_all_branches_by_default(): void
     {
         DB::table('inventory')->insert([
             'branch_id' => 1,
@@ -94,7 +94,9 @@ class AdminAddInventoryItemTest extends TestCase
         $this->actingAs($this->user('admin'))
             ->get(route('admin.inventory'))
             ->assertOk()
-            ->assertSee('Select a branch to view its inventory, or choose All Branches.');
+            ->assertSee('Detergent')
+            ->assertSee('All Branches')
+            ->assertSee('id="editInventoryBranch"', false);
     }
 
     public function test_inventory_page_shows_only_the_selected_branch_items(): void
@@ -116,11 +118,13 @@ class AdminAddInventoryItemTest extends TestCase
             ],
         ]);
 
-        $this->actingAs($this->user('admin'))
+        $response = $this->actingAs($this->user('admin'))
             ->get(route('admin.inventory', ['branch_id' => 1]))
             ->assertOk()
-            ->assertSee('Carmona Detergent')
-            ->assertDontSee('Binan Detergent');
+            ->assertSee('Carmona Detergent');
+
+        $inventoryTable = explode('id="editInventoryItemModal"', $response->getContent(), 2)[0];
+        $this->assertStringNotContainsString('Binan Detergent', $inventoryTable);
     }
 
     public function test_admin_cannot_add_the_same_item_twice_to_one_branch(): void
@@ -174,6 +178,7 @@ class AdminAddInventoryItemTest extends TestCase
 
         $this->actingAs($this->user('admin'))
             ->put(route('admin.inventory.items.update'), [
+                'edit_branch_id' => 1,
                 'item_id' => $inventoryId,
                 'item_name' => 'Laundry Bleach',
                 'min_threshold' => 8,
@@ -203,6 +208,7 @@ class AdminAddInventoryItemTest extends TestCase
 
         $this->actingAs($this->user('admin'))
             ->put(route('admin.inventory.items.update'), [
+                'edit_branch_id' => 1,
                 'item_id' => $inventoryId,
                 'item_name' => 'Laundry Soap',
                 'min_threshold' => 8,
@@ -244,6 +250,7 @@ class AdminAddInventoryItemTest extends TestCase
         $this->actingAs($this->user('admin'))
             ->from(route('admin.inventory'))
             ->put(route('admin.inventory.items.update'), [
+                'edit_branch_id' => 1,
                 'item_id' => $itemId,
                 'item_name' => 'Detergent',
                 'min_threshold' => 8,
@@ -269,6 +276,7 @@ class AdminAddInventoryItemTest extends TestCase
 
         $this->actingAs($this->user('manager'))
             ->put(route('admin.inventory.items.update'), [
+                'edit_branch_id' => 1,
                 'item_id' => $itemId,
                 'item_name' => 'Laundry Bleach',
                 'min_threshold' => 8,

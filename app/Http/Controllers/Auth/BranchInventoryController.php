@@ -20,15 +20,13 @@ class BranchInventoryController extends Controller
         }
 
         // Get selected branch for filtering
-        $selected_branch = $request->input('branch_id', '');
+        $selected_branch = $request->input('branch_id', 'all');
 
         // Query for inventory data
         $query = DB::table('inventory as i')
             ->join('branches as b', 'i.branch_id', '=', 'b.id');
 
-        if ($selected_branch === '') {
-            $query->whereRaw('1 = 0');
-        } elseif ($selected_branch !== 'all') {
+        if ($selected_branch !== 'all') {
             $query->where('i.branch_id', intval($selected_branch));
         }
 
@@ -49,12 +47,6 @@ class BranchInventoryController extends Controller
             ->select('i.id', 'i.branch_id', 'i.item_name', 'i.stock_level', 'i.min_threshold', 'b.branch_name')
             ->orderBy('b.branch_name')
             ->orderBy('i.item_name');
-
-        if ($selected_branch === '') {
-            $inventoryItemsQuery->whereRaw('1 = 0');
-        } elseif ($selected_branch !== 'all') {
-            $inventoryItemsQuery->where('i.branch_id', intval($selected_branch));
-        }
 
         $inventory_items = $inventoryItemsQuery->get();
 
@@ -207,6 +199,7 @@ class BranchInventoryController extends Controller
         }
 
         $validated = $request->validate([
+            'edit_branch_id' => 'required|integer|exists:branches,id',
             'item_id' => 'required|integer|exists:inventory,id',
             'item_name' => [
                 'required',
@@ -218,6 +211,10 @@ class BranchInventoryController extends Controller
             ],
             'min_threshold' => 'required|integer|min:0',
         ]);
+
+        if ((int) $item->branch_id !== (int) $validated['edit_branch_id']) {
+            return back()->withErrors(['item_id' => 'Select an item from the selected branch.']);
+        }
 
         DB::table('inventory')
             ->where('id', $item->id)
