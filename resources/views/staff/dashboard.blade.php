@@ -265,6 +265,7 @@
                             <div class="card-body p-4">
                                 <h6 class="fw-bold mb-3"><i class="bi bi-box-seam text-primary me-2"></i> Inventory Status</h6>
                                 @if (isset($side_inv) && $side_inv->count() > 0)
+                                    <div class="inventory-status-list" style="max-height: 360px; overflow-y: auto;">
                                     @foreach($side_inv as $item)
                                         @php
                                             $name_lower = strtolower($item->item_name);
@@ -289,6 +290,7 @@
                                             </div>
                                         </div>
                                     @endforeach
+                                    </div>
                                 @else
                                     <div class="text-center py-2">
                                         <small class="text-muted">No inventory items tracked.</small>

@@ -77,10 +77,11 @@ class StaffController extends Controller
             ->where('branch_id', $my_branch)
             ->first();
 
-        // Side Inventory Status (Limit 4)
+        // Show all branch inventory, with the lowest stock levels first.
         $side_inv = DB::table('inventory')
             ->where('branch_id', $my_branch)
-            ->limit(4)
+            ->orderBy('stock_level')
+            ->orderBy('item_name')
             ->get();
 
         // Customers para sa New Order Modal
