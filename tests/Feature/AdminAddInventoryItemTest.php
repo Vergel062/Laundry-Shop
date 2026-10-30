@@ -290,12 +290,59 @@ class AdminAddInventoryItemTest extends TestCase
         ]);
     }
 
-    private function user(string $role): User
+    public function test_manager_inventory_history_uses_the_admin_history_layout_and_only_shows_assigned_branch(): void
+    {
+        DB::table('inventory_history')->insert([
+            [
+                'branch_id' => 1,
+                'item_name' => 'Branch One Detergent',
+                'movement_type' => 'OUT',
+                'quantity' => 2,
+                'stock_before' => 10,
+                'stock_after' => 8,
+                'source' => 'Service order',
+                'created_at' => now(),
+            ],
+            [
+                'branch_id' => 2,
+                'item_name' => 'Branch Two Detergent',
+                'movement_type' => 'OUT',
+                'quantity' => 3,
+                'stock_before' => 10,
+                'stock_after' => 7,
+                'source' => 'Service order',
+                'created_at' => now(),
+            ],
+        ]);
+
+        $this->actingAs($this->user('manager', 1))
+            ->get(route('manager.inventory.history', [
+                'branch_id' => 2,
+                'filter' => 1,
+                'start_date' => now()->toDateString(),
+                'end_date' => now()->toDateString(),
+            ]))
+            ->assertOk()
+            ->assertSee('Inventory Movement History')
+            ->assertSee('Branch One Detergent')
+            ->assertDontSee('Branch Two Detergent')
+            ->assertSee('Carmona Branch');
+    }
+
+    public function test_non_manager_cannot_open_manager_inventory_history(): void
+    {
+        $this->actingAs($this->user('staff', 1))
+            ->get(route('manager.inventory.history'))
+            ->assertForbidden();
+    }
+
+    private function user(string $role, int $branchId = 1): User
     {
         $user = new User();
         $user->forceFill([
             'id' => 10,
             'role' => $role,
+            'branch_id' => $branchId,
         ]);
 
         return $user;

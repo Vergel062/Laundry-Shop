@@ -116,9 +116,14 @@
                         <h6 class="fw-bold mb-0"><i class="bi bi-box-seam text-info me-2"></i>Stock Overview</h6>
                         <small class="text-muted">Current inventory levels for this branch.</small>
                     </div>
-                    <button class="btn btn-primary fw-bold shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#inventoryModal">
-                        <i class="bi bi-pencil-square me-2"></i> UPDATE STOCKS
-                    </button>
+                    <div class="d-flex gap-2">
+                        <a href="{{ route('manager.inventory.history') }}" class="btn btn-outline-primary fw-bold shadow-sm px-3">
+                            <i class="bi bi-clock-history me-2"></i> INVENTORY HISTORY
+                        </a>
+                        <button class="btn btn-primary fw-bold shadow-sm px-4" data-bs-toggle="modal" data-bs-target="#inventoryModal">
+                            <i class="bi bi-pencil-square me-2"></i> UPDATE STOCKS
+                        </button>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">

@@ -53,6 +53,77 @@ class ManagerInventoryController extends Controller
         return view('manager.inventory', compact('inventory', 'branch_name', 'deductionRequests'));
     }
 
+    public function history(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user || $user->role !== 'manager') {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $branchId = (int) $user->branch_id;
+        $branch = DB::table('branches')->where('id', $branchId)->first();
+        abort_unless($branch, 404, 'Assigned branch could not be found.');
+
+        $selected_branch = (string) $branchId;
+        $selected_item = $request->input('item', 'all');
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $hasDateFilter = $request->boolean('filter') && $start_date && $end_date;
+
+        $historyQuery = DB::table('inventory_history as h')
+            ->join('branches as b', 'h.branch_id', '=', 'b.id')
+            ->where('h.branch_id', $branchId)
+            ->select('h.*', 'b.branch_name');
+
+        $itemFilters = [
+            'detergent' => ['detergent', ['%detergent%', '%powder%']],
+            'downy' => ['softener', ['%downy%', '%softener%']],
+            'spray' => ['spray', ['%spray%']],
+            'lpg' => ['lpg', ['%lpg%', '%gas%']],
+        ];
+
+        if (isset($itemFilters[$selected_item])) {
+            [$systemKey, $namePatterns] = $itemFilters[$selected_item];
+            $historyQuery->whereIn('h.inventory_id', DB::table('inventory')
+                ->select('id')
+                ->where('branch_id', $branchId)
+                ->where(function ($query) use ($systemKey, $namePatterns) {
+                    $query->where('system_key', $systemKey)
+                        ->orWhere(function ($nameQuery) use ($namePatterns) {
+                            foreach ($namePatterns as $pattern) {
+                                $nameQuery->orWhereRaw('LOWER(item_name) LIKE ?', [$pattern]);
+                            }
+                        });
+                }));
+        }
+
+        if ($hasDateFilter) {
+            $historyQuery->whereBetween('h.created_at', [
+                $start_date . ' 00:00:00',
+                $end_date . ' 23:59:59',
+            ]);
+        } else {
+            $historyQuery->whereRaw('1 = 0');
+        }
+
+        $history = $historyQuery->orderByDesc('h.created_at')->get();
+        $total_in = $history->where('movement_type', 'IN')->sum('quantity');
+        $total_out = $history->where('movement_type', 'OUT')->sum('quantity');
+        $branches_dropdown = collect([$branch]);
+
+        return view('manager.inventory_history', compact(
+            'history',
+            'branches_dropdown',
+            'selected_branch',
+            'selected_item',
+            'start_date',
+            'end_date',
+            'hasDateFilter',
+            'total_in',
+            'total_out'
+        ));
+    }
+
     public function update(Request $request)
     {
         $user = auth()->user();
