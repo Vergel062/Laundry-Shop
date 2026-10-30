@@ -26,6 +26,7 @@ class AdminAddInventoryItemTest extends TestCase
             $table->unsignedInteger('stock_level')->default(0);
             $table->string('unit');
             $table->unsignedInteger('min_threshold')->default(2);
+            $table->string('system_key', 40)->nullable();
             $table->timestamp('last_updated')->nullable();
         });
 
@@ -117,6 +118,126 @@ class AdminAddInventoryItemTest extends TestCase
             ->assertForbidden();
 
         $this->assertSame(0, DB::table('inventory')->count());
+    }
+
+    public function test_admin_can_edit_an_item_name_and_threshold_without_changing_stock_or_history(): void
+    {
+        $inventoryId = DB::table('inventory')->insertGetId([
+            'branch_id' => 1,
+            'item_name' => 'Bleach',
+            'stock_level' => 12,
+            'unit' => 'Gallons',
+            'min_threshold' => 4,
+        ]);
+
+        $this->actingAs($this->user('admin'))
+            ->put(route('admin.inventory.items.update'), [
+                'item_id' => $inventoryId,
+                'item_name' => 'Laundry Bleach',
+                'min_threshold' => 8,
+                'return_branch_id' => 1,
+            ])
+            ->assertRedirect(route('admin.inventory', ['branch_id' => 1, 'status' => 'item-updated']));
+
+        $this->assertDatabaseHas('inventory', [
+            'id' => $inventoryId,
+            'item_name' => 'Laundry Bleach',
+            'stock_level' => 12,
+            'min_threshold' => 8,
+        ]);
+        $this->assertSame(0, DB::table('inventory_history')->count());
+    }
+
+    public function test_renaming_a_system_item_keeps_its_automatic_stock_tracking_key(): void
+    {
+        $inventoryId = DB::table('inventory')->insertGetId([
+            'branch_id' => 1,
+            'item_name' => 'Detergent',
+            'stock_level' => 12,
+            'unit' => 'Sachets',
+            'min_threshold' => 4,
+            'system_key' => 'detergent',
+        ]);
+
+        $this->actingAs($this->user('admin'))
+            ->put(route('admin.inventory.items.update'), [
+                'item_id' => $inventoryId,
+                'item_name' => 'Laundry Soap',
+                'min_threshold' => 8,
+            ])
+            ->assertRedirect();
+
+        \App\Services\InventoryHistoryService::adjustBySystemKey(
+            1,
+            'detergent',
+            -2,
+            'Staff service order usage'
+        );
+
+        $this->assertDatabaseHas('inventory', [
+            'id' => $inventoryId,
+            'item_name' => 'Laundry Soap',
+            'stock_level' => 10,
+            'system_key' => 'detergent',
+        ]);
+    }
+
+    public function test_admin_cannot_rename_an_item_to_an_existing_name_in_the_same_branch(): void
+    {
+        $itemId = DB::table('inventory')->insertGetId([
+            'branch_id' => 1,
+            'item_name' => 'Bleach',
+            'stock_level' => 12,
+            'unit' => 'Gallons',
+            'min_threshold' => 4,
+        ]);
+        DB::table('inventory')->insert([
+            'branch_id' => 1,
+            'item_name' => 'Detergent',
+            'stock_level' => 20,
+            'unit' => 'Sachets',
+            'min_threshold' => 15,
+        ]);
+
+        $this->actingAs($this->user('admin'))
+            ->from(route('admin.inventory'))
+            ->put(route('admin.inventory.items.update'), [
+                'item_id' => $itemId,
+                'item_name' => 'Detergent',
+                'min_threshold' => 8,
+            ])
+            ->assertSessionHasErrors('item_name');
+
+        $this->assertDatabaseHas('inventory', [
+            'id' => $itemId,
+            'item_name' => 'Bleach',
+            'min_threshold' => 4,
+        ]);
+    }
+
+    public function test_non_admin_cannot_edit_inventory_item_details(): void
+    {
+        $itemId = DB::table('inventory')->insertGetId([
+            'branch_id' => 1,
+            'item_name' => 'Bleach',
+            'stock_level' => 12,
+            'unit' => 'Gallons',
+            'min_threshold' => 4,
+        ]);
+
+        $this->actingAs($this->user('manager'))
+            ->put(route('admin.inventory.items.update'), [
+                'item_id' => $itemId,
+                'item_name' => 'Laundry Bleach',
+                'min_threshold' => 8,
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('inventory', [
+            'id' => $itemId,
+            'item_name' => 'Bleach',
+            'min_threshold' => 4,
+        ]);
     }
 
     private function user(string $role): User

@@ -132,17 +132,7 @@
                         <tbody>
                             @forelse($inventory as $row)
                                 @php 
-                                    $itemNameLower = strtolower(trim($row->item_name));
                                     $threshold = $row->min_threshold;
-
-                                    if (str_contains($itemNameLower, 'detergent') || str_contains($itemNameLower, 'softener') || str_contains($itemNameLower, 'downy')) {
-                                        $threshold = 15;
-                                    } elseif (str_contains($itemNameLower, 'spray')) {
-                                        $threshold = 5;
-                                    } elseif (str_contains($itemNameLower, 'lpg') || str_contains($itemNameLower, 'gas')) {
-                                        $threshold = 3;
-                                    }
-
                                     $is_low = ($row->stock_level <= $threshold);
                                 @endphp
                                 <tr>

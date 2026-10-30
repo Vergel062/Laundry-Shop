@@ -124,12 +124,12 @@ class ServiceController extends Controller
 
                 $detQty = $request->input('det_qty', 0);
                 if ($detQty > 0) {
-                    InventoryHistoryService::adjustByItemName($my_branch, '%Detergent%', -$detQty, 'Staff service order usage', $staff_id);
+                    InventoryHistoryService::adjustBySystemKey($my_branch, 'detergent', -$detQty, 'Staff service order usage', $staff_id);
                 }
 
                 $softQty = $request->input('soft_qty', 0);
                 if ($softQty > 0) {
-                    InventoryHistoryService::adjustByItemName($my_branch, '%Downy%', -$softQty, 'Staff service order usage', $staff_id);
+                    InventoryHistoryService::adjustBySystemKey($my_branch, 'softener', -$softQty, 'Staff service order usage', $staff_id);
                 }
             });
 

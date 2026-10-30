@@ -65,20 +65,20 @@ class ManagerInventoryController extends Controller
 
         // 1. Restock (Idadagdag sa kasalukuyang stock)
         if ($request->filled('detergent_stock')) {
-            InventoryHistoryService::adjustByItemName($my_branch_id, '%Detergent%', (int) $request->detergent_stock, 'Manager inventory restock', $user->id);
+            InventoryHistoryService::adjustBySystemKey($my_branch_id, 'detergent', (int) $request->detergent_stock, 'Manager inventory restock', $user->id);
         }
 
         if ($request->filled('downy_stock')) {
-            InventoryHistoryService::adjustByItemName($my_branch_id, '%Downy%', (int) $request->downy_stock, 'Manager inventory restock', $user->id);
+            InventoryHistoryService::adjustBySystemKey($my_branch_id, 'softener', (int) $request->downy_stock, 'Manager inventory restock', $user->id);
         }
 
         // 2. Manual Adjustment (Papatungan ang stock level)
         if ($request->filled('spray_stock')) {
-            InventoryHistoryService::setByItemName($my_branch_id, '%Spray%', (int) $request->spray_stock, 'Manager inventory adjustment', $user->id);
+            InventoryHistoryService::setBySystemKey($my_branch_id, 'spray', (int) $request->spray_stock, 'Manager inventory adjustment', $user->id);
         }
 
         if ($request->filled('lpg_stock')) {
-            InventoryHistoryService::setByItemName($my_branch_id, '%LPG%', (int) $request->lpg_stock, 'Manager inventory adjustment', $user->id);
+            InventoryHistoryService::setBySystemKey($my_branch_id, 'lpg', (int) $request->lpg_stock, 'Manager inventory adjustment', $user->id);
         }
 
         return redirect()->route('manager.inventory')->with('status', 'success');

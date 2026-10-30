@@ -58,22 +58,22 @@ class StaffController extends Controller
 
         // Inventory Warnings
         $detergent = DB::table('inventory')
-            ->where('item_name', 'like', '%Detergent%')
+            ->where('system_key', 'detergent')
             ->where('branch_id', $my_branch)
             ->first();
 
         $spray = DB::table('inventory')
-            ->where('item_name', 'like', '%Spray%')
+            ->where('system_key', 'spray')
             ->where('branch_id', $my_branch)
             ->first();
 
         $lpg = DB::table('inventory')
-            ->where('item_name', 'like', '%LPG%')
+            ->where('system_key', 'lpg')
             ->where('branch_id', $my_branch)
             ->first();
 
         $downy = DB::table('inventory')
-            ->where('item_name', 'like', '%Downy%')
+            ->where('system_key', 'softener')
             ->where('branch_id', $my_branch)
             ->first();
 
@@ -204,12 +204,12 @@ class StaffController extends Controller
 
                 $detQty = $request->input('det_qty', 0);
                 if ($detQty > 0) {
-                    InventoryHistoryService::adjustByItemName($my_branch, '%Detergent%', -$detQty, 'Staff service order usage', $staff_id);
+                    InventoryHistoryService::adjustBySystemKey($my_branch, 'detergent', -$detQty, 'Staff service order usage', $staff_id);
                 }
 
                 $softQty = $request->input('soft_qty', 0);
                 if ($softQty > 0) {
-                    InventoryHistoryService::adjustByItemName($my_branch, '%Downy%', -$softQty, 'Staff service order usage', $staff_id);
+                    InventoryHistoryService::adjustBySystemKey($my_branch, 'softener', -$softQty, 'Staff service order usage', $staff_id);
                 }
             });
 

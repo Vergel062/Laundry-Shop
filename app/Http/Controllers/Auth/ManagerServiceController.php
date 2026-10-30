@@ -174,13 +174,13 @@ class ManagerServiceController extends Controller
                 // Bawasan ang Inventory kung may ginamit na Detergent
                 $detQty = $request->input('det_qty', 0);
                 if ($detQty > 0) {
-                    InventoryHistoryService::adjustByItemName($my_branch, '%Detergent%', -$detQty, 'Manager service order usage', $manager_id);
+                    InventoryHistoryService::adjustBySystemKey($my_branch, 'detergent', -$detQty, 'Manager service order usage', $manager_id);
                 }
 
                 // Bawasan ang Inventory kung may ginamit na Fabric Softener (Downy)
                 $softQty = $request->input('soft_qty', 0);
                 if ($softQty > 0) {
-                    InventoryHistoryService::adjustByItemName($my_branch, '%Downy%', -$softQty, 'Manager service order usage', $manager_id);
+                    InventoryHistoryService::adjustBySystemKey($my_branch, 'softener', -$softQty, 'Manager service order usage', $manager_id);
                 }
             });
 

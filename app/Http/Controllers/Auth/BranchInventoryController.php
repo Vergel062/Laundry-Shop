@@ -32,17 +32,7 @@ class BranchInventoryController extends Controller
 
         // Priority sorting: Low stock items first, then by Branch and Item Name
         $inventory = $query->select('i.*', 'b.branch_name')
-            ->orderByRaw("(
-                i.stock_level <= CASE
-                    WHEN LOWER(i.item_name) LIKE '%detergent%'
-                      OR LOWER(i.item_name) LIKE '%downy%'
-                      OR LOWER(i.item_name) LIKE '%softener%' THEN 15
-                    WHEN LOWER(i.item_name) LIKE '%spray%' THEN 5
-                    WHEN LOWER(i.item_name) LIKE '%lpg%'
-                      OR LOWER(i.item_name) LIKE '%gas%' THEN 3
-                    ELSE i.min_threshold
-                END
-            ) DESC")
+            ->orderByRaw('(i.stock_level <= i.min_threshold) DESC')
             ->orderBy('b.branch_name', 'ASC')
             ->orderBy('i.item_name', 'ASC')
             ->get();
@@ -52,7 +42,14 @@ class BranchInventoryController extends Controller
             ->orderBy('branch_name', 'ASC')
             ->get();
 
-        return view('admin.branch_inventory', compact('inventory', 'branches_dropdown', 'selected_branch'));
+        $inventory_items = DB::table('inventory as i')
+            ->join('branches as b', 'i.branch_id', '=', 'b.id')
+            ->select('i.id', 'i.branch_id', 'i.item_name', 'i.stock_level', 'i.min_threshold', 'b.branch_name')
+            ->orderBy('b.branch_name')
+            ->orderBy('i.item_name')
+            ->get();
+
+        return view('admin.branch_inventory', compact('inventory', 'inventory_items', 'branches_dropdown', 'selected_branch'));
     }
 
     public function history(Request $request)
@@ -78,13 +75,15 @@ class BranchInventoryController extends Controller
         }
 
         $itemPatterns = [
-            'detergent' => '%Detergent%',
-            'downy' => '%Downy%',
-            'spray' => '%Spray%',
-            'lpg' => '%LPG%',
+            'detergent' => 'detergent',
+            'downy' => 'softener',
+            'spray' => 'spray',
+            'lpg' => 'lpg',
         ];
         if (isset($itemPatterns[$selected_item])) {
-            $historyQuery->where('h.item_name', 'like', $itemPatterns[$selected_item]);
+            $historyQuery->whereIn('h.inventory_id', DB::table('inventory')
+                ->select('id')
+                ->where('system_key', $itemPatterns[$selected_item]));
         }
 
         if ($hasDateFilter) {
@@ -169,6 +168,7 @@ class BranchInventoryController extends Controller
                 'stock_level' => $validated['stock_level'],
                 'unit' => $validated['unit'],
                 'min_threshold' => $validated['min_threshold'],
+                'system_key' => null,
                 'last_updated' => now(),
             ]);
 
@@ -181,6 +181,46 @@ class BranchInventoryController extends Controller
         return redirect()->route('admin.inventory', [
             'branch_id' => $request->input('return_branch_id', 'all'),
             'status' => 'added',
+        ]);
+    }
+
+    public function updateItem(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user || $user->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->merge(['item_name' => trim((string) $request->input('item_name'))]);
+        $item = DB::table('inventory')->where('id', $request->input('item_id'))->first();
+        if (!$item) {
+            return back()->withErrors(['item_id' => 'Inventory item not found.']);
+        }
+
+        $validated = $request->validate([
+            'item_id' => 'required|integer|exists:inventory,id',
+            'item_name' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('inventory', 'item_name')
+                    ->where('branch_id', $item->branch_id)
+                    ->ignore($item->id),
+            ],
+            'min_threshold' => 'required|integer|min:0',
+        ]);
+
+        DB::table('inventory')
+            ->where('id', $item->id)
+            ->update([
+                'item_name' => $validated['item_name'],
+                'min_threshold' => $validated['min_threshold'],
+                'last_updated' => now(),
+            ]);
+
+        return redirect()->route('admin.inventory', [
+            'branch_id' => $request->input('return_branch_id', 'all'),
+            'status' => 'item-updated',
         ]);
     }
 }

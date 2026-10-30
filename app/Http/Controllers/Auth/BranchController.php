@@ -58,10 +58,10 @@ class BranchController extends Controller
 
         // 2. Otomatikong lagyan ng default inventory items ang bagong branch
         $default_items = [
-            ['Detergent', 'Sachets', 2],
-            ['Fabric Spray', 'Gallons', 2],
-            ['LPG', 'Tanks', 5],
-            ['Downy / Softener', 'Sachets', 5]
+            ['Detergent', 'Sachets', 2, 'detergent'],
+            ['Fabric Spray', 'Gallons', 2, 'spray'],
+            ['LPG', 'Tanks', 5, 'lpg'],
+            ['Downy / Softener', 'Sachets', 5, 'softener']
         ];
 
         foreach ($default_items as $item) {
@@ -72,6 +72,9 @@ class BranchController extends Controller
                 'unit' => $item[1],
                 'min_threshold' => $item[2],
             ];
+            if (Schema::hasColumn('inventory', 'system_key')) {
+                $inventoryData['system_key'] = $item[3];
+            }
 
             if (Schema::hasColumn('inventory', 'created_at')) {
                 $inventoryData['created_at'] = now();

@@ -113,9 +113,14 @@
         <div class="container-fluid p-4">
             <div class="mb-3 d-flex justify-content-between align-items-center gap-3">
                 <p class="text-muted small"><i class="bi bi-info-circle"></i> Items marked as Low Stock are automatically prioritized at the top.</p>
-                <button type="button" class="btn btn-primary btn-sm fw-bold shadow-sm flex-shrink-0" data-bs-toggle="modal" data-bs-target="#addInventoryItemModal">
-                    <i class="bi bi-plus-lg me-1"></i> Add Items
-                </button>
+                <div class="d-flex gap-2 flex-shrink-0">
+                    <button type="button" class="btn btn-outline-primary btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#editInventoryItemModal">
+                        <i class="bi bi-pencil-square me-1"></i> Edit Items
+                    </button>
+                    <button type="button" class="btn btn-primary btn-sm fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#addInventoryItemModal">
+                        <i class="bi bi-plus-lg me-1"></i> Add Items
+                    </button>
+                </div>
             </div>
 
             <div class="card border-0 shadow-sm rounded-15 overflow-hidden">
@@ -135,17 +140,8 @@
                         <tbody>
                             @forelse($inventory as $item)
                                 @php
-                                    $item_name_lower = strtolower($item->item_name);
                                     $unit_display = $item->unit;
                                     $status_threshold = (int) $item->min_threshold;
-                                    if(strpos($item_name_lower, 'detergent') !== false || strpos($item_name_lower, 'softener') !== false || strpos($item_name_lower, 'downy') !== false) {
-                                        $unit_display = "Sachets";
-                                        $status_threshold = 15;
-                                    } elseif (strpos($item_name_lower, 'spray') !== false) {
-                                        $status_threshold = 5;
-                                    } elseif (strpos($item_name_lower, 'lpg') !== false || strpos($item_name_lower, 'gas') !== false) {
-                                        $status_threshold = 3;
-                                    }
                                     $is_low = $item->stock_level <= $status_threshold;
                                 @endphp
                                 <tr class="{{ $is_low ? 'low-stock-row' : '' }}">
@@ -188,6 +184,59 @@
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editInventoryItemModal" tabindex="-1" aria-labelledby="editInventoryItemLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-15">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h5 class="fw-bold mb-1" id="editInventoryItemLabel">Edit Inventory Item</h5>
+                    <p class="text-muted small mb-0">Change the item's name or minimum stock threshold.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('admin.inventory.items.update') }}" method="POST">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="return_branch_id" value="{{ $selected_branch }}">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="editInventorySelect" class="form-label small fw-bold">Select Item</label>
+                        <select name="item_id" id="editInventorySelect" class="form-select @error('item_id') is-invalid @enderror" required>
+                            <option value="">Select an item</option>
+                            @foreach($inventory_items as $inventoryItem)
+                                <option
+                                    value="{{ $inventoryItem->id }}"
+                                    data-item-name="{{ $inventoryItem->item_name }}"
+                                    data-threshold="{{ $inventoryItem->min_threshold }}"
+                                    @selected((string) old('item_id') === (string) $inventoryItem->id)
+                                >
+                                    {{ $inventoryItem->branch_name }} — {{ $inventoryItem->item_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('item_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="mb-3">
+                        <label for="editInventoryName" class="form-label small fw-bold">Item Name</label>
+                        <input type="text" name="item_name" id="editInventoryName" class="form-control @error('item_name') is-invalid @enderror" value="{{ old('item_name') }}" maxlength="100" required>
+                        @error('item_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div>
+                        <label for="editInventoryThreshold" class="form-label small fw-bold">Minimum Stock Threshold</label>
+                        <input type="number" name="min_threshold" id="editInventoryThreshold" class="form-control @error('min_threshold') is-invalid @enderror" value="{{ old('min_threshold') }}" min="0" step="1" required>
+                        @error('min_threshold')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        <small class="text-muted">Items at or below this quantity will be marked Low Stock.</small>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-8 fw-bold px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-8 fw-bold px-4 shadow-sm">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -301,6 +350,23 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    const editInventorySelect = document.getElementById('editInventorySelect');
+    const editInventoryName = document.getElementById('editInventoryName');
+    const editInventoryThreshold = document.getElementById('editInventoryThreshold');
+
+    editInventorySelect?.addEventListener('change', function () {
+        const selectedOption = this.options[this.selectedIndex];
+        editInventoryName.value = selectedOption.dataset.itemName || '';
+        editInventoryThreshold.value = selectedOption.dataset.threshold || '';
+    });
+
+    @if($errors->has('item_name') && old('item_id'))
+        editInventoryName.value = @js(old('item_name'));
+    @endif
+    @if($errors->has('min_threshold') && old('item_id'))
+        editInventoryThreshold.value = @js(old('min_threshold'));
+    @endif
+
     document.addEventListener('DOMContentLoaded', function () {
         // Sidebar Toggle Logic for Mobile
         const sidebar = document.getElementById('sidebar');
@@ -355,9 +421,22 @@
         });
         window.history.replaceState({}, '', "{{ route('admin.inventory', ['branch_id' => $selected_branch]) }}");
     }
+    if (urlParams.has('status') && urlParams.get('status') === 'item-updated') {
+        Swal.fire({
+            icon: 'success',
+            title: 'Inventory Item Updated',
+            text: 'The item name and minimum threshold have been updated.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+        window.history.replaceState({}, '', "{{ route('admin.inventory', ['branch_id' => $selected_branch]) }}");
+    }
 
-    @if($errors->has('branch_id') || $errors->has('item_name') || $errors->has('stock_level') || $errors->has('unit') || $errors->has('min_threshold'))
+    @if($errors->has('branch_id') || $errors->has('stock_level') || $errors->has('unit') || (!old('item_id') && ($errors->has('item_name') || $errors->has('min_threshold'))))
         new bootstrap.Modal(document.getElementById('addInventoryItemModal')).show();
+    @endif
+    @if($errors->has('item_id') || (old('item_id') && ($errors->has('item_name') || $errors->has('min_threshold'))))
+        new bootstrap.Modal(document.getElementById('editInventoryItemModal')).show();
     @endif
 
     document.querySelector('.logout-btn')?.addEventListener('click', function(e) {

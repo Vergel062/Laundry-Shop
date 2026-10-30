@@ -120,58 +120,53 @@
 
             <div class="container-fluid p-4">
                 
-                {{-- LPG Critical Warning (Alert kapag 2 o pababa) --}}
-            @if (isset($lpg) && $lpg && $lpg->stock_level <= 2)
+            @if (isset($lpg) && $lpg && $lpg->stock_level <= $lpg->min_threshold)
             <div class="alert alert-danger border-0 shadow-sm rounded-4 mb-3 d-flex align-items-center animate__animated animate__pulse animate__infinite">
                 <i class="bi bi-fuel-pump-fill fs-2 me-3"></i>
                 <div>
-                    <h6 class="fw-bold mb-0 text-danger">LPG CRITICAL WARNING</h6>
-                    <p class="small mb-0 text-dark">Detected low gas level. Please coordinate for a refill immediately. Current: <span class="fw-bold">{{ number_format($lpg->stock_level, 0) }} Tanks</span></p>
+                    <h6 class="fw-bold mb-0 text-danger">{{ strtoupper($lpg->item_name) }} CRITICAL WARNING</h6>
+                    <p class="small mb-0 text-dark">Detected low stock. Please coordinate for a refill immediately. Current: <span class="fw-bold">{{ number_format($lpg->stock_level, 0) }} {{ $lpg->unit }}</span></p>
                 </div>
             </div>
             @endif
 
-                {{-- Low Stock Cards for Detergent, Softener, and Spray --}}
                 <div class="row mb-3">
-                    {{-- Detergent Alert (Alert kapag 15 o pababa) --}}
-                    @if (isset($detergent) && $detergent && $detergent->stock_level <= 15)
+                    @if (isset($detergent) && $detergent && $detergent->stock_level <= $detergent->min_threshold)
                     <div class="col-md-4">
                         <div class="card border-0 shadow-sm rounded-4 mb-3" style="border-left: 5px solid #0dcaf0 !important;">
                             <div class="card-body p-3 d-flex align-items-center">
                                 <i class="bi bi-droplet-fill text-info fs-3 me-3"></i>
                                 <div>
-                                    <h6 class="fw-bold mb-0 small">Low Detergent</h6>
-                                    <small class="text-muted">Stock: <span class="text-danger fw-bold">{{ number_format($detergent->stock_level, 0) }} Sachets</span></small>
+                                    <h6 class="fw-bold mb-0 small">Low {{ $detergent->item_name }}</h6>
+                                    <small class="text-muted">Stock: <span class="text-danger fw-bold">{{ number_format($detergent->stock_level, 0) }} {{ $detergent->unit }}</span></small>
                                 </div>
                             </div>
                         </div>
                     </div>
                     @endif
 
-                    {{-- Softener Alert (Alert kapag 15 o pababa) --}}
-                    @if (isset($downy) && $downy && $downy->stock_level <= 15)
+                    @if (isset($downy) && $downy && $downy->stock_level <= $downy->min_threshold)
                     <div class="col-md-4">
                         <div class="card border-0 shadow-sm rounded-4 mb-3" style="border-left: 5px solid #e83e8c !important;">
                             <div class="card-body p-3 d-flex align-items-center">
                                 <i class="bi bi-heart-fill fs-3 me-3" style="color: #e83e8c;"></i>
                                 <div>
-                                    <h6 class="fw-bold mb-0 small">Low Softener</h6>
-                                    <small class="text-muted">Stock: <span class="text-danger fw-bold">{{ number_format($downy->stock_level, 0) }} Sachets</span></small>
+                                    <h6 class="fw-bold mb-0 small">Low {{ $downy->item_name }}</h6>
+                                    <small class="text-muted">Stock: <span class="text-danger fw-bold">{{ number_format($downy->stock_level, 0) }} {{ $downy->unit }}</span></small>
                                 </div>
                             </div>
                         </div>
                     </div>
                     @endif
 
-                    {{-- Fabric Spray Alert (Alert kapag 5 o pababa) --}}
-                    @if (isset($spray) && $spray && $spray->stock_level <= 5)
+                    @if (isset($spray) && $spray && $spray->stock_level <= $spray->min_threshold)
                     <div class="col-md-4">
                         <div class="card border-0 shadow-sm rounded-4 mb-3" style="border-left: 5px solid #6610f2 !important;">
                             <div class="card-body p-3 d-flex align-items-center">
                                 <i class="bi bi-wind text-primary fs-3 me-3"></i>
                                 <div>
-                                    <h6 class="fw-bold mb-0 small">Low Fabric Spray</h6>
-                                    <small class="text-muted">Stock: <span class="text-danger fw-bold">{{ number_format($spray->stock_level, 0) }} Gallons</span></small>
+                                    <h6 class="fw-bold mb-0 small">Low {{ $spray->item_name }}</h6>
+                                    <small class="text-muted">Stock: <span class="text-danger fw-bold">{{ number_format($spray->stock_level, 0) }} {{ $spray->unit }}</span></small>
                                 </div>
                             </div>
                         </div>

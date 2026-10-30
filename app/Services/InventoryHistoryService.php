@@ -6,16 +6,16 @@ use Illuminate\Support\Facades\DB;
 
 class InventoryHistoryService
 {
-    public static function adjustByItemName(
+    public static function adjustBySystemKey(
         int $branchId,
-        string $pattern,
+        string $systemKey,
         int $delta,
         string $source,
         ?int $userId = null
     ): void {
         $item = DB::table('inventory')
             ->where('branch_id', $branchId)
-            ->where('item_name', 'like', $pattern)
+            ->where('system_key', $systemKey)
             ->first();
 
         if (!$item) {
@@ -32,16 +32,16 @@ class InventoryHistoryService
         self::record($item, $before, $after, $source, $userId);
     }
 
-    public static function setByItemName(
+    public static function setBySystemKey(
         int $branchId,
-        string $pattern,
+        string $systemKey,
         int $stock,
         string $source,
         ?int $userId = null
     ): void {
         $item = DB::table('inventory')
             ->where('branch_id', $branchId)
-            ->where('item_name', 'like', $pattern)
+            ->where('system_key', $systemKey)
             ->first();
 
         if (!$item) {
