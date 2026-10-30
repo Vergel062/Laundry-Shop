@@ -336,25 +336,31 @@
                         <div class="row g-2">
                             <div class="col-6">
                                 <label class="form-label extra-small fw-bold text-muted" style="font-size: 11px;">Powder Detergent</label>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text bg-white"><i class="bi bi-droplet"></i></span>
-                                    <input type="number" name="det_qty" class="form-control" placeholder="0" min="0" step="1" onfocus="this.select()">
-                                </div>
+                                <select name="det_inventory_id" class="form-select form-select-sm sachet-inventory-select" data-quantity="det_qty">
+                                    <option value="">Select powder item</option>
+                                    @foreach($powderItems ?? [] as $item)
+                                        <option value="{{ $item->id }}" data-stock="{{ $item->stock_level }}">{{ $item->item_name }} ({{ $item->stock_level }} available)</option>
+                                    @endforeach
+                                </select>
+                                <input type="number" name="det_qty" class="form-control form-control-sm mt-2 sachet-quantity" placeholder="Quantity" min="0" step="1" value="0" onfocus="this.select()">
                             </div>
                             <div class="col-6">
                                 <label class="form-label extra-small fw-bold text-muted" style="font-size: 11px;">Downy Softener</label>
-                                <div class="input-group input-group-sm">
-                                    <span class="input-group-text bg-white"><i class="bi bi-heart"></i></span>
-                                    <input type="number" name="soft_qty" class="form-control" placeholder="0" min="0" step="1" onfocus="this.select()">
-                                </div>
+                                <select name="soft_inventory_id" class="form-select form-select-sm sachet-inventory-select" data-quantity="soft_qty">
+                                    <option value="">Select softener item</option>
+                                    @foreach($softenerItems ?? [] as $item)
+                                        <option value="{{ $item->id }}" data-stock="{{ $item->stock_level }}">{{ $item->item_name }} ({{ $item->stock_level }} available)</option>
+                                    @endforeach
+                                </select>
+                                <input type="number" name="soft_qty" class="form-control form-control-sm mt-2 sachet-quantity" placeholder="Quantity" min="0" step="1" value="0" onfocus="this.select()">
                             </div>
                         </div>
-                        <small class="text-muted d-block mt-1" style="font-size: 10px;">Enter the quantity of sachets consumed (leave blank if not applicable).</small>
+                        <small class="text-muted d-block mt-1 sachet-charge-hint" style="font-size: 10px;">First 3 sachets combined are free; each additional sachet costs ₱10.</small>
                     </div>
 
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Total Amount (₱)</label>
-                        <input type="number" step="0.01" name="amount" id="amountInput" class="form-control fw-bold text-primary" placeholder="0.00" required readonly>
+                        <input type="number" step="0.01" name="amount" id="amountInput" class="form-control fw-bold text-primary" placeholder="0.00" readonly>
                     </div>
                 </div>
 
@@ -405,10 +411,18 @@
         function updateAmount() {
             const weight = parseFloat(weightInput?.value) || 0;
             const basePrice = parseFloat(serviceSelect?.selectedOptions[0]?.dataset.basePrice) || 0;
+            const detergentQty = parseInt(document.querySelector('[name="det_qty"]')?.value, 10) || 0;
+            const softenerQty = parseInt(document.querySelector('[name="soft_qty"]')?.value, 10) || 0;
+            const sachetCharge = Math.max(0, detergentQty + softenerQty - 3) * 10;
             if (amountInput) {
                 amountInput.value = weight > 0 && basePrice > 0
-                    ? (basePrice + Math.max(0, weight - 8) * 10).toFixed(2)
+                    ? (basePrice + Math.max(0, weight - 8) * 10 + sachetCharge).toFixed(2)
                     : '';
+            }
+
+            const hint = document.querySelector('.sachet-charge-hint');
+            if (hint) {
+                hint.textContent = `Sachet charge: ₱${sachetCharge.toFixed(2)} (first 3 combined are free).`;
             }
         }
 
@@ -419,7 +433,21 @@
                 weightInput.value = '';
                 document.getElementById('serviceSelect').value = '';
                 amountInput.value = '';
+                document.querySelector('[name="det_qty"]').value = 0;
+                document.querySelector('[name="soft_qty"]').value = 0;
+                document.querySelector('[name="det_inventory_id"]').value = '';
+                document.querySelector('[name="soft_inventory_id"]').value = '';
+                updateAmount();
             });
+        });
+
+        document.getElementById('newOrderModal')?.addEventListener('hidden.bs.modal', function () {
+            const orderForm = document.getElementById('orderForm');
+            orderForm?.reset();
+            orderForm?.querySelectorAll('.sachet-quantity').forEach(input => {
+                input.max = '';
+            });
+            updateAmount();
         });
 
         document.querySelectorAll('.cancel-service-request-form').forEach(form => {
@@ -448,6 +476,21 @@
             weightInput.addEventListener('input', updateAmount);
         }
         serviceSelect?.addEventListener('change', updateAmount);
+        document.querySelectorAll('[name="det_qty"], [name="soft_qty"]').forEach(input => {
+            input.addEventListener('input', updateAmount);
+        });
+        document.querySelectorAll('.sachet-inventory-select').forEach(select => {
+            select.addEventListener('change', function () {
+                const quantityInput = document.querySelector(`[name="${this.dataset.quantity}"]`);
+                const stock = parseInt(this.selectedOptions[0]?.dataset.stock, 10);
+                if (quantityInput) {
+                    quantityInput.max = Number.isFinite(stock) ? stock : '';
+                    if (Number.isFinite(stock) && parseInt(quantityInput.value, 10) > stock) {
+                        quantityInput.value = stock;
+                    }
+                }
+            });
+        });
 
         // 3. EDIT STATUS MODAL DATA HANDLER
         document.querySelectorAll('.edit-btn').forEach(btn => {

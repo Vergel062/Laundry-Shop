@@ -45,6 +45,30 @@ class DailyServiceQueueTest extends TestCase
             $table->timestamp('created_at')->nullable();
         });
 
+        Schema::create('inventory', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('branch_id');
+            $table->string('item_name');
+            $table->string('unit');
+            $table->integer('stock_level')->default(0);
+            $table->string('system_key', 40)->nullable();
+            $table->timestamp('last_updated')->nullable();
+        });
+
+        Schema::create('inventory_history', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('inventory_id')->nullable();
+            $table->unsignedBigInteger('branch_id');
+            $table->string('item_name');
+            $table->string('movement_type');
+            $table->unsignedInteger('quantity');
+            $table->unsignedInteger('stock_before');
+            $table->unsignedInteger('stock_after');
+            $table->string('source');
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->timestamp('created_at')->nullable();
+        });
+
         Schema::create('daily_service_requests', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('branch_id');
@@ -287,6 +311,95 @@ class DailyServiceQueueTest extends TestCase
         $this->assertDatabaseCount('transactions', 50);
     }
 
+    public function test_staff_order_charges_only_for_sachets_beyond_the_combined_free_quota_and_deducts_selected_items(): void
+    {
+        $powderId = $this->createSachetItem(1, 'Powder Detergent', 'detergent', 8);
+        $softenerId = $this->createSachetItem(1, 'Downy Softener', 'softener', 6);
+
+        $this->actingAs($this->user(20, 'staff', 1))
+            ->postJson(route('staff.save.order'), [
+                'user_id' => 10,
+                'weight' => 4,
+                'service' => 'Wash-Dry',
+                'det_inventory_id' => $powderId,
+                'det_qty' => 2,
+                'soft_inventory_id' => $softenerId,
+                'soft_qty' => 1,
+                'amount' => 1,
+            ])
+            ->assertOk()
+            ->assertJsonPath('status', 'success');
+
+        $this->assertDatabaseHas('transactions', ['total_amount' => 130]);
+        $this->assertDatabaseHas('inventory', ['id' => $powderId, 'stock_level' => 6]);
+        $this->assertDatabaseHas('inventory', ['id' => $softenerId, 'stock_level' => 5]);
+        $this->assertDatabaseCount('inventory_history', 2);
+    }
+
+    public function test_manager_order_charges_ten_pesos_for_each_sachet_after_the_first_three(): void
+    {
+        $powderId = $this->createSachetItem(1, 'Detergent', 'detergent', 8);
+        $softenerId = $this->createSachetItem(1, 'Downy / Softener', 'softener', 8);
+
+        $this->actingAs($this->user(21, 'manager', 1))
+            ->postJson(route('manager.save.order'), [
+                'user_id' => 10,
+                'weight' => 4,
+                'service' => 'Wash-Dry',
+                'det_inventory_id' => $powderId,
+                'det_qty' => 2,
+                'soft_inventory_id' => $softenerId,
+                'soft_qty' => 2,
+                'amount' => 130,
+            ])
+            ->assertOk()
+            ->assertJsonPath('status', 'success');
+
+        $this->assertDatabaseHas('transactions', ['total_amount' => 140]);
+        $this->assertDatabaseHas('inventory', ['id' => $powderId, 'stock_level' => 6]);
+        $this->assertDatabaseHas('inventory', ['id' => $softenerId, 'stock_level' => 6]);
+    }
+
+    public function test_order_rejects_inventory_from_another_branch_without_saving_or_deducting(): void
+    {
+        $otherBranchPowderId = $this->createSachetItem(2, 'Powder Detergent', 'detergent', 8);
+
+        $this->actingAs($this->user(20, 'staff', 1))
+            ->postJson(route('staff.save.order'), [
+                'user_id' => 10,
+                'weight' => 4,
+                'service' => 'Wash-Dry',
+                'det_inventory_id' => $otherBranchPowderId,
+                'det_qty' => 1,
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseCount('transactions', 0);
+        $this->assertDatabaseHas('inventory', ['id' => $otherBranchPowderId, 'stock_level' => 8]);
+        $this->assertDatabaseCount('inventory_history', 0);
+    }
+
+    public function test_order_rolls_back_if_selected_sachet_stock_is_insufficient(): void
+    {
+        $powderId = $this->createSachetItem(1, 'Powder Detergent', 'detergent', 1);
+
+        $this->actingAs($this->user(20, 'staff', 1))
+            ->postJson(route('staff.save.order'), [
+                'user_id' => 10,
+                'weight' => 4,
+                'service' => 'Wash-Dry',
+                'det_inventory_id' => $powderId,
+                'det_qty' => 2,
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('status', 'error');
+
+        $this->assertDatabaseCount('transactions', 0);
+        $this->assertDatabaseHas('inventory', ['id' => $powderId, 'stock_level' => 1]);
+        $this->assertDatabaseCount('inventory_history', 0);
+    }
+
     public function test_unapproved_requests_do_not_consume_queue_numbers(): void
     {
         DB::table('transactions')->insert([
@@ -348,6 +461,17 @@ class DailyServiceQueueTest extends TestCase
         ]);
 
         return $user;
+    }
+
+    private function createSachetItem(int $branchId, string $name, string $systemKey, int $stock): int
+    {
+        return DB::table('inventory')->insertGetId([
+            'branch_id' => $branchId,
+            'item_name' => $name,
+            'unit' => 'Sachets',
+            'stock_level' => $stock,
+            'system_key' => $systemKey,
+        ]);
     }
 
     private function recordQueuedService(int $branchId, array $queue): void

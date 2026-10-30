@@ -15,29 +15,46 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('overlay')?.addEventListener('click', toggleSidebar);
 
     // 2. Automatic Price Calculation
+    function updateOrderAmount() {
+        const weight = parseFloat(document.getElementById('weightInput')?.value) || 0;
+        const serviceSelect = document.getElementById('serviceSelect');
+        const amountField = document.getElementById('amountInput');
+        const basePrice = parseFloat(serviceSelect?.selectedOptions[0]?.dataset.basePrice) || 0;
+        const detergentQty = parseInt(document.querySelector('[name="det_qty"]')?.value, 10) || 0;
+        const softenerQty = parseInt(document.querySelector('[name="soft_qty"]')?.value, 10) || 0;
+        const sachetCharge = Math.max(0, detergentQty + softenerQty - 3) * 10;
+
+        if (amountField) {
+            amountField.value = weight > 0 && basePrice > 0
+                ? (basePrice + Math.max(0, weight - 8) * 10 + sachetCharge).toFixed(2)
+                : '';
+        }
+
+        const hint = document.querySelector('.sachet-charge-hint');
+        if (hint) {
+            hint.textContent = `Sachet charge: ₱${sachetCharge.toFixed(2)} (first 3 combined are free).`;
+        }
+    }
+
     document.addEventListener('input', function (e) {
-        if (e.target && e.target.id === 'weightInput') {
-            const weight = parseFloat(e.target.value) || 0;
-            const amountField = document.getElementById('amountInput');
-            const serviceSelect = document.getElementById('serviceSelect');
-            const basePrice = parseFloat(serviceSelect?.selectedOptions[0]?.dataset.basePrice) || 0;
-            if (amountField) {
-                amountField.value = weight > 0 && basePrice > 0
-                    ? (basePrice + Math.max(0, weight - 8) * 10).toFixed(2)
-                    : '';
-            }
+        if (e.target && ['weightInput', 'det_qty', 'soft_qty'].includes(e.target.id || e.target.name)) {
+            updateOrderAmount();
         }
     });
 
     document.addEventListener('change', function (e) {
-        if (e.target && e.target.id === 'serviceSelect') {
-            const weight = parseFloat(document.getElementById('weightInput')?.value) || 0;
-            const basePrice = parseFloat(e.target.selectedOptions[0]?.dataset.basePrice) || 0;
-            const amountField = document.getElementById('amountInput');
-            if (amountField) {
-                amountField.value = weight > 0 && basePrice > 0
-                    ? (basePrice + Math.max(0, weight - 8) * 10).toFixed(2)
-                    : '';
+        if (e.target?.id === 'serviceSelect') {
+            updateOrderAmount();
+        }
+
+        if (e.target?.matches('.sachet-inventory-select')) {
+            const quantityInput = document.querySelector(`[name="${e.target.dataset.quantity}"]`);
+            const stock = parseInt(e.target.selectedOptions[0]?.dataset.stock, 10);
+            if (quantityInput) {
+                quantityInput.max = Number.isFinite(stock) ? stock : '';
+                if (Number.isFinite(stock) && parseInt(quantityInput.value, 10) > stock) {
+                    quantityInput.value = stock;
+                }
             }
         }
     });
@@ -45,6 +62,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // 3. Save Order via AJAX
     const orderForm = document.getElementById('orderForm');
     if (orderForm) {
+        document.getElementById('newOrderModal')?.addEventListener('hidden.bs.modal', function () {
+            orderForm.reset();
+            orderForm.querySelectorAll('.sachet-quantity').forEach(input => {
+                input.max = '';
+            });
+            updateOrderAmount();
+        });
+
         orderForm.addEventListener('submit', function(e) {
             e.preventDefault();
             Swal.fire({ title: 'Processing Order...', didOpen: () => { Swal.showLoading(); } });

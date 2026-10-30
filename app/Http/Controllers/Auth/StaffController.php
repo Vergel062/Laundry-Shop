@@ -6,8 +6,8 @@ use App\Exceptions\DailyServiceQueueFull;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Services\InventoryHistoryService;
 use App\Services\DailyServiceQueue;
+use App\Services\LaundrySachetUsage;
 use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
@@ -111,6 +111,10 @@ class StaffController extends Controller
             ->limit(10)
             ->get();
 
+        $sachetUsage = app(LaundrySachetUsage::class);
+        $powderItems = $sachetUsage->itemsForBranch((int) $my_branch, 'detergent');
+        $softenerItems = $sachetUsage->itemsForBranch((int) $my_branch, 'softener');
+
         // 3. Ipasa ang branchName sa view gamit ang compact
         return view('staff.dashboard', compact(
             'pending_count',
@@ -125,7 +129,9 @@ class StaffController extends Controller
             'customers',
             'orders',
             'filter',
-            'branchName'
+            'branchName',
+            'powderItems',
+            'softenerItems'
         ));
     }
 
@@ -134,11 +140,12 @@ class StaffController extends Controller
         try {
             $request->validate([
                 'user_id' => 'required',
-                'weight' => 'required|numeric',
+                'weight' => 'required|numeric|min:0',
                 'service' => 'required|in:Wash Only,Dry Only,Wash-Dry,Wash-Dry-Fold,Comforter (Wash Only),Comforter (Dry Only),Comforter (Wash-Dry),Comforter (Wash-Dry-Fold)',
                 'det_qty' => 'nullable|integer|min:0',
                 'soft_qty' => 'nullable|integer|min:0',
-                'amount' => 'required|numeric',
+                'det_inventory_id' => 'nullable|integer',
+                'soft_inventory_id' => 'nullable|integer',
                 'request_id' => 'nullable|integer|exists:transactions,id',
             ]);
 
@@ -147,20 +154,13 @@ class StaffController extends Controller
             $refNumber = 'LC-' . strtoupper(substr(uniqid(), -6));
             
             $phTime = Carbon::now('Asia/Manila');
-            $basePrices = [
-                'Wash Only' => 70,
-                'Dry Only' => 60,
-                'Wash-Dry' => 130,
-                'Wash-Dry-Fold' => 170,
-                'Comforter (Wash Only)' => 140,
-                'Comforter (Dry Only)' => 130,
-                'Comforter (Wash-Dry)' => 200,
-                'Comforter (Wash-Dry-Fold)' => 240,
-            ];
             $weight = (float) $request->weight;
-            $amount = $basePrices[$request->service] + (max(0, $weight - 8) * 10);
+            $detQty = (int) $request->input('det_qty', 0);
+            $softQty = (int) $request->input('soft_qty', 0);
+            $sachetUsage = app(LaundrySachetUsage::class);
+            $amount = $sachetUsage->totalAmount($request->service, $weight, $detQty, $softQty);
 
-            DB::transaction(function () use ($request, $staff_id, $my_branch, $refNumber, $phTime, $amount, $weight) {
+            DB::transaction(function () use ($request, $staff_id, $my_branch, $refNumber, $phTime, $amount, $weight, $detQty, $softQty, $sachetUsage) {
                 $queue = app(DailyServiceQueue::class)->assignNext((int) $my_branch, $phTime);
                 $requestQuery = DB::table('transactions')
                     ->where('id', $request->input('request_id'))
@@ -202,15 +202,15 @@ class StaffController extends Controller
                     ]);
                 }
 
-                $detQty = $request->input('det_qty', 0);
-                if ($detQty > 0) {
-                    InventoryHistoryService::adjustBySystemKey($my_branch, 'detergent', -$detQty, 'Staff service order usage', $staff_id);
-                }
-
-                $softQty = $request->input('soft_qty', 0);
-                if ($softQty > 0) {
-                    InventoryHistoryService::adjustBySystemKey($my_branch, 'softener', -$softQty, 'Staff service order usage', $staff_id);
-                }
+                $sachetUsage->consume(
+                    (int) $my_branch,
+                    $request->filled('det_inventory_id') ? (int) $request->input('det_inventory_id') : null,
+                    $detQty,
+                    $request->filled('soft_inventory_id') ? (int) $request->input('soft_inventory_id') : null,
+                    $softQty,
+                    'Staff service order usage',
+                    (int) $staff_id
+                );
             });
 
             return response()->json([
@@ -227,6 +227,12 @@ class StaffController extends Controller
             return response()->json([
                 'status' => 'error',
                 'message' => $e->getMessage(),
+            ], 422);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->validator->errors()->first(),
+                'errors' => $e->errors(),
             ], 422);
         } catch (\Exception $e) {
             return response()->json([

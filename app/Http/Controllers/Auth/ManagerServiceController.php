@@ -6,7 +6,7 @@ use App\Exceptions\DailyServiceQueueFull;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Services\InventoryHistoryService;
+use App\Services\LaundrySachetUsage;
 use App\Services\DailyServiceQueue;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
@@ -85,13 +85,19 @@ class ManagerServiceController extends Controller
             ->paginate(20)
             ->appends($request->query());
 
+        $sachetUsage = app(LaundrySachetUsage::class);
+        $powderItems = $sachetUsage->itemsForBranch((int) $branch_id, 'detergent');
+        $softenerItems = $sachetUsage->itemsForBranch((int) $branch_id, 'softener');
+
         return view('manager.service_list', compact(
             'branch_name',
             'start_date',
             'end_date',
             'search_val',
             'transactions',
-            'customers'
+            'customers',
+            'powderItems',
+            'softenerItems'
         ));
     }
 
@@ -103,11 +109,12 @@ class ManagerServiceController extends Controller
         try {
             $request->validate([
                 'user_id' => 'required',
-                'weight' => 'required|numeric',
+                'weight' => 'required|numeric|min:0',
                 'service' => 'required|in:Wash Only,Dry Only,Wash-Dry,Wash-Dry-Fold,Comforter (Wash Only),Comforter (Dry Only),Comforter (Wash-Dry),Comforter (Wash-Dry-Fold)',
                 'det_qty' => 'nullable|integer|min:0',
                 'soft_qty' => 'nullable|integer|min:0',
-                'amount' => 'required|numeric',
+                'det_inventory_id' => 'nullable|integer',
+                'soft_inventory_id' => 'nullable|integer',
                 'request_id' => 'nullable|integer|exists:transactions,id',
             ]);
 
@@ -116,20 +123,13 @@ class ManagerServiceController extends Controller
             $refNumber = 'LC-' . strtoupper(substr(uniqid(), -6));
             
             $phTime = Carbon::now('Asia/Manila');
-            $basePrices = [
-                'Wash Only' => 70,
-                'Dry Only' => 60,
-                'Wash-Dry' => 130,
-                'Wash-Dry-Fold' => 170,
-                'Comforter (Wash Only)' => 140,
-                'Comforter (Dry Only)' => 130,
-                'Comforter (Wash-Dry)' => 200,
-                'Comforter (Wash-Dry-Fold)' => 240,
-            ];
             $weight = (float) $request->weight;
-            $amount = $basePrices[$request->service] + (max(0, $weight - 8) * 10);
+            $detQty = (int) $request->input('det_qty', 0);
+            $softQty = (int) $request->input('soft_qty', 0);
+            $sachetUsage = app(LaundrySachetUsage::class);
+            $amount = $sachetUsage->totalAmount($request->service, $weight, $detQty, $softQty);
 
-            DB::transaction(function () use ($request, $manager_id, $my_branch, $refNumber, $phTime, $amount, $weight) {
+            DB::transaction(function () use ($request, $manager_id, $my_branch, $refNumber, $phTime, $amount, $weight, $detQty, $softQty, $sachetUsage) {
                 $queue = app(DailyServiceQueue::class)->assignNext((int) $my_branch, $phTime);
                 $requestQuery = DB::table('transactions')
                     ->where('id', $request->input('request_id'))
@@ -171,17 +171,15 @@ class ManagerServiceController extends Controller
                     ]);
                 }
 
-                // Bawasan ang Inventory kung may ginamit na Detergent
-                $detQty = $request->input('det_qty', 0);
-                if ($detQty > 0) {
-                    InventoryHistoryService::adjustBySystemKey($my_branch, 'detergent', -$detQty, 'Manager service order usage', $manager_id);
-                }
-
-                // Bawasan ang Inventory kung may ginamit na Fabric Softener (Downy)
-                $softQty = $request->input('soft_qty', 0);
-                if ($softQty > 0) {
-                    InventoryHistoryService::adjustBySystemKey($my_branch, 'softener', -$softQty, 'Manager service order usage', $manager_id);
-                }
+                $sachetUsage->consume(
+                    (int) $my_branch,
+                    $request->filled('det_inventory_id') ? (int) $request->input('det_inventory_id') : null,
+                    $detQty,
+                    $request->filled('soft_inventory_id') ? (int) $request->input('soft_inventory_id') : null,
+                    $softQty,
+                    'Manager service order usage',
+                    $manager_id ? (int) $manager_id : null
+                );
             });
 
             if ($request->wantsJson()) {
@@ -211,6 +209,16 @@ class ManagerServiceController extends Controller
             }
 
             return redirect()->back()->with('error', $e->getMessage());
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $e->validator->errors()->first(),
+                    'errors' => $e->errors(),
+                ], 422);
+            }
+
+            return redirect()->back()->withErrors($e->errors())->withInput();
         } catch (\Exception $e) {
             if ($request->wantsJson()) {
                 return response()->json([
