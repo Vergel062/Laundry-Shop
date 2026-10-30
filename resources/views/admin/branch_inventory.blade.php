@@ -111,8 +111,11 @@
         </nav>
 
         <div class="container-fluid p-4">
-            <div class="mb-3">
+            <div class="mb-3 d-flex justify-content-between align-items-center gap-3">
                 <p class="text-muted small"><i class="bi bi-info-circle"></i> Items marked as Low Stock are automatically prioritized at the top.</p>
+                <button type="button" class="btn btn-primary btn-sm fw-bold shadow-sm flex-shrink-0" data-bs-toggle="modal" data-bs-target="#addInventoryItemModal">
+                    <i class="bi bi-plus-lg me-1"></i> Add Items
+                </button>
             </div>
 
             <div class="card border-0 shadow-sm rounded-15 overflow-hidden">
@@ -185,6 +188,69 @@
                     </table>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addInventoryItemModal" tabindex="-1" aria-labelledby="addInventoryItemLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-15">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h5 class="fw-bold mb-1" id="addInventoryItemLabel">Add Inventory Item</h5>
+                    <p class="text-muted small mb-0">Add a new item to one branch's inventory.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{{ route('admin.inventory.store') }}" method="POST">
+                @csrf
+                <input type="hidden" name="return_branch_id" value="{{ $selected_branch }}">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="newItemBranch" class="form-label small fw-bold">Branch</label>
+                        <select name="branch_id" id="newItemBranch" class="form-select @error('branch_id') is-invalid @enderror" required>
+                            <option value="">Select a branch</option>
+                            @foreach($branches_dropdown as $branch)
+                                <option value="{{ $branch->id }}" @selected(old('branch_id', $selected_branch !== 'all' ? $selected_branch : '') == $branch->id)>
+                                    {{ $branch->branch_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        @error('branch_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="mb-3">
+                        <label for="newItemName" class="form-label small fw-bold">Item Name</label>
+                        <input type="text" name="item_name" id="newItemName" class="form-control @error('item_name') is-invalid @enderror" value="{{ old('item_name') }}" maxlength="100" required>
+                        @error('item_name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="newItemStock" class="form-label small fw-bold">Starting Stock</label>
+                            <input type="number" name="stock_level" id="newItemStock" class="form-control @error('stock_level') is-invalid @enderror" value="{{ old('stock_level', 0) }}" min="0" step="1" required>
+                            @error('stock_level')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                        <div class="col-md-6">
+                            <label for="newItemUnit" class="form-label small fw-bold">Unit Type</label>
+                            <select name="unit" id="newItemUnit" class="form-select @error('unit') is-invalid @enderror" required>
+                                <option value="">Select unit</option>
+                                @foreach(['Sachets', 'Gallons', 'Tanks', 'Pieces'] as $unit)
+                                    <option value="{{ $unit }}" @selected(old('unit') === $unit)>{{ $unit }}</option>
+                                @endforeach
+                            </select>
+                            @error('unit')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label for="newItemThreshold" class="form-label small fw-bold">Minimum Stock Threshold</label>
+                        <input type="number" name="min_threshold" id="newItemThreshold" class="form-control @error('min_threshold') is-invalid @enderror" value="{{ old('min_threshold', 2) }}" min="0" step="1" required>
+                        @error('min_threshold')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-light rounded-8 fw-bold px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-8 fw-bold px-4 shadow-sm">Add Item</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -279,6 +345,20 @@
         });
         window.history.replaceState({}, '', "{{ route('admin.inventory', ['branch_id' => $selected_branch]) }}");
     }
+    if (urlParams.has('status') && urlParams.get('status') === 'added') {
+        Swal.fire({
+            icon: 'success',
+            title: 'Inventory Item Added',
+            text: 'The new item has been added to the selected branch.',
+            timer: 2000,
+            showConfirmButton: false
+        });
+        window.history.replaceState({}, '', "{{ route('admin.inventory', ['branch_id' => $selected_branch]) }}");
+    }
+
+    @if($errors->has('branch_id') || $errors->has('item_name') || $errors->has('stock_level') || $errors->has('unit') || $errors->has('min_threshold'))
+        new bootstrap.Modal(document.getElementById('addInventoryItemModal')).show();
+    @endif
 
     document.querySelector('.logout-btn')?.addEventListener('click', function(e) {
         e.preventDefault();

@@ -143,6 +143,7 @@ Route::middleware(['auth'])->group(function () {
     // Admin Inventory (BranchInventoryController)
     Route::get('/admin/inventory', [BranchInventoryController::class, 'index'])->name('admin.inventory');
     Route::get('/admin/inventory/history', [BranchInventoryController::class, 'history'])->name('admin.inventory.history');
+    Route::post('/admin/inventory/store', [BranchInventoryController::class, 'store'])->name('admin.inventory.store');
     Route::post('/admin/inventory/update', [BranchInventoryController::class, 'updateStock'])->name('admin.inventory.update');
 
     // Admin Reports & Settings

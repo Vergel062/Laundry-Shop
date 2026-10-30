@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use App\Services\InventoryHistoryService;
 
 class BranchInventoryController extends Controller
@@ -136,6 +137,50 @@ class BranchInventoryController extends Controller
         return redirect()->route('admin.inventory', [
             'branch_id' => $selectedBranch,
             'status' => 'updated',
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $user = auth()->user();
+        if (!$user || $user->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->merge(['item_name' => trim((string) $request->input('item_name'))]);
+        $validated = $request->validate([
+            'branch_id' => 'required|integer|exists:branches,id',
+            'item_name' => [
+                'required',
+                'string',
+                'max:100',
+                Rule::unique('inventory', 'item_name')
+                    ->where('branch_id', $request->input('branch_id')),
+            ],
+            'stock_level' => 'required|integer|min:0',
+            'unit' => ['required', Rule::in(['Sachets', 'Gallons', 'Tanks', 'Pieces'])],
+            'min_threshold' => 'required|integer|min:0',
+        ]);
+
+        DB::transaction(function () use ($validated, $user) {
+            $inventoryId = DB::table('inventory')->insertGetId([
+                'branch_id' => $validated['branch_id'],
+                'item_name' => trim($validated['item_name']),
+                'stock_level' => $validated['stock_level'],
+                'unit' => $validated['unit'],
+                'min_threshold' => $validated['min_threshold'],
+                'last_updated' => now(),
+            ]);
+
+            if ($validated['stock_level'] > 0) {
+                $item = DB::table('inventory')->where('id', $inventoryId)->first();
+                InventoryHistoryService::record($item, 0, $validated['stock_level'], 'Admin added inventory item', $user->id);
+            }
+        });
+
+        return redirect()->route('admin.inventory', [
+            'branch_id' => $request->input('return_branch_id', 'all'),
+            'status' => 'added',
         ]);
     }
 }
