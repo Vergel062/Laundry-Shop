@@ -27,7 +27,7 @@ class AdminUserController extends Controller
             $edit_data = DB::table('users')->where('id', $request->edit_id)->first();
         }
 
-        // Kunin ang active users kasama ang branch name
+        
         $selectedFilter = $request->input('filter', 'all');
         $userSearch = trim((string) $request->input('user_search', ''));
 
