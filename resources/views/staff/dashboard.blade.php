@@ -76,7 +76,7 @@
     <div class="overlay" id="overlay"></div>
 
     <div class="d-flex">
-       <nav id="sidebar" class="shadow">
+       <nav id="sidebar" class="shadow staff-sidebar">
         <div class="p-4 text-center position-relative">
             <h4 class="fw-bold mb-0">
                 <i class="bi bi-droplet-half text-info"></i> Staff
@@ -89,7 +89,7 @@
             </button>
         </div>
 
-       <ul class="nav flex-column mt-3">
+       <ul class="nav flex-column mt-3 staff-sidebar-nav">
             <li class="nav-item"><a href="{{ route('staff.dashboard') }}" class="nav-link active"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
             <li class="nav-item"><a href="{{ route('staff.services') }}" class="nav-link"><i class="bi bi-clock-history"></i>Transaction History</a></li>
             @if(auth()->user()->can_verify_payments)
@@ -103,7 +103,7 @@
                         <span><i class="bi bi-file-earmark-bar-graph"></i> Reports</span>
                         <i class="bi bi-chevron-down small"></i>
                     </a>
-                    <div class="collapse staff-reports-dropdown" id="staffReportsDropdown">
+                    <div class="collapse" id="staffReportsDropdown">
                         <ul class="nav flex-column ps-3">
                             <li class="nav-item"><a href="{{ route('staff.transaction.report') }}" class="nav-link"><i class="bi bi-file-earmark-text"></i> Transaction Report</a></li>
                             <li class="nav-item"><a href="{{ route('staff.financial.report') }}" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Financial Report</a></li>
@@ -114,7 +114,7 @@
             @endif
             <hr class="mx-3 opacity-25">
             
-            <li class="nav-item mt-1">
+            <li class="nav-item staff-sidebar-logout">
                 <form action="{{ route('logout') }}" method="POST" id="logoutForm">
                     @csrf
                     <button type="submit" class="nav-link text-danger logout-btn border-0 bg-transparent w-100 text-start">

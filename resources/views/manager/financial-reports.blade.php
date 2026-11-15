@@ -27,7 +27,7 @@
 
 <div class="app-container">
     <!-- SIDEBAR -->
-    <nav id="sidebar" class="no-print">
+    <nav id="sidebar" class="no-print {{ $isStaffReport ? 'staff-sidebar' : '' }}">
         <div class="sidebar-brand p-4 text-center d-flex align-items-center justify-content-between">
             @if($isStaffReport)
                 <h4 class="fw-bold mb-0"><i class="bi bi-droplet-half text-info"></i> Staff <span class="small text-muted" style="font-size: 10px;">STAFF</span></h4>
@@ -36,7 +36,7 @@
             @endif
             <button class="btn text-white d-lg-none p-0 border-0" id="closeSidebar"><i class="bi bi-x-lg fs-4"></i></button>
         </div>
-        <ul class="nav flex-column mt-2">
+        <ul class="nav flex-column mt-2 {{ $isStaffReport ? 'staff-sidebar-nav' : '' }}">
             @if($isStaffReport)
                 <li class="nav-item"><a href="{{ route('staff.dashboard') }}" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
                 <li class="nav-item"><a href="{{ route('staff.services') }}" class="nav-link"><i class="bi bi-clock-history"></i> Transaction History</a></li>
@@ -50,7 +50,7 @@
                         <span><i class="bi bi-file-earmark-bar-graph"></i> Reports</span>
                         <i class="bi bi-chevron-down small"></i>
                     </a>
-                    <div class="collapse show staff-reports-dropdown" id="staffReportsDropdown">
+                    <div class="collapse show" id="staffReportsDropdown">
                         <ul class="nav flex-column ps-3">
                             <li class="nav-item"><a href="{{ route('staff.transaction.report') }}" class="nav-link"><i class="bi bi-file-earmark-text"></i> Transaction Report</a></li>
                             <li class="nav-item"><a href="{{ route('staff.financial.report') }}" class="nav-link active"><i class="bi bi-graph-up-arrow"></i> Financial Report</a></li>
@@ -107,7 +107,7 @@
                     </ul>
                 </div>
             </li>
-            <li class="nav-item mt-2">
+            <li class="nav-item {{ $isStaffReport ? 'staff-sidebar-logout' : 'mt-2' }}">
                 <form id="logoutForm" action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="button" class="nav-link text-danger logout-manager-btn border-0 bg-transparent w-100 text-start">

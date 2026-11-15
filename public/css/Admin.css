@@ -67,15 +67,20 @@ input:-webkit-autofill:active {
     font-size: 1.1rem; 
 }
 
-#sidebar .staff-reports-dropdown .nav-link {
-    margin: 3px 8px 3px 15px;
-    padding: 10px 8px;
-    font-size: 0.88rem;
-    white-space: nowrap;
+#sidebar.staff-sidebar {
+    display: flex;
+    flex-direction: column;
 }
 
-#sidebar .staff-reports-dropdown .nav-link i {
-    margin-right: 12px;
+#sidebar .staff-sidebar-nav {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+}
+
+#sidebar .staff-sidebar-logout {
+    margin-top: auto;
 }
 
 #sidebar .sidebar-brand {
