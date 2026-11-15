@@ -16,23 +16,30 @@ class ManagerFinancialReportController extends Controller
     {
         $user = auth()->user();
 
-        // 1. SECURITY: Manager access only
-        if (!$user || $user->role !== 'manager') {
+        $isStaffReport = $user?->role === 'staff'
+            && (bool) $user->can_view_reports
+            && (bool) $user->branch_id;
+
+        if (!$user || !in_array($user->role, ['manager', 'staff'], true)
+            || ($user->role === 'staff' && !$isStaffReport)
+            || !$user->branch_id) {
             abort(403, 'Unauthorized action.');
         }
 
-        ReportPageSelection::validateRequest($request);
+        if ($user->role === 'manager' || $request->routeIs('staff.financial.report')) {
+            ReportPageSelection::validateRequest($request);
 
-        $request->validate([
-            'sort_by' => ['nullable', Rule::in([
-                'newest',
-                'oldest',
-                'name_asc',
-                'name_desc',
-                'amount_desc',
-                'amount_asc',
-            ])],
-        ]);
+            $request->validate([
+                'sort_by' => ['nullable', Rule::in([
+                    'newest',
+                    'oldest',
+                    'name_asc',
+                    'name_desc',
+                    'amount_desc',
+                    'amount_asc',
+                ])],
+            ]);
+        }
 
         $my_branch_id = $user->branch_id;
 
@@ -147,7 +154,8 @@ class ManagerFinancialReportController extends Controller
             'branch_name',
             'pageCount',
             'totalRecords',
-            'export_mode'
+            'export_mode',
+            'isStaffReport'
         ));
     }
 }

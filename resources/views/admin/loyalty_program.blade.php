@@ -75,6 +75,11 @@
                                 <i class="bi bi-person-plus"></i> Manage Users
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('admin.access-control') }}" class="nav-link {{ request()->routeIs('admin.access-control') ? 'active' : '' }}">
+                                <i class="bi bi-shield-lock"></i> Access Control
+                            </a>
+                        </li>
                         <li class="nav-item"><a href="{{ route('admin.modified.content') }}" class="nav-link"><i class="bi bi-pencil-square"></i> Modified Content</a></li>
                     </ul>
                 </div>

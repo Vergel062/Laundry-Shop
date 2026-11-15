@@ -15,10 +15,14 @@ class User extends Authenticatable
     protected $fillable = [
         'fullname', 'phone', 'email', 'password', 'role', 
         'branch_id', 'referral_code', 'referred_by', 'profile_pic', 
-        'is_archived', 'archive_date'
+        'is_archived', 'archive_date', 'can_view_reports'
     ];
 
     protected $hidden = ['password'];
+
+    protected $casts = [
+        'can_view_reports' => 'boolean',
+    ];
 
     public function branch() {
         return $this->belongsTo(Branch::class, 'branch_id');

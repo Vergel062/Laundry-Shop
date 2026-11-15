@@ -35,6 +35,7 @@ class ReportSortingTest extends TestCase
             $table->string('username')->nullable();
             $table->string('role');
             $table->unsignedBigInteger('branch_id')->nullable();
+            $table->boolean('can_view_reports')->default(false);
         });
 
         Schema::create('transactions', function (Blueprint $table) {
@@ -61,11 +62,13 @@ class ReportSortingTest extends TestCase
         });
 
         DB::table('branches')->insert(['id' => 1, 'branch_name' => 'Carmona']);
+        DB::table('branches')->insert(['id' => 2, 'branch_name' => 'Biñan']);
         DB::table('users')->insert([
-            ['id' => 1, 'fullname' => 'Admin User', 'role' => 'admin', 'branch_id' => null],
-            ['id' => 2, 'fullname' => 'Manager User', 'role' => 'manager', 'branch_id' => 1],
-            ['id' => 10, 'fullname' => 'Zoe Customer', 'role' => 'customer', 'branch_id' => 1],
-            ['id' => 11, 'fullname' => 'Anna Customer', 'role' => 'customer', 'branch_id' => 1],
+            ['id' => 1, 'fullname' => 'Admin User', 'role' => 'admin', 'branch_id' => null, 'can_view_reports' => false],
+            ['id' => 2, 'fullname' => 'Manager User', 'role' => 'manager', 'branch_id' => 1, 'can_view_reports' => false],
+            ['id' => 3, 'fullname' => 'Authorized Staff', 'role' => 'staff', 'branch_id' => 1, 'can_view_reports' => true],
+            ['id' => 10, 'fullname' => 'Zoe Customer', 'role' => 'customer', 'branch_id' => 1, 'can_view_reports' => false],
+            ['id' => 11, 'fullname' => 'Anna Customer', 'role' => 'customer', 'branch_id' => 1, 'can_view_reports' => false],
         ]);
     }
 
@@ -236,6 +239,72 @@ class ReportSortingTest extends TestCase
         }
     }
 
+    public function test_authorized_staff_transaction_report_is_limited_to_their_branch(): void
+    {
+        $this->addTransaction(1, 10, '2026-10-01', 100);
+        $this->addTransaction(2, 11, '2026-10-02', 200);
+        $this->addTransaction(3, 10, '2026-10-03', 300);
+        DB::table('transactions')->where('id', 3)->update(['branch_id' => 2]);
+
+        $this->actingAs($this->user(3, 'staff', 1, true));
+        $response = app(ManagerTransactionReportController::class)->index($this->routeRequest(
+            '/staff/reports/transactions',
+            'staff.transaction.report',
+            ['start_date' => '2026-10-01', 'end_date' => '2026-10-31']
+        ));
+
+        $this->assertSame([2, 1], $response->getData()['list']->pluck('id')->all());
+        $this->assertTrue($response->getData()['isStaffReport']);
+    }
+
+    public function test_authorized_staff_financial_report_is_limited_to_their_branch(): void
+    {
+        $this->addTransaction(1, 10, '2026-10-01', 100);
+        $this->addTransaction(2, 11, '2026-10-02', 300);
+        DB::table('transactions')->where('id', 2)->update(['branch_id' => 2]);
+
+        $this->actingAs($this->user(3, 'staff', 1, true));
+        $response = app(ManagerFinancialReportController::class)->index($this->routeRequest(
+            '/staff/reports/financial',
+            'staff.financial.report',
+            ['start_date' => '2026-10-01', 'end_date' => '2026-10-31']
+        ));
+
+        $this->assertSame([1], $response->getData()['transactions']->pluck('id')->all());
+        $this->assertSame(100.0, (float) $response->getData()['total_sales']);
+        $this->assertTrue($response->getData()['isStaffReport']);
+    }
+
+    public function test_authorized_staff_utility_report_is_limited_to_their_branch(): void
+    {
+        $this->addExpense(1, 'Water', 200, '2026-10-01');
+        $this->addExpense(2, 'Electricity', 300, '2026-10-02');
+        DB::table('expenses')->where('id', 2)->update(['branch_id' => 2]);
+
+        $this->actingAs($this->user(3, 'staff', 1, true));
+        $response = app(ManagerUtilityTrackingController::class)->index($this->routeRequest(
+            '/staff/reports/utility',
+            'staff.utility.report',
+            ['date_from' => '2026-10-01', 'date_to' => '2026-10-31']
+        ));
+
+        $this->assertSame([1], $response->getData()['logs']->pluck('id')->all());
+        $this->assertTrue($response->getData()['isStaffReport']);
+    }
+
+    public function test_staff_without_report_access_is_denied(): void
+    {
+        $this->actingAs($this->user(3, 'staff', 1));
+        $request = $this->routeRequest('/staff/reports/transactions', 'staff.transaction.report', []);
+
+        try {
+            app(ManagerTransactionReportController::class)->index($request);
+            $this->fail('Staff without report access must be denied.');
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $exception) {
+            $this->assertSame(403, $exception->getStatusCode());
+        }
+    }
+
     private function request(array $query): Request
     {
         return Request::create('/', 'GET', $query);
@@ -280,13 +349,14 @@ class ReportSortingTest extends TestCase
         ]);
     }
 
-    private function user(int $id, string $role, ?int $branchId): User
+    private function user(int $id, string $role, ?int $branchId, bool $canViewReports = false): User
     {
         $user = new User();
         $user->forceFill([
             'id' => $id,
             'role' => $role,
             'branch_id' => $branchId,
+            'can_view_reports' => $canViewReports,
         ]);
 
         return $user;

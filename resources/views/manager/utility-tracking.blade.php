@@ -25,6 +25,16 @@
             <button class="btn text-white d-lg-none p-0 border-0" id="closeSidebar"><i class="bi bi-x-lg fs-4"></i></button>
         </div>
         <ul class="nav flex-column mt-2">
+            @if($isStaffReport)
+                <li class="nav-item"><a href="{{ route('staff.dashboard') }}" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                <li class="nav-item"><a href="{{ route('staff.services') }}" class="nav-link"><i class="bi bi-clock-history"></i> Transaction History</a></li>
+                <li class="nav-item"><a href="{{ route('staff.verify.payments') }}" class="nav-link"><i class="bi bi-patch-check"></i> Verify Payments</a></li>
+                <li class="nav-item"><a href="{{ route('staff.inventory') }}" class="nav-link"><i class="bi bi-box-seam"></i> Inventory</a></li>
+                <hr class="mx-3 opacity-25">
+                <li class="nav-item"><a href="{{ route('staff.transaction.report') }}" class="nav-link"><i class="bi bi-file-earmark-text"></i> Transaction Report</a></li>
+                <li class="nav-item"><a href="{{ route('staff.financial.report') }}" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Financial Report</a></li>
+                <li class="nav-item"><a href="{{ route('staff.utility.report') }}" class="nav-link active"><i class="bi bi-droplet"></i> Utility Report</a></li>
+            @else
             <li class="nav-item"><a href="{{ route('manager.dashboard') }}" class="nav-link"><i class="bi bi-house-door"></i> Dashboard</a></li>
             <li class="nav-item"><a href="{{ route('manager.services') }}" class="nav-link"><i class="bi bi-clock-history"></i>Transaction History</a></li>
             <li class="nav-item">
@@ -67,6 +77,7 @@
                     </button>
                 </form>
             </li>
+            @endif
         </ul>
     </nav>
 
@@ -78,7 +89,7 @@
                 <h5 class="fw-bold mb-0">Utility & Expenses Report</h5>
                 <div class="ms-auto d-flex gap-2">
                     @include('shared.report-export-controls', [
-                        'exportRoute' => route('manager.utility.tracking'),
+                        'exportRoute' => $isStaffReport ? route('staff.utility.report') : route('manager.utility.tracking'),
                         'pageCount' => $pageCount,
                         'canExport' => $totalRecords > 0,
                         'pdfTarget' => '#pdfContentArea',
@@ -148,7 +159,7 @@
 
             <!-- FILTER CONTROLS -->
             <div class="filter-section shadow-sm no-print">
-                <form method="GET" action="{{ route('manager.utility.tracking') }}" class="row g-3 align-items-end utility-filter-form" autocomplete="off">
+                <form method="GET" action="{{ $isStaffReport ? route('staff.utility.report') : route('manager.utility.tracking') }}" class="row g-3 align-items-end utility-filter-form" autocomplete="off">
                     <div class="col-md-3">
                         <label class="form-label small fw-bold text-muted">From Date</label>
                         <input type="date" name="date_from" class="form-control shadow-none bg-light border-0 py-2" autocomplete="off" value="{{ $date_from ?? '' }}">
@@ -166,7 +177,7 @@
                     </div>
                     <div class="col-md-2 d-flex gap-2">
                         <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm py-2">Apply</button>
-                        <a href="{{ route('manager.utility.tracking') }}" class="btn btn-light border shadow-sm px-3 d-flex align-items-center justify-content-center" title="Reset"><i class="bi bi-arrow-clockwise"></i></a>
+                        <a href="{{ $isStaffReport ? route('staff.utility.report') : route('manager.utility.tracking') }}" class="btn btn-light border shadow-sm px-3 d-flex align-items-center justify-content-center" title="Reset"><i class="bi bi-arrow-clockwise"></i></a>
                     </div>
                 </form>
             </div>
@@ -176,7 +187,7 @@
                 <div class="card-header bg-white py-3 px-4 border-0 no-print">
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                         <h6 class="fw-bold mb-0"><i class="bi bi-list-stars me-2 text-primary"></i>Utility & Expenses History Logs</h6>
-                        <form method="GET" action="{{ route('manager.utility.tracking') }}" class="d-flex align-items-center gap-2">
+                        <form method="GET" action="{{ $isStaffReport ? route('staff.utility.report') : route('manager.utility.tracking') }}" class="d-flex align-items-center gap-2">
                             <input type="hidden" name="date_from" value="{{ $date_from ?? '' }}">
                             <input type="hidden" name="date_to" value="{{ $date_to ?? '' }}">
                             <input type="hidden" name="search" value="{{ $search ?? '' }}">
@@ -259,7 +270,7 @@
                             <div class="signature-line"></div>
                             <p class="fw-bold mb-0 mt-1" style="font-size: 9pt; text-transform: uppercase;">Authorized Signature</p>
                         </div>
-                        <small style="font-size: 8pt; color: #64748b;">Branch Manager</small>
+                        <small style="font-size: 8pt; color: #64748b;">{{ $isStaffReport ? 'Staff' : 'Branch Manager' }}</small>
                     </div>
                 </div>
             </div>

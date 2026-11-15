@@ -65,6 +65,11 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="{{ route('admin.access-control') }}" class="nav-link">
+                                <i class="bi bi-shield-lock"></i> Access Control
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="{{ route('admin.modified.content') }}" class="nav-link">
                                 <i class="bi bi-pencil-square"></i> Modified Content
                             </a>

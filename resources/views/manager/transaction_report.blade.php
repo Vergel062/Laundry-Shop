@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transaction Report | LaundryCare Manager</title>
+    <title>Transaction Report | LaundryCare</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -137,6 +137,16 @@
             <button class="btn text-white d-lg-none p-0 border-0" id="closeSidebar"><i class="bi bi-x-lg fs-4"></i></button>
         </div>
         <ul class="nav flex-column mt-2">
+            @if($isStaffReport)
+                <li class="nav-item"><a href="{{ route('staff.dashboard') }}" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                <li class="nav-item"><a href="{{ route('staff.services') }}" class="nav-link"><i class="bi bi-clock-history"></i> Transaction History</a></li>
+                <li class="nav-item"><a href="{{ route('staff.verify.payments') }}" class="nav-link"><i class="bi bi-patch-check"></i> Verify Payments</a></li>
+                <li class="nav-item"><a href="{{ route('staff.inventory') }}" class="nav-link"><i class="bi bi-box-seam"></i> Inventory</a></li>
+                <hr class="mx-3 opacity-25">
+                <li class="nav-item"><a href="{{ route('staff.transaction.report') }}" class="nav-link active"><i class="bi bi-file-earmark-text"></i> Transaction Report</a></li>
+                <li class="nav-item"><a href="{{ route('staff.financial.report') }}" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Financial Report</a></li>
+                <li class="nav-item"><a href="{{ route('staff.utility.report') }}" class="nav-link"><i class="bi bi-droplet"></i> Utility Report</a></li>
+            @else
             <li class="nav-item"><a href="{{ route('manager.dashboard') }}" class="nav-link"><i class="bi bi-house-door"></i> Dashboard</a></li>
             <li class="nav-item"><a href="{{ route('manager.services') }}" class="nav-link"><i class="bi bi-clock-history"></i> Transaction History</a></li>
             <li class="nav-item"><a href="{{ route('manager.verify.payments') }}" class="nav-link"><i class="bi bi-patch-check"></i> Verify Payments</a></li>
@@ -195,6 +205,7 @@
                     </button>
                 </form>
             </li>
+            @endif
         </ul>
     </nav>
 
@@ -208,7 +219,7 @@
                 </div>
                 <div class="ms-auto">
                     @include('shared.report-export-controls', [
-                        'exportRoute' => route('manager.transaction.report'),
+                        'exportRoute' => $isStaffReport ? route('staff.transaction.report') : route('manager.transaction.report'),
                         'pageCount' => $pageCount,
                         'canExport' => $totalRecords > 0,
                         'pdfTarget' => '#serviceHistoryPrintableArea',
@@ -227,7 +238,7 @@
             ])
             <div class="card shadow-sm border-0 rounded-15 mb-4 no-print">
                 <div class="card-body p-4">
-                    <form method="GET" action="{{ route('manager.transaction.report') }}" class="row g-3 align-items-end">
+                    <form method="GET" action="{{ $isStaffReport ? route('staff.transaction.report') : route('manager.transaction.report') }}" class="row g-3 align-items-end">
                         <div class="col-md-3">
                             <label class="small fw-bold text-muted text-uppercase mb-2">Search Ref # / Name</label>
                             <input type="text" name="search" class="form-control bg-light border-0 rounded-8 py-2" placeholder="LC-XXXX or Name..." value="{{ htmlspecialchars($search ?? '') }}">
@@ -288,7 +299,7 @@
                 <div class="card-header bg-white py-3 px-4 border-0 no-print">
                     <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
                         <h6 class="mb-0 fw-bold"><i class="bi bi-list-stars me-2 text-primary"></i>Transaction History</h6>
-                        <form method="GET" action="{{ route('manager.transaction.report') }}" class="d-flex align-items-center gap-2">
+                        <form method="GET" action="{{ $isStaffReport ? route('staff.transaction.report') : route('manager.transaction.report') }}" class="d-flex align-items-center gap-2">
                             <input type="hidden" name="search" value="{{ $search ?? '' }}">
                             <input type="hidden" name="order_status" value="{{ $order_status ?? 'all' }}">
                             <input type="hidden" name="payment_status" value="{{ $payment_status ?? 'all' }}">
@@ -369,7 +380,7 @@
                     <div class="signature-block text-end small text-muted">
                         <div class="signature-line"></div>
                         <div class="pt-1">Authorized Signature</div>
-                        <span>Manager</span>
+                        <span>{{ $isStaffReport ? 'Staff' : 'Manager' }}</span>
                     </div>
                 </div>
             </div>

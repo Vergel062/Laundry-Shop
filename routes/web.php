@@ -26,6 +26,7 @@ use App\Http\Controllers\Auth\FinancialReportController;
 use App\Http\Controllers\Auth\UtilityTrackingController;
 use App\Http\Controllers\Auth\BranchController; 
 use App\Http\Controllers\Auth\AdminUserController;
+use App\Http\Controllers\Auth\AdminAccessControlController;
 use App\Http\Controllers\Auth\LoyaltyController;
 use App\Http\Controllers\Auth\ArchivedAccountController;
 use App\Http\Controllers\Auth\LandingContentController;
@@ -93,6 +94,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/staff/services', [ServiceController::class, 'index'])->name('staff.services');
     Route::put('/staff/services/update', [ServiceController::class, 'updateStatus'])->name('staff.services.update');
     Route::post('/staff/services/{id}/cancel-request', [ServiceController::class, 'cancelServiceRequest'])->name('staff.services.cancel-request');
+    Route::get('/staff/reports/transactions', [ManagerTransactionReportController::class, 'index'])->name('staff.transaction.report');
+    Route::get('/staff/reports/financial', [ManagerFinancialReportController::class, 'index'])->name('staff.financial.report');
+    Route::get('/staff/reports/utility', [ManagerUtilityTrackingController::class, 'index'])->name('staff.utility.report');
     
     // Print Receipt Route
     Route::get('/staff/print-receipt/{id}', [ServiceController::class, 'printReceipt'])->name('staff.print.receipt');
@@ -157,6 +161,10 @@ Route::middleware(['auth'])->group(function () {
     // Admin Reports & Settings
     Route::get('/admin/financial-reports', [FinancialReportController::class, 'index'])->name('admin.financial.reports');
     Route::get('/admin/utility-tracking', [UtilityTrackingController::class, 'index'])->name('admin.utility.tracking');
+    Route::get('/admin/access-control', [AdminAccessControlController::class, 'index'])->name('admin.access-control');
+    Route::put('/admin/access-control/staff/{id}', [AdminAccessControlController::class, 'update'])
+        ->whereNumber('id')
+        ->name('admin.access-control.staff.update');
     
     // Branch Management Routes
     Route::get('/admin/branch-management', [BranchController::class, 'index'])->name('admin.branch.management');

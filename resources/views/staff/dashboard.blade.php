@@ -93,6 +93,12 @@
             <li class="nav-item"><a href="{{ route('staff.services') }}" class="nav-link"><i class="bi bi-clock-history"></i>Transaction History</a></li>
             <li class="nav-item"><a href="{{ route('staff.verify.payments') }}" class="nav-link"><i class="bi bi-patch-check"></i> Verify Payments</a></li>
             <li class="nav-item"><a href="{{ route('staff.inventory') }}" class="nav-link"><i class="bi bi-box-seam"></i> Inventory</a></li>
+            @if(auth()->user()->can_view_reports)
+                <hr class="mx-3 opacity-25">
+                <li class="nav-item"><a href="{{ route('staff.transaction.report') }}" class="nav-link"><i class="bi bi-file-earmark-text"></i> Transaction Report</a></li>
+                <li class="nav-item"><a href="{{ route('staff.financial.report') }}" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Financial Report</a></li>
+                <li class="nav-item"><a href="{{ route('staff.utility.report') }}" class="nav-link"><i class="bi bi-droplet"></i> Utility Report</a></li>
+            @endif
             <hr class="mx-3 opacity-25">
             
             <li class="nav-item mt-1">

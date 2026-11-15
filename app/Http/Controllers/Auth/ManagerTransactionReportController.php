@@ -13,39 +13,46 @@ class ManagerTransactionReportController extends Controller
     public function index(Request $request)
     {
         $manager = auth()->user();
+        $isStaffReport = $manager?->role === 'staff'
+            && (bool) $manager->can_view_reports
+            && (bool) $manager->branch_id;
 
-        if (!$manager || $manager->role !== 'manager') {
+        if (!$manager || !in_array($manager->role, ['manager', 'staff'], true)
+            || ($manager->role === 'staff' && !$isStaffReport)
+            || !$manager->branch_id) {
             abort(403, 'Unauthorized action.');
         }
 
-        ReportPageSelection::validateRequest($request);
+        if ($manager->role === 'manager' || $request->routeIs('staff.transaction.report')) {
+            ReportPageSelection::validateRequest($request);
 
-        $request->validate([
-            'start_date' => 'nullable|date',
-            'end_date' => 'nullable|date|after_or_equal:start_date',
-            'order_status' => ['nullable', Rule::in([
-                'all',
-                'Pending',
-                'Washing',
-                'Drying',
-                'Ready',
-                'Claimed',
-                'Cancelled',
-            ])],
-            'payment_status' => ['nullable', Rule::in([
-                'all',
-                'Paid',
-                'Unpaid',
-                'Pending Verification',
-                'Service Request',
-            ])],
-            'sort_by' => ['nullable', Rule::in([
-                'newest',
-                'oldest',
-                'name_asc',
-                'name_desc',
-            ])],
-        ]);
+            $request->validate([
+                'start_date' => 'nullable|date',
+                'end_date' => 'nullable|date|after_or_equal:start_date',
+                'order_status' => ['nullable', Rule::in([
+                    'all',
+                    'Pending',
+                    'Washing',
+                    'Drying',
+                    'Ready',
+                    'Claimed',
+                    'Cancelled',
+                ])],
+                'payment_status' => ['nullable', Rule::in([
+                    'all',
+                    'Paid',
+                    'Unpaid',
+                    'Pending Verification',
+                    'Service Request',
+                ])],
+                'sort_by' => ['nullable', Rule::in([
+                    'newest',
+                    'oldest',
+                    'name_asc',
+                    'name_desc',
+                ])],
+            ]);
+        }
 
         $start_date = $request->input('start_date');
         $end_date = $request->input('end_date');
@@ -137,7 +144,8 @@ class ManagerTransactionReportController extends Controller
             'branch_name',
             'pageCount',
             'totalRecords',
-            'export_mode'
+            'export_mode',
+            'isStaffReport'
         ));
     }
 }
