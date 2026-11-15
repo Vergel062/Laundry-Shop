@@ -29,7 +29,11 @@
     <!-- SIDEBAR -->
     <nav id="sidebar" class="no-print">
         <div class="sidebar-brand p-4 text-center d-flex align-items-center justify-content-between">
-            <h4 class="fw-bold text-info mb-0"><i class="bi bi-droplet-half"></i> Laundry<span class="text-white">Care</span></h4>
+            @if($isStaffReport)
+                <h4 class="fw-bold mb-0"><i class="bi bi-droplet-half text-info"></i> Staff <span class="small text-muted" style="font-size: 10px;">STAFF</span></h4>
+            @else
+                <h4 class="fw-bold text-info mb-0"><i class="bi bi-droplet-half"></i> Laundry<span class="text-white">Care</span></h4>
+            @endif
             <button class="btn text-white d-lg-none p-0 border-0" id="closeSidebar"><i class="bi bi-x-lg fs-4"></i></button>
         </div>
         <ul class="nav flex-column mt-2">
