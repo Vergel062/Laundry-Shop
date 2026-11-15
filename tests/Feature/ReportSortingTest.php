@@ -36,6 +36,7 @@ class ReportSortingTest extends TestCase
             $table->string('role');
             $table->unsignedBigInteger('branch_id')->nullable();
             $table->boolean('can_view_reports')->default(false);
+            $table->boolean('can_verify_payments')->default(true);
         });
 
         Schema::create('transactions', function (Blueprint $table) {
@@ -64,11 +65,11 @@ class ReportSortingTest extends TestCase
         DB::table('branches')->insert(['id' => 1, 'branch_name' => 'Carmona']);
         DB::table('branches')->insert(['id' => 2, 'branch_name' => 'Biñan']);
         DB::table('users')->insert([
-            ['id' => 1, 'fullname' => 'Admin User', 'role' => 'admin', 'branch_id' => null, 'can_view_reports' => false],
-            ['id' => 2, 'fullname' => 'Manager User', 'role' => 'manager', 'branch_id' => 1, 'can_view_reports' => false],
-            ['id' => 3, 'fullname' => 'Authorized Staff', 'role' => 'staff', 'branch_id' => 1, 'can_view_reports' => true],
-            ['id' => 10, 'fullname' => 'Zoe Customer', 'role' => 'customer', 'branch_id' => 1, 'can_view_reports' => false],
-            ['id' => 11, 'fullname' => 'Anna Customer', 'role' => 'customer', 'branch_id' => 1, 'can_view_reports' => false],
+            ['id' => 1, 'fullname' => 'Admin User', 'role' => 'admin', 'branch_id' => null, 'can_view_reports' => false, 'can_verify_payments' => true],
+            ['id' => 2, 'fullname' => 'Manager User', 'role' => 'manager', 'branch_id' => 1, 'can_view_reports' => false, 'can_verify_payments' => true],
+            ['id' => 3, 'fullname' => 'Authorized Staff', 'role' => 'staff', 'branch_id' => 1, 'can_view_reports' => true, 'can_verify_payments' => true],
+            ['id' => 10, 'fullname' => 'Zoe Customer', 'role' => 'customer', 'branch_id' => 1, 'can_view_reports' => false, 'can_verify_payments' => true],
+            ['id' => 11, 'fullname' => 'Anna Customer', 'role' => 'customer', 'branch_id' => 1, 'can_view_reports' => false, 'can_verify_payments' => true],
         ]);
     }
 

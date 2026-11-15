@@ -20,7 +20,7 @@ class AdminAccessControlController extends Controller
                     ->orWhere('u.is_archived', false);
             })
             ->orderBy('u.fullname')
-            ->get(['u.id', 'u.fullname', 'u.email', 'u.can_view_reports', 'b.branch_name']);
+            ->get(['u.id', 'u.fullname', 'u.email', 'u.can_view_reports', 'u.can_verify_payments', 'b.branch_name']);
 
         return view('admin.access_control', compact('staff'));
     }
@@ -31,6 +31,7 @@ class AdminAccessControlController extends Controller
 
         $validated = $request->validate([
             'can_view_reports' => ['required', 'boolean'],
+            'can_verify_payments' => ['required', 'boolean'],
         ]);
 
         $staffMember = DB::table('users')
@@ -47,9 +48,12 @@ class AdminAccessControlController extends Controller
         }
 
         DB::table('users')->where('id', $staffMember->id)
-            ->update(['can_view_reports' => (bool) $validated['can_view_reports']]);
+            ->update([
+                'can_view_reports' => (bool) $validated['can_view_reports'],
+                'can_verify_payments' => (bool) $validated['can_verify_payments'],
+            ]);
 
         return redirect()->route('admin.access-control')
-            ->with('success', 'Staff report access updated.');
+            ->with('success', 'Staff access updated.');
     }
 }

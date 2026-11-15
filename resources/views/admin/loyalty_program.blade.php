@@ -295,5 +295,6 @@ function managePoints(userId, name) {
     });
 }
 </script>
+    @include('shared.live-refresh')
 </body>
 </html>

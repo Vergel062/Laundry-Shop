@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -16,6 +17,8 @@ class PaymentVerificationController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+
+        $this->authorizeStaffPaymentVerification($user);
 
         // Security check
         if (!in_array($user->role, ['staff', 'manager', 'admin'])) {
@@ -94,11 +97,13 @@ class PaymentVerificationController extends Controller
 
     public function approve(Request $request)
     {
+        $user = auth()->user();
+        $this->authorizeStaffPaymentVerification($user);
+
         $validated = $request->validate([
             'approve_id' => 'required|integer|exists:transactions,id',
         ]);
 
-        $user = auth()->user();
         if ($user->role !== 'staff' || !$user->branch_id) {
             abort(403, 'Unauthorized action.');
         }
@@ -153,12 +158,14 @@ class PaymentVerificationController extends Controller
 
     public function reject(Request $request)
     {
+        $user = auth()->user();
+        $this->authorizeStaffPaymentVerification($user);
+
         $validated = $request->validate([
             'reject_id' => 'required|integer|exists:transactions,id',
             'rejection_reason' => 'required|string|max:500',
         ]);
 
-        $user = auth()->user();
         if ($user->role !== 'staff' || !$user->branch_id) {
             abort(403, 'Unauthorized action.');
         }
@@ -245,5 +252,14 @@ class PaymentVerificationController extends Controller
         }
 
         return back()->with('error', 'Upload Error: Could not save the file.');
+    }
+
+    private function authorizeStaffPaymentVerification(?User $user): void
+    {
+        abort_if(
+            $user && $user->role === 'staff' && !(bool) $user->can_verify_payments,
+            403,
+            'Unauthorized action.'
+        );
     }
 }

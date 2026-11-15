@@ -152,5 +152,6 @@
     });
 </script>
 @endif
+    @include('shared.live-refresh')
 </body>
 </html>

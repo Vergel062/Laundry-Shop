@@ -297,5 +297,6 @@
 </script>
 <script src="{{ asset('js/report-page-export.js') }}"></script>
 
+    @include('shared.live-refresh')
 </body>
 </html>

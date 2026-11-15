@@ -15,13 +15,14 @@ class User extends Authenticatable
     protected $fillable = [
         'fullname', 'phone', 'email', 'password', 'role', 
         'branch_id', 'referral_code', 'referred_by', 'profile_pic', 
-        'is_archived', 'archive_date', 'can_view_reports'
+        'is_archived', 'archive_date', 'can_view_reports', 'can_verify_payments'
     ];
 
     protected $hidden = ['password'];
 
     protected $casts = [
         'can_view_reports' => 'boolean',
+        'can_verify_payments' => 'boolean',
     ];
 
     public function branch() {

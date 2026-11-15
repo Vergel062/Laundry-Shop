@@ -267,5 +267,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+    @include('shared.live-refresh')
 </body>
 </html>

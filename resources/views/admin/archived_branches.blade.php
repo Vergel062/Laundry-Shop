@@ -151,5 +151,6 @@
         Swal.fire({ title: 'Deleted!', text: 'Branch permanently deleted.', icon: 'success', timer: 1800, showConfirmButton: false });
     @endif
 </script>
+    @include('shared.live-refresh')
 </body>
 </html>

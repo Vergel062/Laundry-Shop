@@ -207,5 +207,6 @@
         Swal.fire({ title: 'Archived!', text: 'Branch moved to archive and will be deleted after 30 days.', icon: 'warning', timer: 2200, showConfirmButton: false });
     @endif
 </script>
+    @include('shared.live-refresh')
 </body>
 </html>

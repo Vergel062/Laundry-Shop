@@ -103,6 +103,29 @@ class PaymentRejectionTest extends TestCase
         ]);
     }
 
+    public function test_staff_without_payment_verification_access_cannot_open_or_reject_payments(): void
+    {
+        $transactionId = $this->createPendingTransaction(3);
+        $staff = $this->user(20, 'staff', 3, false);
+
+        $this->actingAs($staff)
+            ->get(route('staff.verify.payments'))
+            ->assertForbidden();
+
+        $this->actingAs($staff)
+            ->put(route('staff.verify.payments.reject'), [
+                'reject_id' => $transactionId,
+                'rejection_reason' => 'This should be denied.',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('transactions', [
+            'id' => $transactionId,
+            'payment_status' => 'Pending Verification',
+            'payment_rejection_reason' => null,
+        ]);
+    }
+
     public function test_rejection_reason_is_required(): void
     {
         $transactionId = $this->createPendingTransaction(3);
@@ -186,13 +209,14 @@ class PaymentRejectionTest extends TestCase
         ]);
     }
 
-    private function user(int $id, string $role, ?int $branchId): User
+    private function user(int $id, string $role, ?int $branchId, bool $canVerifyPayments = true): User
     {
         $user = new User();
         $user->forceFill([
             'id' => $id,
             'role' => $role,
             'branch_id' => $branchId,
+            'can_verify_payments' => $canVerifyPayments,
         ]);
 
         return $user;

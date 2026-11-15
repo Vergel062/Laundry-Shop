@@ -266,5 +266,6 @@ document.addEventListener('click', function(e) {
     }
 });
 </script>
+    @include('shared.live-refresh')
 </body>
 </html>

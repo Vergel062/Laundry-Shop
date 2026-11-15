@@ -305,5 +305,6 @@
 
 <!-- External Custom JS -->
 <script src="{{ asset('js/Admin_script.js') }}"></script>
+    @include('shared.live-refresh')
 </body>
 </html>

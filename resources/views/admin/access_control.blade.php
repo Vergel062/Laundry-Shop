@@ -54,8 +54,8 @@
 
             <div class="container-fluid p-4">
                 <div class="mb-4">
-                    <h4 class="fw-bold">Staff Report Access</h4>
-                    <p class="text-muted mb-0">Allow selected staff to open Transaction, Financial, and Utility reports for their assigned branch only.</p>
+                    <h4 class="fw-bold">Staff Access Control</h4>
+                    <p class="text-muted mb-0">Manage report access and payment verification for each Staff account.</p>
                 </div>
 
                 @if(session('success'))
@@ -70,7 +70,7 @@
                                     <th class="ps-4">Staff</th>
                                     <th>Branch</th>
                                     <th>Email</th>
-                                    <th class="text-center">Report Access</th>
+                                    <th class="text-center">Access</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -80,17 +80,24 @@
                                         <td>{{ $member->branch_name ?? 'No branch assigned' }}</td>
                                         <td>{{ $member->email }}</td>
                                         <td class="text-center">
-                                            <form action="{{ route('admin.access-control.staff.update', $member->id) }}" method="POST" class="d-inline-flex align-items-center gap-2">
+                                            <form action="{{ route('admin.access-control.staff.update', $member->id) }}" method="POST" class="d-inline-flex flex-column align-items-start gap-2">
                                                 @csrf
                                                 @method('PUT')
                                                 <input type="hidden" name="can_view_reports" value="0">
+                                                <input type="hidden" name="can_verify_payments" value="0">
                                                 <div class="form-check form-switch mb-0">
                                                     <input class="form-check-input" type="checkbox" role="switch" name="can_view_reports" value="1" id="staffReportAccess{{ $member->id }}" @checked($member->can_view_reports)>
                                                     <label class="form-check-label" for="staffReportAccess{{ $member->id }}">
-                                                        {{ $member->can_view_reports ? 'On' : 'Off' }}
+                                                        Reports: {{ $member->can_view_reports ? 'On' : 'Off' }}
                                                     </label>
                                                 </div>
-                                                <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+                                                <div class="form-check form-switch mb-0">
+                                                    <input class="form-check-input" type="checkbox" role="switch" name="can_verify_payments" value="1" id="staffPaymentVerification{{ $member->id }}" @checked($member->can_verify_payments)>
+                                                    <label class="form-check-label" for="staffPaymentVerification{{ $member->id }}">
+                                                        Payment Verification: {{ $member->can_verify_payments ? 'On' : 'Off' }}
+                                                    </label>
+                                                </div>
+                                            <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -107,5 +114,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/Admin_script.js') }}"></script>
+    @include('shared.live-refresh')
 </body>
 </html>

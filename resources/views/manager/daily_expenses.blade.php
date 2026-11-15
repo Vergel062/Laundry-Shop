@@ -222,5 +222,6 @@
             });
         });
     </script>
+    @include('shared.live-refresh')
 </body>
 </html>
