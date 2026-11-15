@@ -50,12 +50,12 @@
         </div>
 
        <ul class="nav flex-column mt-3">
-            <li class="nav-item"><a href="{{ route('staff.dashboard') }}" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+            <li class="nav-item"><a href="{{ route('staff.dashboard') }}" class="nav-link active"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
             <li class="nav-item"><a href="{{ route('staff.services') }}" class="nav-link"><i class="bi bi-clock-history"></i>Transaction History</a></li>
             @if(auth()->user()->can_verify_payments)
                 <li class="nav-item"><a href="{{ route('staff.verify.payments') }}" class="nav-link"><i class="bi bi-patch-check"></i> Verify Payments</a></li>
             @endif
-            <li class="nav-item"><a href="{{ route('staff.inventory') }}" class="nav-link active"><i class="bi bi-box-seam"></i> Inventory</a></li>
+            <li class="nav-item"><a href="{{ route('staff.inventory') }}" class="nav-link"><i class="bi bi-box-seam"></i> Inventory</a></li>
             @if(auth()->user()->can_view_reports)
                 <hr class="mx-3 opacity-25">
                 <li class="nav-item staff-reports-item">
@@ -73,7 +73,7 @@
                 </li>
             @endif
             <li class="nav-item mt-1">
-                <form id="logoutForm" action="{{ route('logout') }}" method="POST">
+                <form action="{{ route('logout') }}" method="POST" id="logoutForm">
                     @csrf
                     <button type="submit" class="nav-link text-danger logout-btn border-0 bg-transparent w-100 text-start">
                         <i class="bi bi-box-arrow-left"></i> Logout
