@@ -8,21 +8,37 @@ use Illuminate\Support\Facades\DB;
 
 class AdminAccessControlController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         abort_unless(auth()->user()?->role === 'admin', 403, 'Unauthorized action.');
 
-        $staff = DB::table('users as u')
+        $validated = $request->validate([
+            'branch_id' => ['nullable', 'integer', 'exists:branches,id'],
+        ]);
+        $selectedBranchId = $validated['branch_id'] ?? null;
+
+        $branches = DB::table('branches')
+            ->whereNull('archive_date')
+            ->orderBy('branch_name')
+            ->get(['id', 'branch_name']);
+
+        $staffQuery = DB::table('users as u')
             ->leftJoin('branches as b', 'u.branch_id', '=', 'b.id')
             ->where('u.role', 'staff')
             ->where(function ($query) {
                 $query->whereNull('u.is_archived')
                     ->orWhere('u.is_archived', false);
-            })
-            ->orderBy('u.fullname')
-            ->get(['u.id', 'u.fullname', 'u.email', 'u.can_view_reports', 'u.can_verify_payments', 'b.branch_name']);
+            });
 
-        return view('admin.access_control', compact('staff'));
+        if ($selectedBranchId !== null) {
+            $staffQuery->where('u.branch_id', $selectedBranchId);
+        }
+
+        $staff = $staffQuery->orderBy('b.branch_name')
+            ->orderBy('u.fullname')
+            ->get(['u.id', 'u.fullname', 'u.email', 'u.branch_id', 'u.can_view_reports', 'u.can_verify_payments', 'b.branch_name']);
+
+        return view('admin.access_control', compact('staff', 'branches', 'selectedBranchId'));
     }
 
     public function update(Request $request, int $id)
@@ -32,6 +48,7 @@ class AdminAccessControlController extends Controller
         $validated = $request->validate([
             'can_view_reports' => ['required', 'boolean'],
             'can_verify_payments' => ['required', 'boolean'],
+            'branch_id' => ['nullable', 'integer', 'exists:branches,id'],
         ]);
 
         $staffMember = DB::table('users')
@@ -53,7 +70,9 @@ class AdminAccessControlController extends Controller
                 'can_verify_payments' => (bool) $validated['can_verify_payments'],
             ]);
 
-        return redirect()->route('admin.access-control')
+        return redirect()->route('admin.access-control', array_filter([
+            'branch_id' => $validated['branch_id'] ?? null,
+        ], static fn ($value) => $value !== null))
             ->with('success', 'Staff access updated.');
     }
 }

@@ -50,6 +50,16 @@
             background: #eff6ff;
             font-size: 1.1rem;
         }
+        .branch-filter {
+            display: flex;
+            align-items: end;
+            gap: .75rem;
+            padding: 1rem 1.15rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            background: #fff;
+        }
+        .branch-filter-select { min-width: 230px; }
         .access-table-card {
             overflow: hidden;
             border: 1px solid #e2e8f0;
@@ -176,9 +186,27 @@
                         </div>
                     </div>
                     <span class="badge rounded-pill text-bg-light border px-3 py-2">
-                        <i class="bi bi-people me-1"></i> {{ $staff->count() }} active staff
+                        <i class="bi bi-people me-1"></i> {{ $staff->count() }} staff shown
                     </span>
                 </section>
+
+                <form method="GET" action="{{ route('admin.access-control') }}" class="branch-filter mb-4">
+                    <div class="branch-filter-select">
+                        <label for="accessBranchFilter" class="form-label small fw-semibold text-muted mb-1">Filter by branch</label>
+                        <select id="accessBranchFilter" name="branch_id" class="form-select">
+                            <option value="">All branches</option>
+                            @foreach($branches as $branch)
+                                <option value="{{ $branch->id }}" @selected((string) $selectedBranchId === (string) $branch->id)>
+                                    {{ $branch->branch_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary px-4"><i class="bi bi-funnel me-1"></i> Apply</button>
+                    @if($selectedBranchId)
+                        <a href="{{ route('admin.access-control') }}" class="btn btn-light border">Clear</a>
+                    @endif
+                </form>
 
                 <div class="row g-3 mb-4">
                     <div class="col-sm-6 col-xl-4">
@@ -233,6 +261,9 @@
                                                 @method('PUT')
                                                 <input type="hidden" name="can_view_reports" value="0">
                                                 <input type="hidden" name="can_verify_payments" value="0">
+                                                @if($selectedBranchId)
+                                                    <input type="hidden" name="branch_id" value="{{ $selectedBranchId }}">
+                                                @endif
                                                 <div class="access-setting">
                                                     <i class="bi bi-file-earmark-text text-primary"></i>
                                                     <div class="form-check form-switch">

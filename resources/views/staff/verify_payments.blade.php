@@ -71,12 +71,12 @@
             @if(auth()->user()->can_view_reports)
                 <hr class="mx-3 opacity-25">
                 <li class="nav-item">
-                    <a class="nav-link d-flex align-items-center justify-content-between" data-bs-toggle="collapse" href="#staffReportsDropdown" role="button" aria-expanded="true">
+                    <a class="nav-link d-flex align-items-center justify-content-between" data-bs-toggle="collapse" href="#staffReportsDropdown" role="button" aria-expanded="false">
                         <span><i class="bi bi-file-earmark-bar-graph"></i> Reports</span>
                         <i class="bi bi-chevron-down small"></i>
                     </a>
-                    <div class="collapse show" id="staffReportsDropdown">
-                        <ul class="nav flex-column ps-3">
+                    <div class="collapse" id="staffReportsDropdown">
+                        <ul class="nav flex-column ps-2">
                             <li class="nav-item"><a href="{{ route('staff.transaction.report') }}" class="nav-link"><i class="bi bi-file-earmark-text"></i> Transaction Report</a></li>
                             <li class="nav-item"><a href="{{ route('staff.financial.report') }}" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Financial Report</a></li>
                             <li class="nav-item"><a href="{{ route('staff.utility.report') }}" class="nav-link"><i class="bi bi-droplet"></i> Utility Report</a></li>

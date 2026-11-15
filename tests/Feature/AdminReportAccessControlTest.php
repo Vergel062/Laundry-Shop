@@ -28,14 +28,17 @@ class AdminReportAccessControlTest extends TestCase
         Schema::create('branches', function (Blueprint $table) {
             $table->id();
             $table->string('branch_name');
+            $table->dateTime('archive_date')->nullable();
         });
 
         DB::table('branches')->insert(['id' => 1, 'branch_name' => 'Carmona']);
+        DB::table('branches')->insert(['id' => 2, 'branch_name' => 'Biñan']);
         DB::table('users')->insert([
             ['id' => 1, 'fullname' => 'Admin User', 'email' => 'admin@example.com', 'role' => 'admin', 'branch_id' => null, 'can_view_reports' => false, 'can_verify_payments' => true, 'is_archived' => false],
             ['id' => 2, 'fullname' => 'Staff One', 'email' => 'staff1@example.com', 'role' => 'staff', 'branch_id' => 1, 'can_view_reports' => false, 'can_verify_payments' => true, 'is_archived' => false],
             ['id' => 3, 'fullname' => 'Staff Two', 'email' => 'staff2@example.com', 'role' => 'staff', 'branch_id' => 1, 'can_view_reports' => false, 'can_verify_payments' => true, 'is_archived' => false],
             ['id' => 4, 'fullname' => 'Manager User', 'email' => 'manager@example.com', 'role' => 'manager', 'branch_id' => 1, 'can_view_reports' => false, 'can_verify_payments' => true, 'is_archived' => false],
+            ['id' => 5, 'fullname' => 'Staff Three', 'email' => 'staff3@example.com', 'role' => 'staff', 'branch_id' => 2, 'can_view_reports' => false, 'can_verify_payments' => true, 'is_archived' => false],
         ]);
     }
 
@@ -77,7 +80,24 @@ class AdminReportAccessControlTest extends TestCase
             ->get(route('admin.access-control'))
             ->assertOk();
 
-        $this->assertSame([2], $response->viewData('staff')->pluck('id')->all());
+        $this->assertSame([5, 2], $response->viewData('staff')->pluck('id')->all());
+    }
+
+    public function test_access_control_lists_staff_across_branches_and_can_filter_by_branch(): void
+    {
+        $this->actingAs($this->user(1, 'admin'));
+
+        $this->get(route('admin.access-control'))
+            ->assertOk()
+            ->assertViewHas('staff', function ($staff) {
+                return $staff->pluck('id')->all() === [5, 2, 3];
+            });
+
+        $this->get(route('admin.access-control', ['branch_id' => 2]))
+            ->assertOk()
+            ->assertViewHas('staff', function ($staff) {
+                return $staff->pluck('id')->all() === [5];
+            });
     }
 
     public function test_non_admin_cannot_change_report_access(): void
