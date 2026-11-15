@@ -4,6 +4,8 @@
     var interval = 10000;
     var refreshPending = false;
     var requestInProgress = false;
+    var dirtyForms = new Set();
+    var dirtyContentEditable = false;
     var scrollStorageKey = 'live-refresh-scroll:' + window.location.pathname + window.location.search;
 
     function currentPageText(body) {
@@ -16,7 +18,7 @@
     }
 
     function hasUnsavedChanges() {
-        if (document.querySelector('.modal.show, [contenteditable="true"]:focus')) {
+        if (dirtyForms.size > 0 || dirtyContentEditable || document.querySelector('.modal.show')) {
             return true;
         }
 
@@ -25,25 +27,7 @@
             return true;
         }
 
-        return Array.prototype.some.call(document.forms, function (form) {
-            return Array.prototype.some.call(form.elements, function (field) {
-                if (field.disabled || field.type === 'button' || field.type === 'submit' || field.type === 'reset' || field.type === 'hidden') {
-                    return false;
-                }
-
-                if (field.type === 'checkbox' || field.type === 'radio') {
-                    return field.checked !== field.defaultChecked;
-                }
-
-                if (field.tagName === 'SELECT') {
-                    return Array.prototype.some.call(field.options, function (option) {
-                        return option.selected !== option.defaultSelected;
-                    });
-                }
-
-                return field.value !== field.defaultValue;
-            });
-        });
+        return false;
     }
 
     function reloadWhenSafe() {
@@ -79,7 +63,7 @@
         });
     }
 
-    window.setInterval(function () {
+    function checkForUpdates() {
         if (document.visibilityState !== 'visible') {
             return;
         }
@@ -122,5 +106,40 @@
             .then(function () {
                 requestInProgress = false;
             });
-    }, interval);
+    }
+
+    document.addEventListener('input', function (event) {
+        if (!event.isTrusted) {
+            return;
+        }
+
+        var form = event.target.closest('form');
+        if (form) {
+            dirtyForms.add(form);
+        }
+
+        if (event.target.isContentEditable) {
+            dirtyContentEditable = true;
+        }
+    }, true);
+
+    document.addEventListener('change', function (event) {
+        if (event.isTrusted) {
+            var form = event.target.closest('form');
+            if (form) {
+                dirtyForms.add(form);
+            }
+        }
+    }, true);
+
+    document.addEventListener('reset', function (event) {
+        var form = event.target;
+        window.setTimeout(function () {
+            dirtyForms.delete(form);
+        }, 0);
+    }, true);
+
+    window.setInterval(checkForUpdates, interval);
+    document.addEventListener('visibilitychange', checkForUpdates);
+    window.addEventListener('focus', checkForUpdates);
 })();

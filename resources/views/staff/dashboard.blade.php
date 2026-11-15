@@ -11,12 +11,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="stylesheet" href="{{ asset('css/Staff.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/Admin.css') }}">
 </head>
 <style>
     #sidebar {
         min-width: 260px;
         max-width: 260px;
-        background: #1e293b;
+        background: #0f172a;
         color: #fff;
         display: flex;
         flex-direction: column;
@@ -26,16 +27,16 @@
         overflow-x: hidden;
         overflow-y: auto;
         scrollbar-width: thin;
-        scrollbar-color: #475569 #1e293b;
+        scrollbar-color: #334155 #0f172a;
     }
     #sidebar::-webkit-scrollbar { width: 6px; }
-    #sidebar::-webkit-scrollbar-track { background: #1e293b; }
-    #sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
+    #sidebar::-webkit-scrollbar-track { background: #0f172a; }
+    #sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     #content { 
         flex: 1;
         height: 100vh;
         overflow-y: auto;
-        background-color: #f8fafc;
+        background-color: #f1f5f9;
     }
     #sidebar .nav-link {
         color: rgba(255,255,255,0.7);
@@ -45,8 +46,8 @@
         transition: 0.2s;
     }
     #sidebar .nav-link:hover, #sidebar .nav-link.active {
-        background: rgba(255,255,255,0.1);
-        color: #fff;
+        background: #1e293b;
+        color: #38bdf8;
     }
     #sidebar .nav-link i { margin-right: 10px; }
     .sticky-nav {

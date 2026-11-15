@@ -8,6 +8,119 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ asset('css/Admin.css') }}">
+    <style>
+        .access-control-page { background: #f1f5f9; min-height: 100%; }
+        .access-hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+            padding: 1.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.25rem;
+            background: linear-gradient(120deg, #fff 0%, #f8fafc 70%, #eff6ff 100%);
+            box-shadow: 0 10px 28px rgba(15, 23, 42, .05);
+        }
+        .access-hero-icon {
+            display: grid;
+            place-items: center;
+            width: 58px;
+            height: 58px;
+            flex: 0 0 58px;
+            border-radius: 17px;
+            color: #2563eb;
+            background: #dbeafe;
+            font-size: 1.55rem;
+        }
+        .access-stat {
+            height: 100%;
+            padding: 1.15rem 1.25rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            background: #fff;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, .04);
+        }
+        .access-stat-icon {
+            display: grid;
+            place-items: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            color: #2563eb;
+            background: #eff6ff;
+            font-size: 1.1rem;
+        }
+        .access-table-card {
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.15rem;
+            background: #fff;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, .05);
+        }
+        .access-table { min-width: 760px; }
+        .access-table thead th {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+            color: #64748b;
+            background: #f8fafc;
+            font-size: .72rem;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+        .access-table tbody td { padding-top: 1rem; padding-bottom: 1rem; border-color: #f1f5f9; }
+        .access-person { display: flex; align-items: center; gap: .75rem; }
+        .access-avatar {
+            display: grid;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            flex: 0 0 42px;
+            border-radius: 14px;
+            color: #1d4ed8;
+            background: linear-gradient(145deg, #dbeafe, #ede9fe);
+            font-weight: 700;
+        }
+        .branch-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: .4rem;
+            padding: .38rem .65rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 999px;
+            color: #475569;
+            background: #f8fafc;
+            font-size: .8rem;
+            white-space: nowrap;
+        }
+        .access-settings { display: grid; gap: .5rem; }
+        .access-setting {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            padding: .55rem .7rem;
+            border: 1px solid #e2e8f0;
+            border-radius: .75rem;
+            background: #fff;
+        }
+        .access-setting .form-check { min-height: 0; margin: 0; }
+        .access-setting .form-check-input { cursor: pointer; }
+        .access-setting-label { color: #334155; font-size: .82rem; font-weight: 600; }
+        .access-save {
+            width: 100%;
+            border: 0;
+            border-radius: .75rem;
+            color: #fff;
+            background: #1d4ed8;
+            font-weight: 600;
+            transition: background .2s ease, transform .2s ease;
+        }
+        .access-save:hover { color: #fff; background: #1e40af; transform: translateY(-1px); }
+        @media (max-width: 768px) {
+            .access-hero { align-items: flex-start; padding: 1.25rem; }
+            .access-hero-icon { display: none; }
+        }
+    </style>
 </head>
 <body class="bg-light">
     <div class="overlay" id="overlay"></div>
@@ -52,19 +165,49 @@
                 </div>
             </nav>
 
-            <div class="container-fluid p-4">
-                <div class="mb-4">
-                    <h4 class="fw-bold">Staff Access Control</h4>
-                    <p class="text-muted mb-0">Manage report access and payment verification for each Staff account.</p>
+            <div class="container-fluid p-4 access-control-page">
+                <section class="access-hero mb-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="access-hero-icon"><i class="bi bi-shield-lock"></i></div>
+                        <div>
+                            <span class="text-primary small fw-bold text-uppercase">Permissions</span>
+                            <h4 class="fw-bold mb-1">Staff Access Control</h4>
+                            <p class="text-muted mb-0">Choose which tools each Staff account can use.</p>
+                        </div>
+                    </div>
+                    <span class="badge rounded-pill text-bg-light border px-3 py-2">
+                        <i class="bi bi-people me-1"></i> {{ $staff->count() }} active staff
+                    </span>
+                </section>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6 col-xl-4">
+                        <div class="access-stat d-flex align-items-center gap-3">
+                            <span class="access-stat-icon"><i class="bi bi-file-earmark-bar-graph"></i></span>
+                            <div><small class="text-muted d-block">Report access enabled</small><strong class="fs-5" id="reportAccessCount">{{ $staff->where('can_view_reports', 1)->count() }}</strong></div>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-4">
+                        <div class="access-stat d-flex align-items-center gap-3">
+                            <span class="access-stat-icon text-success bg-success-subtle"><i class="bi bi-patch-check"></i></span>
+                            <div><small class="text-muted d-block">Payment verification enabled</small><strong class="fs-5" id="paymentAccessCount">{{ $staff->where('can_verify_payments', 1)->count() }}</strong></div>
+                        </div>
+                    </div>
+                    <div class="col-xl-4 d-none d-xl-block">
+                        <div class="access-stat d-flex align-items-center gap-3">
+                            <span class="access-stat-icon text-info bg-info-subtle"><i class="bi bi-diagram-3"></i></span>
+                            <div><small class="text-muted d-block">Branch-scoped report access</small><strong class="fs-6">Enabled per staff account</strong></div>
+                        </div>
+                    </div>
                 </div>
 
                 @if(session('success'))
                     <div class="alert alert-success">{{ session('success') }}</div>
                 @endif
 
-                <div class="card shadow-sm border-0 rounded-4">
+                <div class="access-table-card">
                     <div class="table-responsive">
-                        <table class="table align-middle mb-0">
+                        <table class="table access-table align-middle mb-0">
                             <thead class="table-light">
                                 <tr>
                                     <th class="ps-4">Staff</th>
@@ -76,28 +219,37 @@
                             <tbody>
                                 @forelse($staff as $member)
                                     <tr>
-                                        <td class="ps-4 fw-semibold">{{ $member->fullname }}</td>
-                                        <td>{{ $member->branch_name ?? 'No branch assigned' }}</td>
-                                        <td>{{ $member->email }}</td>
+                                        <td class="ps-4">
+                                            <div class="access-person">
+                                                <span class="access-avatar">{{ strtoupper(substr($member->fullname ?? 'S', 0, 1)) }}</span>
+                                                <div><div class="fw-semibold text-dark">{{ $member->fullname }}</div><small class="text-muted">Staff account</small></div>
+                                            </div>
+                                        </td>
+                                        <td><span class="branch-pill"><i class="bi bi-geo-alt"></i>{{ $member->branch_name ?? 'No branch assigned' }}</span></td>
+                                        <td class="text-muted">{{ $member->email }}</td>
                                         <td class="text-center">
-                                            <form action="{{ route('admin.access-control.staff.update', $member->id) }}" method="POST" class="d-inline-flex flex-column align-items-start gap-2">
+                                            <form action="{{ route('admin.access-control.staff.update', $member->id) }}" method="POST" class="access-settings mx-auto" style="max-width: 265px;">
                                                 @csrf
                                                 @method('PUT')
                                                 <input type="hidden" name="can_view_reports" value="0">
                                                 <input type="hidden" name="can_verify_payments" value="0">
-                                                <div class="form-check form-switch mb-0">
+                                                <div class="access-setting">
+                                                    <i class="bi bi-file-earmark-text text-primary"></i>
+                                                    <div class="form-check form-switch">
                                                     <input class="form-check-input" type="checkbox" role="switch" name="can_view_reports" value="1" id="staffReportAccess{{ $member->id }}" @checked($member->can_view_reports)>
-                                                    <label class="form-check-label" for="staffReportAccess{{ $member->id }}">
-                                                        Reports: {{ $member->can_view_reports ? 'On' : 'Off' }}
-                                                    </label>
+                                                    <label class="form-check-label access-setting-label" for="staffReportAccess{{ $member->id }}">Reports</label>
+                                                    </div>
+                                                    <span class="badge rounded-pill {{ $member->can_view_reports ? 'text-bg-primary' : 'text-bg-light text-secondary' }}">{{ $member->can_view_reports ? 'On' : 'Off' }}</span>
                                                 </div>
-                                                <div class="form-check form-switch mb-0">
+                                                <div class="access-setting">
+                                                    <i class="bi bi-patch-check text-success"></i>
+                                                    <div class="form-check form-switch">
                                                     <input class="form-check-input" type="checkbox" role="switch" name="can_verify_payments" value="1" id="staffPaymentVerification{{ $member->id }}" @checked($member->can_verify_payments)>
-                                                    <label class="form-check-label" for="staffPaymentVerification{{ $member->id }}">
-                                                        Payment Verification: {{ $member->can_verify_payments ? 'On' : 'Off' }}
-                                                    </label>
+                                                    <label class="form-check-label access-setting-label" for="staffPaymentVerification{{ $member->id }}">Payment verification</label>
+                                                    </div>
+                                                    <span class="badge rounded-pill {{ $member->can_verify_payments ? 'text-bg-success' : 'text-bg-light text-secondary' }}">{{ $member->can_verify_payments ? 'On' : 'Off' }}</span>
                                                 </div>
-                                            <button type="submit" class="btn btn-sm btn-outline-primary">Save</button>
+                                                <button type="submit" class="btn access-save py-2"><i class="bi bi-check2-circle me-1"></i> Save access</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -114,6 +266,23 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ asset('js/Admin_script.js') }}"></script>
+    <script>
+        document.querySelectorAll('.access-setting input[type="checkbox"]').forEach(function (toggle) {
+            toggle.addEventListener('change', function () {
+                var badge = toggle.closest('.access-setting').querySelector('.badge');
+                var enabled = toggle.checked;
+                var enabledClass = toggle.name === 'can_view_reports' ? 'text-bg-primary' : 'text-bg-success';
+
+                badge.textContent = enabled ? 'On' : 'Off';
+                badge.className = 'badge rounded-pill ' + (enabled ? enabledClass : 'text-bg-light text-secondary');
+
+                document.getElementById('reportAccessCount').textContent =
+                    document.querySelectorAll('input[name="can_view_reports"][value="1"]:checked').length;
+                document.getElementById('paymentAccessCount').textContent =
+                    document.querySelectorAll('input[name="can_verify_payments"][value="1"]:checked').length;
+            });
+        });
+    </script>
     @include('shared.live-refresh')
 </body>
 </html>

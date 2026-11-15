@@ -8,16 +8,17 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="{{ asset('css/Admin.css') }}">
     
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; margin: 0; display: flex; height: 100vh; overflow: hidden; }
-        #sidebar { min-width: 260px; max-width: 260px; background: #1e293b; color: #fff; display: flex; flex-direction: column; height: 100vh; z-index: 1050; transition: all 0.3s ease; overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #475569 #1e293b; }
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        #sidebar { min-width: 260px; max-width: 260px; background: #0f172a; color: #fff; display: flex; flex-direction: column; height: 100vh; z-index: 1050; transition: all 0.3s ease; overflow-x: hidden; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #334155 #0f172a; }
         #sidebar::-webkit-scrollbar { width: 6px; }
-        #sidebar::-webkit-scrollbar-track { background: #1e293b; }
-        #sidebar::-webkit-scrollbar-thumb { background: #475569; border-radius: 10px; }
-        #content { flex: 1; height: 100vh; overflow-y: auto; background-color: #f8fafc; }
-        #sidebar .nav-link { color: rgba(255,255,255,0.7); padding: 12px 20px; border-radius: 8px; margin: 5px 15px; transition: 0.2s; }
-        #sidebar .nav-link:hover, #sidebar .nav-link.active { background: rgba(255,255,255,0.1); color: #fff; }
+        #sidebar::-webkit-scrollbar-track { background: #0f172a; }
+        #sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        #content { flex: 1; height: 100vh; overflow-y: auto; background-color: #f1f5f9; }
+        #sidebar .nav-link { color: #94a3b8; padding: 12px 20px; border-radius: 8px; margin: 5px 15px; transition: 0.2s; }
+        #sidebar .nav-link:hover, #sidebar .nav-link.active { background: #1e293b; color: #38bdf8; }
         #sidebar .nav-link i { margin-right: 10px; }
         .sticky-nav { position: sticky; top: 0; z-index: 999; background: white; border-bottom: 1px solid #e2e8f0; }
         .inventory-card { background: #ffffff; border-radius: 15px; border: 1px solid #eef2f7; overflow: hidden; }
