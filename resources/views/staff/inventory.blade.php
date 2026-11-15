@@ -63,8 +63,8 @@
                         <span><i class="bi bi-file-earmark-bar-graph"></i> Reports</span>
                         <i class="bi bi-chevron-down small"></i>
                     </a>
-                    <div class="collapse" id="staffReportsDropdown">
-                        <ul class="nav flex-column ps-2">
+                    <div class="collapse staff-reports-dropdown" id="staffReportsDropdown">
+                        <ul class="nav flex-column ps-3">
                             <li class="nav-item"><a href="{{ route('staff.transaction.report') }}" class="nav-link"><i class="bi bi-file-earmark-text"></i> Transaction Report</a></li>
                             <li class="nav-item"><a href="{{ route('staff.financial.report') }}" class="nav-link"><i class="bi bi-graph-up-arrow"></i> Financial Report</a></li>
                             <li class="nav-item"><a href="{{ route('staff.utility.report') }}" class="nav-link"><i class="bi bi-droplet"></i> Utility Report</a></li>

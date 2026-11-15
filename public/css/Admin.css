@@ -68,14 +68,14 @@ input:-webkit-autofill:active {
 }
 
 #sidebar .staff-reports-dropdown .nav-link {
-    margin: 3px 6px;
+    margin: 3px 8px 3px 15px;
     padding: 10px 8px;
     font-size: 0.88rem;
     white-space: nowrap;
 }
 
 #sidebar .staff-reports-dropdown .nav-link i {
-    margin-right: 8px;
+    margin-right: 12px;
 }
 
 #sidebar .sidebar-brand {
