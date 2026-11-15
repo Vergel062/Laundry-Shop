@@ -48,6 +48,7 @@ class ReportSortingTest extends TestCase
             $table->decimal('total_amount', 10, 2)->default(0);
             $table->string('order_status')->nullable();
             $table->string('payment_status')->nullable();
+            $table->string('payment_method')->nullable();
             $table->timestamp('created_at')->nullable();
         });
 
@@ -256,6 +257,7 @@ class ReportSortingTest extends TestCase
 
         $this->assertSame([2, 1], $response->getData()['list']->pluck('id')->all());
         $this->assertTrue($response->getData()['isStaffReport']);
+        $this->assertStringContainsString('Logout', $response->render());
     }
 
     public function test_authorized_staff_financial_report_is_limited_to_their_branch(): void
@@ -274,6 +276,7 @@ class ReportSortingTest extends TestCase
         $this->assertSame([1], $response->getData()['transactions']->pluck('id')->all());
         $this->assertSame(100.0, (float) $response->getData()['total_sales']);
         $this->assertTrue($response->getData()['isStaffReport']);
+        $this->assertStringContainsString('Logout', $response->render());
     }
 
     public function test_authorized_staff_utility_report_is_limited_to_their_branch(): void
@@ -291,6 +294,7 @@ class ReportSortingTest extends TestCase
 
         $this->assertSame([1], $response->getData()['logs']->pluck('id')->all());
         $this->assertTrue($response->getData()['isStaffReport']);
+        $this->assertStringContainsString('Logout', $response->render());
     }
 
     public function test_staff_without_report_access_is_denied(): void
@@ -332,6 +336,7 @@ class ReportSortingTest extends TestCase
             'total_amount' => $amount,
             'order_status' => 'Claimed',
             'payment_status' => 'Paid',
+            'payment_method' => null,
             'created_at' => $date . ' 12:00:00',
         ]);
     }

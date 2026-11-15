@@ -67,24 +67,6 @@ input:-webkit-autofill:active {
     font-size: 1.1rem; 
 }
 
-#sidebar.staff-sidebar {
-    display: flex;
-    flex-direction: column;
-}
-
-#sidebar .staff-reports-item {
-    position: relative;
-}
-
-#sidebar .staff-reports-item > .staff-reports-dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    left: 0;
-    z-index: 1060;
-    background: #0f172a;
-}
-
 #sidebar .sidebar-brand {
     position: relative;
     justify-content: center !important;

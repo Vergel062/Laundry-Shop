@@ -140,7 +140,7 @@
             @endif
             <button class="btn text-white d-lg-none p-0 border-0" id="closeSidebar"><i class="bi bi-x-lg fs-4"></i></button>
         </div>
-        <ul class="nav flex-column mt-2">
+        <ul class="nav flex-column {{ $isStaffReport ? 'mt-3' : 'mt-2' }}">
             @if($isStaffReport)
                 <li class="nav-item"><a href="{{ route('staff.dashboard') }}" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
                 <li class="nav-item"><a href="{{ route('staff.services') }}" class="nav-link"><i class="bi bi-clock-history"></i> Transaction History</a></li>
@@ -161,6 +161,14 @@
                             <li class="nav-item"><a href="{{ route('staff.utility.report') }}" class="nav-link"><i class="bi bi-droplet"></i> Utility Report</a></li>
                         </ul>
                     </div>
+                </li>
+                <li class="nav-item mt-1">
+                    <form action="{{ route('logout') }}" method="POST">
+                        @csrf
+                        <button type="submit" class="nav-link text-danger logout-btn border-0 bg-transparent w-100 text-start">
+                            <i class="bi bi-box-arrow-left"></i> Logout
+                        </button>
+                    </form>
                 </li>
             @else
             <li class="nav-item"><a href="{{ route('manager.dashboard') }}" class="nav-link"><i class="bi bi-house-door"></i> Dashboard</a></li>
