@@ -17,7 +17,7 @@
         #sidebar::-webkit-scrollbar-track { background: #0f172a; }
         #sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         #content { flex: 1; height: 100vh; overflow-y: auto; background-color: #f1f5f9; }
-        #sidebar .nav-link { color: #94a3b8; padding: 12px 20px; border-radius: 8px; margin: 5px 15px; transition: 0.2s; text-decoration: none; display: block; }
+        #sidebar .nav-link { color: #94a3b8; padding: 12px 20px; border-radius: 8px; margin: 5px 15px; transition: 0.2s; text-decoration: none; }
         #sidebar .nav-link:hover, #sidebar .nav-link.active { background: #1e293b; color: #38bdf8; }
         #sidebar .nav-link i { margin-right: 10px; }
         .sticky-nav { position: sticky; top: 0; z-index: 999; background: white; border-bottom: 1px solid #e2e8f0; }
