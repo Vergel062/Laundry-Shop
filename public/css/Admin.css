@@ -72,15 +72,17 @@ input:-webkit-autofill:active {
     flex-direction: column;
 }
 
-#sidebar .staff-sidebar-nav {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    min-height: 0;
+#sidebar .staff-reports-item {
+    position: relative;
 }
 
-#sidebar .staff-sidebar-logout {
-    margin-top: auto;
+#sidebar .staff-reports-item > .staff-reports-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    z-index: 1060;
+    background: #0f172a;
 }
 
 #sidebar .sidebar-brand {

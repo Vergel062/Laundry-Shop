@@ -61,7 +61,7 @@
             </button>
         </div>
 
-        <ul class="nav flex-column mt-3 staff-sidebar-nav">
+        <ul class="nav flex-column mt-3">
             <li class="nav-item"><a href="{{ route('staff.dashboard') }}" class="nav-link"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
             <li class="nav-item"><a href="{{ route('staff.services') }}" class="nav-link"><i class="bi bi-clock-history"></i>Transaction History</a></li>
             @if(auth()->user()->can_verify_payments)
@@ -70,7 +70,7 @@
             <li class="nav-item"><a href="{{ route('staff.inventory') }}" class="nav-link"><i class="bi bi-box-seam"></i> Inventory</a></li>
             @if(auth()->user()->can_view_reports)
                 <hr class="mx-3 opacity-25">
-                <li class="nav-item">
+                <li class="nav-item staff-reports-item">
                     <a class="nav-link d-flex align-items-center justify-content-between" data-bs-toggle="collapse" href="#staffReportsDropdown" role="button" aria-expanded="false">
                         <span><i class="bi bi-file-earmark-bar-graph"></i> Reports</span>
                         <i class="bi bi-chevron-down small"></i>
@@ -84,8 +84,7 @@
                     </div>
                 </li>
             @endif
-            <hr class="mx-3 opacity-25">
-            <li class="nav-item staff-sidebar-logout">
+            <li class="nav-item mt-1">
                 <form id="logoutForm" action="{{ route('logout') }}" method="POST">
                     @csrf
                     <button type="submit" class="nav-link text-danger logout-btn border-0 bg-transparent w-100 text-start">
